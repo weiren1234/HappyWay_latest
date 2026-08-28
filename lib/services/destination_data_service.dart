@@ -1,0 +1,295 @@
+import '../models/travel_destination.dart';
+import '../models/travel_score.dart';
+
+/// DestinationDataService provides a curated directory of 16 top Malaysian tourist destinations,
+/// each linked to a verified official MET Malaysia weather forecast location ID.
+///
+/// NOTE: Weather data is populated exclusively on-demand from the official MET API.
+class DestinationDataService {
+  /// Confirmed MET Malaysia location IDs for each curated destination.
+  static const Map<String, String> metLocationIds = {
+    'dest_cameron': 'LOCATION:314', // Cameron Highlands
+    'dest_langkawi': 'LOCATION:323', // Langkawi Island
+    'dest_genting': 'LOCATION:317', // Genting Highlands
+    'dest_kundasang': 'LOCATION:829', // Kundasang & Mt Kinabalu
+    'dest_taman_negara': 'LOCATION:331', // Taman Negara
+    'dest_desaru': 'LOCATION:316', // Desaru
+    'dest_batu_ferringhi': 'LOCATION:310', // Batu Ferringhi
+    'dest_redang': 'LOCATION:326', // Pulau Redang
+    'dest_pangkor': 'LOCATION:324', // Pulau Pangkor
+    'dest_tioman': 'LOCATION:329', // Pulau Tioman
+    'dest_perhentian': 'LOCATION:325', // Pulau Perhentian
+    'dest_port_dickson': 'LOCATION:186', // Port Dickson
+    'dest_fraser': 'LOCATION:313', // Fraser's Hill
+    'dest_melaka': 'LOCATION:174', // Melaka Historic City
+    'dest_kenyir': 'LOCATION:337', // Tasik Kenyir
+    'dest_cherating': 'LOCATION:315', // Cherating
+  };
+
+  /// Supported recommendation preference categories.
+  static const List<String> preferenceCategories = [
+    'Nature',
+    'Highlands',
+    'Beach',
+    'Island',
+    'Hiking',
+    'Sightseeing',
+    'Relaxing',
+    'Family Trip',
+  ];
+
+  /// Returns the 16 curated featured tourist destinations with static metadata.
+  static List<TravelDestination> getDestinations() {
+    return [
+      _build(
+        id: 'dest_cameron',
+        name: 'Cameron Highlands',
+        state: 'Pahang',
+        category: 'Highlands',
+        metLocationId: 'LOCATION:314',
+        locationCategoryId: 'TOURISTDEST',
+        latitude: 4.48333,
+        longitude: 101.45000,
+        activityTags: ['Highlands', 'Nature', 'Relaxing', 'Sightseeing', 'Hiking'],
+        imageUrl: 'assets/destinations/cameron_highlands.jpg',
+        description: 'Scenic highland retreat famous for sprawling tea plantations, strawberry farms, cool misty climate, and mossy forest trekking trails.',
+        isTrending: true,
+      ),
+      _build(
+        id: 'dest_langkawi',
+        name: 'Langkawi Island',
+        state: 'Kedah',
+        category: 'Island & Beach',
+        metLocationId: 'LOCATION:323',
+        locationCategoryId: 'TOURISTDEST',
+        latitude: 6.36667,
+        longitude: 99.80000,
+        activityTags: ['Beach', 'Island', 'Relaxing', 'Family Trip', 'Sightseeing'],
+        imageUrl: 'assets/destinations/langkawi_island.jpg',
+        description: 'Tropical paradise archipelago of 99 islands, known for duty-free shopping, pristine beaches, mangrove forests, and iconic cable car views.',
+        isTrending: true,
+      ),
+      _build(
+        id: 'dest_genting',
+        name: 'Genting Highlands',
+        state: 'Pahang',
+        category: 'Highlands',
+        metLocationId: 'LOCATION:317',
+        locationCategoryId: 'TOURISTDEST',
+        latitude: 3.39545,
+        longitude: 101.77915,
+        activityTags: ['Highlands', 'Sightseeing', 'Relaxing', 'Family Trip'],
+        imageUrl: 'assets/destinations/genting_highlands.jpg',
+        description: 'Cool mountain resort city known for indoor and outdoor theme parks, cable cars, and entertainment hubs set atop the Titiwangsa Range.',
+        isTrending: true,
+      ),
+      _build(
+        id: 'dest_kundasang',
+        name: 'Kundasang & Mt Kinabalu',
+        state: 'Sabah',
+        category: 'Highlands',
+        metLocationId: 'LOCATION:829',
+        locationCategoryId: 'TOURISTDEST',
+        latitude: 6.13450,
+        longitude: 116.63750,
+        activityTags: ['Highlands', 'Nature', 'Hiking', 'Sightseeing'],
+        imageUrl: 'assets/destinations/kundasang.jpg',
+        description: 'Breathtaking alpine plateau at the foot of Mount Kinabalu (4,095m), featuring dairy farms, pine forests, and UNESCO World Heritage biodiversity.',
+        isTrending: true,
+      ),
+      _build(
+        id: 'dest_taman_negara',
+        name: 'Taman Negara Rainforest',
+        state: 'Pahang',
+        category: 'Nature',
+        metLocationId: 'LOCATION:331',
+        locationCategoryId: 'TOURISTDEST',
+        latitude: 4.61061,
+        longitude: 102.41671,
+        activityTags: ['Nature', 'Hiking', 'Relaxing'],
+        imageUrl: 'assets/destinations/taman_negara.jpg',
+        description: 'One of the world\'s oldest tropical rainforests, spanning 130 million years. Features world-class canopy walkways, night safaris, and rapid shooting.',
+        isTrending: true,
+      ),
+      _build(
+        id: 'dest_desaru',
+        name: 'Desaru Coast',
+        state: 'Johor',
+        category: 'Beach',
+        metLocationId: 'LOCATION:316',
+        locationCategoryId: 'TOURISTDEST',
+        latitude: 1.54020,
+        longitude: 104.26800,
+        activityTags: ['Beach', 'Relaxing', 'Family Trip', 'Sightseeing'],
+        imageUrl: '',
+        description: 'Pristine 17-kilometer stretch of white sandy coastline on the South China Sea, featuring luxury beach resorts, golf clubs, and waterparks.',
+      ),
+      _build(
+        id: 'dest_batu_ferringhi',
+        name: 'Batu Ferringhi',
+        state: 'Pulau Pinang',
+        category: 'Beach',
+        metLocationId: 'LOCATION:310',
+        locationCategoryId: 'TOURISTDEST',
+        latitude: 5.47090,
+        longitude: 100.24529,
+        activityTags: ['Beach', 'Sightseeing', 'Relaxing', 'Family Trip'],
+        imageUrl: '',
+        description: 'Penang\'s premier beach destination, famous for golden sand shores, watersports, sunset beachside dining, and lively night markets.',
+      ),
+      _build(
+        id: 'dest_redang',
+        name: 'Pulau Redang',
+        state: 'Terengganu',
+        category: 'Island',
+        metLocationId: 'LOCATION:326',
+        locationCategoryId: 'TOURISTDEST',
+        latitude: 5.77736,
+        longitude: 103.00759,
+        activityTags: ['Island', 'Beach', 'Relaxing', 'Nature'],
+        imageUrl: '',
+        description: 'Crystal-clear turquoise waters and protected coral reefs, making it Malaysia\'s top destination for snorkeling, diving, and sea turtle spotting.',
+        isTrending: true,
+      ),
+      _build(
+        id: 'dest_pangkor',
+        name: 'Pulau Pangkor',
+        state: 'Perak',
+        category: 'Island',
+        metLocationId: 'LOCATION:324',
+        locationCategoryId: 'TOURISTDEST',
+        latitude: 4.23110,
+        longitude: 100.55990,
+        activityTags: ['Island', 'Beach', 'Relaxing', 'Family Trip'],
+        imageUrl: '',
+        description: 'Idyllic island hideaway featuring quiet coves, Dutch historical forts, traditional fishing villages, and hornbill feeding sanctuaries.',
+      ),
+      _build(
+        id: 'dest_tioman',
+        name: 'Pulau Tioman',
+        state: 'Pahang',
+        category: 'Island',
+        metLocationId: 'LOCATION:329',
+        locationCategoryId: 'TOURISTDEST',
+        latitude: 2.79720,
+        longitude: 104.16600,
+        activityTags: ['Island', 'Beach', 'Nature', 'Hiking', 'Relaxing'],
+        imageUrl: '',
+        description: 'Duty-free island surrounded by coral reefs, rainforest-clad peaks, scenic waterfalls, and secluded beaches popular for trekking and scuba diving.',
+      ),
+      _build(
+        id: 'dest_perhentian',
+        name: 'Pulau Perhentian',
+        state: 'Terengganu',
+        category: 'Island',
+        metLocationId: 'LOCATION:325',
+        locationCategoryId: 'TOURISTDEST',
+        latitude: 5.91450,
+        longitude: 102.73970,
+        activityTags: ['Island', 'Beach', 'Nature', 'Relaxing'],
+        imageUrl: '',
+        description: 'Renowned twin island sanctuary (Besar & Kecil) with powdery white sands, vibrant marine biodiversity, and reef shark swim spots.',
+        isTrending: true,
+      ),
+      _build(
+        id: 'dest_port_dickson',
+        name: 'Port Dickson',
+        state: 'Negeri Sembilan',
+        category: 'Beach',
+        metLocationId: 'LOCATION:186',
+        locationCategoryId: 'TOWN',
+        latitude: 2.52280,
+        longitude: 101.79590,
+        activityTags: ['Beach', 'Family Trip', 'Relaxing', 'Sightseeing'],
+        imageUrl: '',
+        description: 'Popular weekend coastal retreat offering 18 kilometers of beaches, Cape Rachado lighthouse trails, military museums, and seaside dining.',
+      ),
+      _build(
+        id: 'dest_fraser',
+        name: 'Fraser\'s Hill',
+        state: 'Pahang',
+        category: 'Highlands',
+        metLocationId: 'LOCATION:313',
+        locationCategoryId: 'TOURISTDEST',
+        latitude: 3.71260,
+        longitude: 101.74120,
+        activityTags: ['Highlands', 'Nature', 'Hiking', 'Relaxing'],
+        imageUrl: '',
+        description: 'Charming colonial-era hill station known for Tudor architecture, world-renowned bird watching, cool highland air, and tranquil pine nature trails.',
+      ),
+      _build(
+        id: 'dest_melaka',
+        name: 'Melaka Historic City',
+        state: 'Melaka',
+        category: 'Sightseeing',
+        metLocationId: 'LOCATION:174',
+        locationCategoryId: 'TOWN',
+        latitude: 2.19600,
+        longitude: 102.24050,
+        activityTags: ['Sightseeing', 'Family Trip', 'Relaxing'],
+        imageUrl: 'assets/destinations/melaka_city.jpg',
+        description: 'UNESCO World Heritage city celebrated for centuries of Portuguese, Dutch, and British architecture, Jonker Street night markets, and Peranakan culture.',
+      ),
+      _build(
+        id: 'dest_kenyir',
+        name: 'Tasik Kenyir',
+        state: 'Terengganu',
+        category: 'Nature',
+        metLocationId: 'LOCATION:337',
+        locationCategoryId: 'TOURISTDEST',
+        latitude: 5.00000,
+        longitude: 102.80000,
+        activityTags: ['Nature', 'Relaxing', 'Family Trip', 'Hiking'],
+        imageUrl: '',
+        description: 'Southeast Asia\'s largest man-made lake, comprising 340 islands, tropical waterfalls, sanctuary islands, houseboats, and untouched rainforest.',
+      ),
+      _build(
+        id: 'dest_cherating',
+        name: 'Cherating Beach',
+        state: 'Pahang',
+        category: 'Beach',
+        metLocationId: 'LOCATION:315',
+        locationCategoryId: 'TOURISTDEST',
+        latitude: 4.12557,
+        longitude: 103.39388,
+        activityTags: ['Beach', 'Relaxing', 'Nature', 'Family Trip'],
+        imageUrl: '',
+        description: 'Laid-back coastal village famous for turtle conservation sanctuaries, river mangrove firefly tours, wide beaches, and seasonal surf waves.',
+      ),
+    ];
+  }
+
+  static TravelDestination _build({
+    required String id,
+    required String name,
+    required String state,
+    required String category,
+    required String metLocationId,
+    required String locationCategoryId,
+    required double latitude,
+    required double longitude,
+    required List<String> activityTags,
+    required String imageUrl,
+    required String description,
+    bool isSaved = false,
+    bool isTrending = false,
+  }) {
+    return TravelDestination(
+      id: id,
+      name: name,
+      state: state,
+      category: category,
+      metLocationId: metLocationId,
+      locationCategoryId: locationCategoryId,
+      latitude: latitude,
+      longitude: longitude,
+      activityTags: activityTags,
+      imageUrl: imageUrl,
+      description: description,
+      travelScore: TravelScore.initial(),
+      weather: null, // Populated on-demand by official MET Malaysia API
+      isSaved: isSaved,
+      isTrending: isTrending,
+    );
+  }
+}

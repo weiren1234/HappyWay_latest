@@ -1,0 +1,4034 @@
+﻿[
+    {
+        "id":  "LOCATION:316",
+        "name":  "DESARU",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  1.5402,
+        "longitude":  104.268
+    },
+    {
+        "id":  "LOCATION:327",
+        "name":  "PULAU SIBU",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  2.2205,
+        "longitude":  104.0668
+    },
+    {
+        "id":  "LOCATION:323",
+        "name":  "PULAU LANGKAWI",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  6.36667,
+        "longitude":  99.8
+    },
+    {
+        "id":  "LOCATION:332",
+        "name":  "TAMAN NEGARA KELANTAN",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:3",
+        "state":  "KELANTAN",
+        "latitude":  4.7,
+        "longitude":  102.466667
+    },
+    {
+        "id":  "LOCATION:314",
+        "name":  "CAMERON HIGHLANDS",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  4.48333,
+        "longitude":  101.45
+    },
+    {
+        "id":  "LOCATION:315",
+        "name":  "CHERATING",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  4.12557,
+        "longitude":  103.39388
+    },
+    {
+        "id":  "LOCATION:317",
+        "name":  "GENTING HIGHLANDS",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.39545,
+        "longitude":  101.77915
+    },
+    {
+        "id":  "LOCATION:763",
+        "name":  "TASIKH BERA",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:762",
+        "name":  "FRASER\u0027S HILL",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:544",
+        "name":  "TASIK BERA",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.8166668,
+        "longitude":  102.3991574
+    },
+    {
+        "id":  "LOCATION:331",
+        "name":  "TAMAN NEGARA",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  4.6106103,
+        "longitude":  102.4167082
+    },
+    {
+        "id":  "LOCATION:330",
+        "name":  "PUSAT KONSERVASI GAJAH KEBANGSAAN",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.529165,
+        "longitude":  102.158058
+    },
+    {
+        "id":  "LOCATION:329",
+        "name":  "PULAU TIOMAN",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  2.7972,
+        "longitude":  104.166
+    },
+    {
+        "id":  "LOCATION:312",
+        "name":  "BUKIT TINGGI",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  2.2872,
+        "longitude":  103.6726
+    },
+    {
+        "id":  "LOCATION:313",
+        "name":  "BUKIT FRASER",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.7126,
+        "longitude":  101.7412
+    },
+    {
+        "id":  "LOCATION:310",
+        "name":  "BATU FERINGGI",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  5.4709,
+        "longitude":  100.24529
+    },
+    {
+        "id":  "LOCATION:311",
+        "name":  "BUKIT BENDERA",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  2.3733,
+        "longitude":  102.5104
+    },
+    {
+        "id":  "LOCATION:334",
+        "name":  "TAMAN NEGARA PULAU PINANG",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  5.4500243,
+        "longitude":  100.1935435
+    },
+    {
+        "id":  "LOCATION:758",
+        "name":  "PENANG HILL",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:319",
+        "name":  "LUMUT",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  4.2323,
+        "longitude":  100.6298
+    },
+    {
+        "id":  "LOCATION:324",
+        "name":  "PULAU PANGKOR",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  4.2311,
+        "longitude":  100.5599
+    },
+    {
+        "id":  "LOCATION:321",
+        "name":  "PAYA INDAH WETLANDS",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:12",
+        "state":  "PUTRAJAYA",
+        "latitude":  2.8603852,
+        "longitude":  101.6265801
+    },
+    {
+        "id":  "LOCATION:328",
+        "name":  "PULAU SIPADAN",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  4.11472,
+        "longitude":  118.63444
+    },
+    {
+        "id":  "LOCATION:333",
+        "name":  "TAMAN NEGARA KINABALU",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  6.1345,
+        "longitude":  116.6375
+    },
+    {
+        "id":  "LOCATION:838",
+        "name":  "PULAU MABUL",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:841",
+        "name":  "SEPILOK",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:829",
+        "name":  "KUNDASANG",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:831",
+        "name":  "PANTAI TANJUNG ARU",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:830",
+        "name":  "PULAU MANTANANI",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:832",
+        "name":  "TAMAN TUNKU ABDUL RAHMAN",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:835",
+        "name":  "PULAU BOHEY DULANG",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:836",
+        "name":  "PULAU MATAKING",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:837",
+        "name":  "PULAU KAPALAI",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:326",
+        "name":  "PULAU REDANG",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  5.77736,
+        "longitude":  103.00759
+    },
+    {
+        "id":  "LOCATION:335",
+        "name":  "TAMAN NEGARA TERENGGANU",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  4.8757231,
+        "longitude":  102.9670403
+    },
+    {
+        "id":  "LOCATION:336",
+        "name":  "TANJUNG JARA",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  4.8132,
+        "longitude":  103.4257
+    },
+    {
+        "id":  "LOCATION:337",
+        "name":  "TASIK KENYIR",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  5.0,
+        "longitude":  102.8
+    },
+    {
+        "id":  "LOCATION:322",
+        "name":  "PULAU KAPAS",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  5.2214,
+        "longitude":  103.2653
+    },
+    {
+        "id":  "LOCATION:318",
+        "name":  "KIJAL",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  4.35,
+        "longitude":  103.48333
+    },
+    {
+        "id":  "LOCATION:325",
+        "name":  "PULAU PERHENTIAN",
+        "locationcategoryid":  "TOURISTDEST",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  5.9145,
+        "longitude":  102.7397
+    },
+    {
+        "id":  "LOCATION:122",
+        "name":  "AYER HITAM",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  1.915,
+        "longitude":  103.1808
+    },
+    {
+        "id":  "LOCATION:439",
+        "name":  "KULAI",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  1.532949,
+        "longitude":  103.6450341
+    },
+    {
+        "id":  "LOCATION:134",
+        "name":  "PONTIAN",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  1.5,
+        "longitude":  103.5
+    },
+    {
+        "id":  "LOCATION:131",
+        "name":  "MERSING",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  2.4312,
+        "longitude":  103.8405
+    },
+    {
+        "id":  "LOCATION:130",
+        "name":  "KOTA TINGGI",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  1.7381,
+        "longitude":  103.8999
+    },
+    {
+        "id":  "LOCATION:129",
+        "name":  "KLUANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  2.0251,
+        "longitude":  103.3328
+    },
+    {
+        "id":  "LOCATION:128",
+        "name":  "PAGOH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  2.1495,
+        "longitude":  102.7704
+    },
+    {
+        "id":  "LOCATION:127",
+        "name":  "MUAR",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  2.0442,
+        "longitude":  102.5689
+    },
+    {
+        "id":  "LOCATION:126",
+        "name":  "TANGKAK",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  2.2673,
+        "longitude":  102.5453
+    },
+    {
+        "id":  "LOCATION:125",
+        "name":  "LABIS",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  2.385,
+        "longitude":  103.021
+    },
+    {
+        "id":  "LOCATION:124",
+        "name":  "JOHOR BAHRU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  1.4655,
+        "longitude":  103.7578
+    },
+    {
+        "id":  "LOCATION:123",
+        "name":  "BATU PAHAT",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  1.8548,
+        "longitude":  102.9325
+    },
+    {
+        "id":  "LOCATION:135",
+        "name":  "SEGAMAT",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  2.5148,
+        "longitude":  102.8158
+    },
+    {
+        "id":  "LOCATION:136",
+        "name":  "SENAI",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  1.64131,
+        "longitude":  103.66962
+    },
+    {
+        "id":  "LOCATION:137",
+        "name":  "SIMPANG RENGGAM",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  1.825,
+        "longitude":  103.3107
+    },
+    {
+        "id":  "LOCATION:138",
+        "name":  "YONG PENG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  2.0136,
+        "longitude":  103.0659
+    },
+    {
+        "id":  "LOCATION:659",
+        "name":  "ISKANDAR PUTERI",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  1.4135905,
+        "longitude":  103.6317194
+    },
+    {
+        "id":  "LOCATION:797",
+        "name":  "BANDARAYA JOHOR BAHRU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:796",
+        "name":  "PONTIAN KECIL",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:795",
+        "name":  "BANDAR PENGGARAM (BATU PAHAT)",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:794",
+        "name":  "BANDAR MAHARANI (MUAR)",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:768",
+        "name":  "NUSAJAYA",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  1.4239,
+        "longitude":  103.6485
+    },
+    {
+        "id":  "LOCATION:133",
+        "name":  "PASIR GUDANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  1.462,
+        "longitude":  103.9053
+    },
+    {
+        "id":  "LOCATION:146",
+        "name":  "POKOK SENA",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  6.17055,
+        "longitude":  100.51885
+    },
+    {
+        "id":  "LOCATION:784",
+        "name":  "BANDARAYA ALOR STAR",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:139",
+        "name":  "ALOR STAR",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  6.12104,
+        "longitude":  100.36014
+    },
+    {
+        "id":  "LOCATION:140",
+        "name":  "BALING",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  5.67806,
+        "longitude":  100.9177
+    },
+    {
+        "id":  "LOCATION:141",
+        "name":  "JITRA",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  6.26812,
+        "longitude":  100.42167
+    },
+    {
+        "id":  "LOCATION:142",
+        "name":  "KUALA NERANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  6.25844,
+        "longitude":  100.61264
+    },
+    {
+        "id":  "LOCATION:143",
+        "name":  "KULIM",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  5.32403,
+        "longitude":  100.60851
+    },
+    {
+        "id":  "LOCATION:145",
+        "name":  "PENDANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  5.98458,
+        "longitude":  100.60732
+    },
+    {
+        "id":  "LOCATION:426",
+        "name":  "SERDANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  5.2093299,
+        "longitude":  100.6119237
+    },
+    {
+        "id":  "LOCATION:147",
+        "name":  "SIK",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  6.03482,
+        "longitude":  100.8603
+    },
+    {
+        "id":  "LOCATION:148",
+        "name":  "SUNGAI PETANI",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  5.647,
+        "longitude":  100.48772
+    },
+    {
+        "id":  "LOCATION:149",
+        "name":  "YAN",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  5.7905,
+        "longitude":  100.39426
+    },
+    {
+        "id":  "LOCATION:150",
+        "name":  "BACHOK",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:3",
+        "state":  "KELANTAN",
+        "latitude":  6.06667,
+        "longitude":  102.4
+    },
+    {
+        "id":  "LOCATION:151",
+        "name":  "GUA MUSANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:3",
+        "state":  "KELANTAN",
+        "latitude":  4.8823,
+        "longitude":  101.9644
+    },
+    {
+        "id":  "LOCATION:152",
+        "name":  "JELI",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:3",
+        "state":  "KELANTAN",
+        "latitude":  5.71493,
+        "longitude":  101.88418
+    },
+    {
+        "id":  "LOCATION:153",
+        "name":  "KOTA BHARU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:3",
+        "state":  "KELANTAN",
+        "latitude":  6.05666,
+        "longitude":  102.26451
+    },
+    {
+        "id":  "LOCATION:154",
+        "name":  "KUALA KRAI",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:3",
+        "state":  "KELANTAN",
+        "latitude":  5.5313,
+        "longitude":  102.19925
+    },
+    {
+        "id":  "LOCATION:155",
+        "name":  "LOJING",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:3",
+        "state":  "KELANTAN",
+        "latitude":  4.7046137,
+        "longitude":  101.5553148
+    },
+    {
+        "id":  "LOCATION:156",
+        "name":  "MACHANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:3",
+        "state":  "KELANTAN",
+        "latitude":  5.76407,
+        "longitude":  102.21414
+    },
+    {
+        "id":  "LOCATION:158",
+        "name":  "PASIR PUTEH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:3",
+        "state":  "KELANTAN",
+        "latitude":  5.83333,
+        "longitude":  102.4
+    },
+    {
+        "id":  "LOCATION:160",
+        "name":  "TANAH MERAH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:3",
+        "state":  "KELANTAN",
+        "latitude":  5.66667,
+        "longitude":  102.0
+    },
+    {
+        "id":  "LOCATION:161",
+        "name":  "TUMPAT",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:3",
+        "state":  "KELANTAN",
+        "latitude":  6.19776,
+        "longitude":  102.17098
+    },
+    {
+        "id":  "LOCATION:157",
+        "name":  "PASIR MAS",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:3",
+        "state":  "KELANTAN",
+        "latitude":  6.0424976,
+        "longitude":  102.1427782
+    },
+    {
+        "id":  "LOCATION:159",
+        "name":  "RANTAU PANJANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:3",
+        "state":  "KELANTAN",
+        "latitude":  6.021325,
+        "longitude":  101.9732687
+    },
+    {
+        "id":  "LOCATION:168",
+        "name":  "SELAYANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:4",
+        "state":  "KUALA LUMPUR",
+        "latitude":  3.23581,
+        "longitude":  101.66958
+    },
+    {
+        "id":  "LOCATION:162",
+        "name":  "AMPANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:4",
+        "state":  "KUALA LUMPUR",
+        "latitude":  3.15,
+        "longitude":  101.76667
+    },
+    {
+        "id":  "LOCATION:163",
+        "name":  "BANGSAR",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:4",
+        "state":  "KUALA LUMPUR",
+        "latitude":  3.12222,
+        "longitude":  101.67606
+    },
+    {
+        "id":  "LOCATION:164",
+        "name":  "BUKIT BINTANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:4",
+        "state":  "KUALA LUMPUR",
+        "latitude":  5.63052,
+        "longitude":  102.6479
+    },
+    {
+        "id":  "LOCATION:165",
+        "name":  "CHERAS",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:4",
+        "state":  "KUALA LUMPUR",
+        "latitude":  3.05,
+        "longitude":  101.76667
+    },
+    {
+        "id":  "LOCATION:166",
+        "name":  "JALAN DUTA",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:4",
+        "state":  "KUALA LUMPUR",
+        "latitude":  3.1484,
+        "longitude":  101.6779
+    },
+    {
+        "id":  "LOCATION:167",
+        "name":  "KEPONG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:4",
+        "state":  "KUALA LUMPUR",
+        "latitude":  3.21667,
+        "longitude":  101.63333
+    },
+    {
+        "id":  "LOCATION:169",
+        "name":  "SETAPAK",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:4",
+        "state":  "KUALA LUMPUR",
+        "latitude":  3.18333,
+        "longitude":  101.7
+    },
+    {
+        "id":  "LOCATION:170",
+        "name":  "SUNGAI BESI",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:4",
+        "state":  "KUALA LUMPUR",
+        "latitude":  3.05,
+        "longitude":  101.7
+    },
+    {
+        "id":  "LOCATION:340",
+        "name":  "KUALA LUMPUR",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:4",
+        "state":  "KUALA LUMPUR",
+        "latitude":  3.1429996,
+        "longitude":  101.6947998
+    },
+    {
+        "id":  "LOCATION:174",
+        "name":  "BANDARAYA MELAKA",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:6",
+        "state":  "MELAKA",
+        "latitude":  2.196,
+        "longitude":  102.2405
+    },
+    {
+        "id":  "LOCATION:175",
+        "name":  "DURIAN TUNGGAL",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:6",
+        "state":  "MELAKA",
+        "latitude":  2.3125,
+        "longitude":  102.2805
+    },
+    {
+        "id":  "LOCATION:176",
+        "name":  "JASIN",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:6",
+        "state":  "MELAKA",
+        "latitude":  2.3096,
+        "longitude":  102.4281
+    },
+    {
+        "id":  "LOCATION:177",
+        "name":  "MASJID TANAH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:6",
+        "state":  "MELAKA",
+        "latitude":  2.3585,
+        "longitude":  102.1029
+    },
+    {
+        "id":  "LOCATION:178",
+        "name":  "MERLIMAU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:6",
+        "state":  "MELAKA",
+        "latitude":  2.1449,
+        "longitude":  102.4251
+    },
+    {
+        "id":  "LOCATION:179",
+        "name":  "TANGGA BATU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:6",
+        "state":  "MELAKA",
+        "latitude":  2.2601,
+        "longitude":  102.1523
+    },
+    {
+        "id":  "LOCATION:173",
+        "name":  "AYER KEROH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:6",
+        "state":  "MELAKA",
+        "latitude":  2.25368,
+        "longitude":  102.25044
+    },
+    {
+        "id":  "LOCATION:766",
+        "name":  "MELAKA CITY",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:6",
+        "state":  "MELAKA",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:793",
+        "name":  "BANDAR MELAKA",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:6",
+        "state":  "MELAKA",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:172",
+        "name":  "ALOR GAJAH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:6",
+        "state":  "MELAKA",
+        "latitude":  2.3804,
+        "longitude":  102.2089
+    },
+    {
+        "id":  "LOCATION:184",
+        "name":  "KUALA PILAH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:7",
+        "state":  "NEGERI SEMBILAN",
+        "latitude":  2.7389,
+        "longitude":  102.2487
+    },
+    {
+        "id":  "LOCATION:185",
+        "name":  "NILAI",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:7",
+        "state":  "NEGERI SEMBILAN",
+        "latitude":  2.8255,
+        "longitude":  101.8111
+    },
+    {
+        "id":  "LOCATION:186",
+        "name":  "PORT DICKSON",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:7",
+        "state":  "NEGERI SEMBILAN",
+        "latitude":  2.5228,
+        "longitude":  101.7959
+    },
+    {
+        "id":  "LOCATION:187",
+        "name":  "REMBAU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:7",
+        "state":  "NEGERI SEMBILAN",
+        "latitude":  2.5897,
+        "longitude":  102.0913
+    },
+    {
+        "id":  "LOCATION:188",
+        "name":  "SEREMBAN",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:7",
+        "state":  "NEGERI SEMBILAN",
+        "latitude":  2.7297,
+        "longitude":  101.9381
+    },
+    {
+        "id":  "LOCATION:189",
+        "name":  "TAMPIN",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:7",
+        "state":  "NEGERI SEMBILAN",
+        "latitude":  2.4701,
+        "longitude":  102.2302
+    },
+    {
+        "id":  "LOCATION:182",
+        "name":  "JEMPOL",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:7",
+        "state":  "NEGERI SEMBILAN",
+        "latitude":  2.8026,
+        "longitude":  102.3682
+    },
+    {
+        "id":  "LOCATION:181",
+        "name":  "JELEBU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:7",
+        "state":  "NEGERI SEMBILAN",
+        "latitude":  2.8654,
+        "longitude":  101.9137
+    },
+    {
+        "id":  "LOCATION:180",
+        "name":  "GEMAS",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:7",
+        "state":  "NEGERI SEMBILAN",
+        "latitude":  2.5832,
+        "longitude":  102.6117
+    },
+    {
+        "id":  "LOCATION:792",
+        "name":  "BANDAR SERI JEMPOL",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:7",
+        "state":  "NEGERI SEMBILAN",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:781",
+        "name":  "PDSA ENSTEK",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:7",
+        "state":  "NEGERI SEMBILAN",
+        "latitude":  2.72561,
+        "longitude":  101.79606
+    },
+    {
+        "id":  "LOCATION:183",
+        "name":  "KUALA KLAWANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:7",
+        "state":  "NEGERI SEMBILAN",
+        "latitude":  2.9395,
+        "longitude":  102.0704
+    },
+    {
+        "id":  "LOCATION:199",
+        "name":  "PEKAN",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.4836,
+        "longitude":  103.3996
+    },
+    {
+        "id":  "LOCATION:198",
+        "name":  "MUADZAM SHAH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.0627,
+        "longitude":  103.0892
+    },
+    {
+        "id":  "LOCATION:197",
+        "name":  "MENTAKAB",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.4854,
+        "longitude":  102.3484
+    },
+    {
+        "id":  "LOCATION:196",
+        "name":  "MARAN",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.586,
+        "longitude":  102.773
+    },
+    {
+        "id":  "LOCATION:195",
+        "name":  "KUALA ROMPIN",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  2.81667,
+        "longitude":  103.48333
+    },
+    {
+        "id":  "LOCATION:194",
+        "name":  "KUALA LIPIS",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  4.1842,
+        "longitude":  102.0468
+    },
+    {
+        "id":  "LOCATION:193",
+        "name":  "KUANTAN",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.8077,
+        "longitude":  103.326
+    },
+    {
+        "id":  "LOCATION:191",
+        "name":  "BERA",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.33333,
+        "longitude":  102.5
+    },
+    {
+        "id":  "LOCATION:200",
+        "name":  "RAUB",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.88333,
+        "longitude":  101.83333
+    },
+    {
+        "id":  "LOCATION:201",
+        "name":  "TEMERLOH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.4506,
+        "longitude":  102.4176
+    },
+    {
+        "id":  "LOCATION:202",
+        "name":  "TRIANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.2462,
+        "longitude":  102.4155
+    },
+    {
+        "id":  "LOCATION:190",
+        "name":  "BENTONG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.51667,
+        "longitude":  101.9
+    },
+    {
+        "id":  "LOCATION:773",
+        "name":  "BATU EMBUN",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.9707,
+        "longitude":  102.3479
+    },
+    {
+        "id":  "LOCATION:192",
+        "name":  "JERANTUT",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.936,
+        "longitude":  102.3626
+    },
+    {
+        "id":  "LOCATION:212",
+        "name":  "NIBONG TEBAL",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  5.16586,
+        "longitude":  100.47793
+    },
+    {
+        "id":  "LOCATION:203",
+        "name":  "AYER ITAM",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  5.4,
+        "longitude":  100.28333
+    },
+    {
+        "id":  "LOCATION:204",
+        "name":  "BALIK PULAU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  5.34916,
+        "longitude":  100.23938
+    },
+    {
+        "id":  "LOCATION:205",
+        "name":  "BAYAN LEPAS",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  5.29992,
+        "longitude":  100.26052
+    },
+    {
+        "id":  "LOCATION:206",
+        "name":  "BATU KAWAN",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  2.2672,
+        "longitude":  102.1149
+    },
+    {
+        "id":  "LOCATION:207",
+        "name":  "BUTTERWORTH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  5.3991,
+        "longitude":  100.36382
+    },
+    {
+        "id":  "LOCATION:208",
+        "name":  "BUKIT MERTAJAM",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  5.36301,
+        "longitude":  100.4667
+    },
+    {
+        "id":  "LOCATION:209",
+        "name":  "BUKIT TENGAH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  5.35064,
+        "longitude":  100.43042
+    },
+    {
+        "id":  "LOCATION:210",
+        "name":  "GEORGETOWN",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  5.41123,
+        "longitude":  100.33543
+    },
+    {
+        "id":  "LOCATION:211",
+        "name":  "KEPALA BATAS",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  5.51707,
+        "longitude":  100.4265
+    },
+    {
+        "id":  "LOCATION:213",
+        "name":  "PERAI",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  5.38333,
+        "longitude":  100.38333
+    },
+    {
+        "id":  "LOCATION:775",
+        "name":  "PRAI",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  5.3534,
+        "longitude":  100.4053
+    },
+    {
+        "id":  "LOCATION:231",
+        "name":  "SLIM RIVER",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  3.83333,
+        "longitude":  101.4
+    },
+    {
+        "id":  "LOCATION:227",
+        "name":  "TAIPING",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  4.85,
+        "longitude":  100.73333
+    },
+    {
+        "id":  "LOCATION:228",
+        "name":  "TAPAH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  4.18333,
+        "longitude":  101.26667
+    },
+    {
+        "id":  "LOCATION:230",
+        "name":  "TELUK INTAN",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  4.0259,
+        "longitude":  101.0213
+    },
+    {
+        "id":  "LOCATION:786",
+        "name":  "BANDARAYA IPOH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:215",
+        "name":  "BAGAN SERAI",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  5.0108,
+        "longitude":  100.54101
+    },
+    {
+        "id":  "LOCATION:774",
+        "name":  "LUBOK MERBAU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  4.795,
+        "longitude":  100.896
+    },
+    {
+        "id":  "LOCATION:216",
+        "name":  "BATU GAJAH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  4.46916,
+        "longitude":  101.04107
+    },
+    {
+        "id":  "LOCATION:217",
+        "name":  "GERIK",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  5.41667,
+        "longitude":  101.13333
+    },
+    {
+        "id":  "LOCATION:218",
+        "name":  "GOPENG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  4.4715,
+        "longitude":  101.1663
+    },
+    {
+        "id":  "LOCATION:219",
+        "name":  "IPOH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  4.5841,
+        "longitude":  101.0829
+    },
+    {
+        "id":  "LOCATION:431",
+        "name":  "SERI ISKANDAR",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  4.3519013,
+        "longitude":  100.9782762
+    },
+    {
+        "id":  "LOCATION:220",
+        "name":  "KAMPAR",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  4.3,
+        "longitude":  101.15
+    },
+    {
+        "id":  "LOCATION:434",
+        "name":  "BAGAN DATUK",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  3.989949,
+        "longitude":  100.785137
+    },
+    {
+        "id":  "LOCATION:221",
+        "name":  "KUALA KANGSAR",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  4.76667,
+        "longitude":  100.93333
+    },
+    {
+        "id":  "LOCATION:222",
+        "name":  "LENGGONG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  5.10633,
+        "longitude":  100.96792
+    },
+    {
+        "id":  "LOCATION:223",
+        "name":  "PARIT BUNTAR",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  5.12671,
+        "longitude":  100.49316
+    },
+    {
+        "id":  "LOCATION:224",
+        "name":  "SELAMA",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  5.2236,
+        "longitude":  100.69262
+    },
+    {
+        "id":  "LOCATION:225",
+        "name":  "SUNGAI SIPUT",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  4.3945,
+        "longitude":  101.1947
+    },
+    {
+        "id":  "LOCATION:226",
+        "name":  "SITIAWAN",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  4.2168,
+        "longitude":  100.6996
+    },
+    {
+        "id":  "LOCATION:783",
+        "name":  "KUALA PERLIS",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:11",
+        "state":  "PERLIS",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:780",
+        "name":  "PADANG BESAR",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:11",
+        "state":  "PERLIS",
+        "latitude":  6.6624,
+        "longitude":  100.3211
+    },
+    {
+        "id":  "LOCATION:753",
+        "name":  "PERLIS",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:11",
+        "state":  "PERLIS",
+        "latitude":  6.4407,
+        "longitude":  100.1979
+    },
+    {
+        "id":  "LOCATION:237",
+        "name":  "PUTRAJAYA",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:12",
+        "state":  "PUTRAJAYA",
+        "latitude":  2.91667,
+        "longitude":  101.7
+    },
+    {
+        "id":  "LOCATION:826",
+        "name":  "PENAWAR",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:827",
+        "name":  "ULU TIRAM",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:828",
+        "name":  "KENINGAU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:770",
+        "name":  "TAMAN NEGARA GUNUNG MULU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  4.09,
+        "longitude":  114.89
+    },
+    {
+        "id":  "LOCATION:771",
+        "name":  "TAMAN NEGARA NIAH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  3.8,
+        "longitude":  113.78
+    },
+    {
+        "id":  "LOCATION:868",
+        "name":  "LIMBANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:776",
+        "name":  "MULU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  4.0484,
+        "longitude":  114.8099
+    },
+    {
+        "id":  "LOCATION:833",
+        "name":  "KOTA KINABALU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:834",
+        "name":  "TUARAN",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:839",
+        "name":  "LAHAD DATU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:840",
+        "name":  "TAWAU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:842",
+        "name":  "SANDAKAN",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:843",
+        "name":  "BANDAR BARU SALAK TINGGI",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:844",
+        "name":  "SERENDAH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:845",
+        "name":  "MERU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:846",
+        "name":  "KLANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:847",
+        "name":  "TANJONG KARANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:848",
+        "name":  "TELOK PANGLIMA GARANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:849",
+        "name":  "SUNGAI BESAR",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:850",
+        "name":  "SABAK",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:851",
+        "name":  "KELANA JAYA",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:852",
+        "name":  "GOMBAK (TAMAN PERWIRA )",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:853",
+        "name":  "SRI GOMBAK",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:854",
+        "name":  "PUCHONG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:855",
+        "name":  "BANDAR UTAMA",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:856",
+        "name":  "ULU KELANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:857",
+        "name":  "BAHAU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:858",
+        "name":  "SUNGAI UDANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:859",
+        "name":  "BATU BERENDAM",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:860",
+        "name":  "SRI AMAN",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:861",
+        "name":  "BINTULU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:862",
+        "name":  "KAPIT",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:863",
+        "name":  "KUCHING",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:864",
+        "name":  "MIRI",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:865",
+        "name":  "MUKAH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:866",
+        "name":  "SARIKEI",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:867",
+        "name":  "SIBU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:801",
+        "name":  "KANGAR",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:802",
+        "name":  "KUAH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:803",
+        "name":  "KUALA KEDAH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:804",
+        "name":  "GURUN",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:805",
+        "name":  "JURU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:806",
+        "name":  "JAWI",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:807",
+        "name":  "GELUGOR",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:808",
+        "name":  "TANJUNG BUNGAH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:809",
+        "name":  "TANJUNG TOKONG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:810",
+        "name":  "BAYAN BARU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:811",
+        "name":  "SUNGAI DUA - SUNGAI NIBONG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:812",
+        "name":  "SUNGAI ARA",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:813",
+        "name":  "BANDAR BARU SERI MANJUNG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:814",
+        "name":  "TANJONG MALIM",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:815",
+        "name":  "KUBANG KERIAN",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:816",
+        "name":  "JERTIH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:817",
+        "name":  "KAMPONG RAJA",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:818",
+        "name":  "CUKAI",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:819",
+        "name":  "MARANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:820",
+        "name":  "BANDAR AL-MUKTAFI BILLAH SHAH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:821",
+        "name":  "KUALA BERANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:822",
+        "name":  "BANDAR TUN ABDUL RAZAK, JENGKA",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:823",
+        "name":  "TANAH RATA - BRINCHANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:824",
+        "name":  "SKUDAI",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:825",
+        "name":  "PEKAN NENAS",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:284",
+        "name":  "BANTING",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  2.8136,
+        "longitude":  101.50185
+    },
+    {
+        "id":  "LOCATION:296",
+        "name":  "SEMENYIH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  2.9516,
+        "longitude":  101.843
+    },
+    {
+        "id":  "LOCATION:295",
+        "name":  "SHAH ALAM",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  3.08507,
+        "longitude":  101.53281
+    },
+    {
+        "id":  "LOCATION:283",
+        "name":  "BANGI",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  2.9,
+        "longitude":  101.78333
+    },
+    {
+        "id":  "LOCATION:537",
+        "name":  "PELABUHAN KLANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  3.0430916,
+        "longitude":  101.4413921
+    },
+    {
+        "id":  "LOCATION:294",
+        "name":  "SABAK BERNAM",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  3.58333,
+        "longitude":  101.11667
+    },
+    {
+        "id":  "LOCATION:293",
+        "name":  "PETALING JAYA",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  3.10726,
+        "longitude":  101.60671
+    },
+    {
+        "id":  "LOCATION:291",
+        "name":  "RAWANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  3.3213,
+        "longitude":  101.5767
+    },
+    {
+        "id":  "LOCATION:290",
+        "name":  "KUALA SELANGOR",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  3.33333,
+        "longitude":  101.25
+    },
+    {
+        "id":  "LOCATION:285",
+        "name":  "BATU CAVES",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  3.23333,
+        "longitude":  101.7
+    },
+    {
+        "id":  "LOCATION:289",
+        "name":  "KUALA KUBU BHARU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  3.5638,
+        "longitude":  101.6581
+    },
+    {
+        "id":  "LOCATION:782",
+        "name":  "KFC TAMAN SRI MUDA SHAH ALAM",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  3.02205,
+        "longitude":  101.53968
+    },
+    {
+        "id":  "LOCATION:787",
+        "name":  "BANDAR BARU BANGI",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:788",
+        "name":  "SELAYANG BARU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:789",
+        "name":  "BANDARAYA KUALA LUMPUR",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:790",
+        "name":  "AMPANG JAYA",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:791",
+        "name":  "CHERAS SELATAN",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:300",
+        "name":  "SUBANG JAYA",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  3.04384,
+        "longitude":  101.58062
+    },
+    {
+        "id":  "LOCATION:299",
+        "name":  "SERI KEMBANGAN",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  3.03333,
+        "longitude":  101.71667
+    },
+    {
+        "id":  "LOCATION:298",
+        "name":  "SEPANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  2.75,
+        "longitude":  101.66667
+    },
+    {
+        "id":  "LOCATION:288",
+        "name":  "KAJANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  2.9927,
+        "longitude":  101.7909
+    },
+    {
+        "id":  "LOCATION:287",
+        "name":  "DAMANSARA",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  3.13333,
+        "longitude":  101.63333
+    },
+    {
+        "id":  "LOCATION:286",
+        "name":  "CYBERJAYA",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  2.92281,
+        "longitude":  101.65718
+    },
+    {
+        "id":  "LOCATION:297",
+        "name":  "SENTUL",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  3.18333,
+        "longitude":  101.68333
+    },
+    {
+        "id":  "LOCATION:764",
+        "name":  "PORT KLANG",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:308",
+        "name":  "PAKA",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  4.6374,
+        "longitude":  103.4368
+    },
+    {
+        "id":  "LOCATION:307",
+        "name":  "KUALA TERENGGANU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  5.3302,
+        "longitude":  103.1408
+    },
+    {
+        "id":  "LOCATION:306",
+        "name":  "KERTIH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  4.5141,
+        "longitude":  103.4483
+    },
+    {
+        "id":  "LOCATION:302",
+        "name":  "BESUT",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  5.57107,
+        "longitude":  102.51911
+    },
+    {
+        "id":  "LOCATION:301",
+        "name":  "BANDAR PERMAISURI",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  5.52241,
+        "longitude":  102.74854
+    },
+    {
+        "id":  "LOCATION:437",
+        "name":  "KUALA NERUS",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  5.3776776,
+        "longitude":  103.0636803
+    },
+    {
+        "id":  "LOCATION:309",
+        "name":  "SETIU",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  5.55008,
+        "longitude":  102.73551
+    },
+    {
+        "id":  "LOCATION:777",
+        "name":  "KERTEH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  4.5409,
+        "longitude":  103.4286
+    },
+    {
+        "id":  "LOCATION:305",
+        "name":  "KEMAMAN",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  4.21667,
+        "longitude":  103.2
+    },
+    {
+        "id":  "LOCATION:304",
+        "name":  "JERTEH",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  5.7336,
+        "longitude":  102.4897
+    },
+    {
+        "id":  "LOCATION:303",
+        "name":  "DUNGUN",
+        "locationcategoryid":  "TOWN",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  4.775,
+        "longitude":  103.4162
+    },
+    {
+        "id":  "LOCATION:19",
+        "name":  "KLUANG",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  2.0251,
+        "longitude":  103.3328
+    },
+    {
+        "id":  "LOCATION:603",
+        "name":  "TANGKAK",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  2.2732482,
+        "longitude":  102.5433991
+    },
+    {
+        "id":  "LOCATION:17",
+        "name":  "BATU PAHAT",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  1.8548,
+        "longitude":  102.9325
+    },
+    {
+        "id":  "LOCATION:26",
+        "name":  "PONTIAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  1.51638,
+        "longitude":  103.3839109
+    },
+    {
+        "id":  "LOCATION:25",
+        "name":  "SEGAMAT",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  2.5148,
+        "longitude":  102.8158
+    },
+    {
+        "id":  "LOCATION:18",
+        "name":  "JOHOR BAHRU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  1.4655,
+        "longitude":  103.7578
+    },
+    {
+        "id":  "LOCATION:23",
+        "name":  "MUAR",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  2.0442,
+        "longitude":  102.5689
+    },
+    {
+        "id":  "LOCATION:22",
+        "name":  "MERSING",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  2.4312,
+        "longitude":  103.8405
+    },
+    {
+        "id":  "LOCATION:339",
+        "name":  "KULAI",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  1.6626699,
+        "longitude":  103.5979733
+    },
+    {
+        "id":  "LOCATION:20",
+        "name":  "KOTA TINGGI",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:1",
+        "state":  "JOHOR",
+        "latitude":  1.7381,
+        "longitude":  103.8999
+    },
+    {
+        "id":  "LOCATION:29",
+        "name":  "KUBANG PASU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  6.40508,
+        "longitude":  100.43982
+    },
+    {
+        "id":  "LOCATION:27",
+        "name":  "BALING",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  5.67806,
+        "longitude":  100.9177
+    },
+    {
+        "id":  "LOCATION:425",
+        "name":  "BANDAR BAHARU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  5.1194376,
+        "longitude":  100.5220948
+    },
+    {
+        "id":  "LOCATION:37",
+        "name":  "YAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  5.7905,
+        "longitude":  100.39426
+    },
+    {
+        "id":  "LOCATION:36",
+        "name":  "SIK",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  6.03482,
+        "longitude":  100.8603
+    },
+    {
+        "id":  "LOCATION:35",
+        "name":  "POKOK SENA",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  6.17055,
+        "longitude":  100.51885
+    },
+    {
+        "id":  "LOCATION:34",
+        "name":  "PENDANG",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  5.98458,
+        "longitude":  100.60732
+    },
+    {
+        "id":  "LOCATION:33",
+        "name":  "PADANG TERAP",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  6.24734,
+        "longitude":  100.77145
+    },
+    {
+        "id":  "LOCATION:32",
+        "name":  "LANGKAWI",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  6.33333,
+        "longitude":  99.75
+    },
+    {
+        "id":  "LOCATION:31",
+        "name":  "KOTA SETAR",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  6.13164,
+        "longitude":  100.34853
+    },
+    {
+        "id":  "LOCATION:30",
+        "name":  "KULIM",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  5.32403,
+        "longitude":  100.60851
+    },
+    {
+        "id":  "LOCATION:28",
+        "name":  "KUALA MUDA",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:2",
+        "state":  "KEDAH",
+        "latitude":  5.56667,
+        "longitude":  100.33333
+    },
+    {
+        "id":  "LOCATION:47",
+        "name":  "TANAH MERAH",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:3",
+        "state":  "KELANTAN",
+        "latitude":  5.66667,
+        "longitude":  102.0
+    },
+    {
+        "id":  "LOCATION:45",
+        "name":  "PASIR MAS",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:3",
+        "state":  "KELANTAN",
+        "latitude":  6.0424976,
+        "longitude":  102.1427782
+    },
+    {
+        "id":  "LOCATION:48",
+        "name":  "TUMPAT",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:3",
+        "state":  "KELANTAN",
+        "latitude":  6.19776,
+        "longitude":  102.17098
+    },
+    {
+        "id":  "LOCATION:38",
+        "name":  "BACHOK",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:3",
+        "state":  "KELANTAN",
+        "latitude":  6.06667,
+        "longitude":  102.4
+    },
+    {
+        "id":  "LOCATION:39",
+        "name":  "GUA MUSANG",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:3",
+        "state":  "KELANTAN",
+        "latitude":  4.8823,
+        "longitude":  101.9644
+    },
+    {
+        "id":  "LOCATION:40",
+        "name":  "JELI",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:3",
+        "state":  "KELANTAN",
+        "latitude":  5.71493,
+        "longitude":  101.88418
+    },
+    {
+        "id":  "LOCATION:46",
+        "name":  "PASIR PUTEH",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:3",
+        "state":  "KELANTAN",
+        "latitude":  5.83333,
+        "longitude":  102.4
+    },
+    {
+        "id":  "LOCATION:41",
+        "name":  "KOTA BHARU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:3",
+        "state":  "KELANTAN",
+        "latitude":  6.05666,
+        "longitude":  102.26451
+    },
+    {
+        "id":  "LOCATION:42",
+        "name":  "KUALA KRAI",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:3",
+        "state":  "KELANTAN",
+        "latitude":  5.5313,
+        "longitude":  102.19925
+    },
+    {
+        "id":  "LOCATION:44",
+        "name":  "MACHANG",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:3",
+        "state":  "KELANTAN",
+        "latitude":  5.76407,
+        "longitude":  102.21414
+    },
+    {
+        "id":  "LOCATION:49",
+        "name":  "KUALA LUMPUR",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:4",
+        "state":  "KUALA LUMPUR",
+        "latitude":  3.14309,
+        "longitude":  101.68653
+    },
+    {
+        "id":  "LOCATION:669",
+        "name":  "FP LABUAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:5",
+        "state":  "LABUAN",
+        "latitude":  5.3333,
+        "longitude":  115.2
+    },
+    {
+        "id":  "LOCATION:53",
+        "name":  "MELAKA TENGAH",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:6",
+        "state":  "MELAKA",
+        "latitude":  2.1674,
+        "longitude":  102.3273
+    },
+    {
+        "id":  "LOCATION:765",
+        "name":  "CENTRAL MELAKA",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:6",
+        "state":  "MELAKA",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:51",
+        "name":  "ALOR GAJAH",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:6",
+        "state":  "MELAKA",
+        "latitude":  2.3804,
+        "longitude":  102.2089
+    },
+    {
+        "id":  "LOCATION:52",
+        "name":  "JASIN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:6",
+        "state":  "MELAKA",
+        "latitude":  2.3096,
+        "longitude":  102.4281
+    },
+    {
+        "id":  "LOCATION:60",
+        "name":  "TAMPIN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:7",
+        "state":  "NEGERI SEMBILAN",
+        "latitude":  2.4701,
+        "longitude":  102.2302
+    },
+    {
+        "id":  "LOCATION:59",
+        "name":  "SEREMBAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:7",
+        "state":  "NEGERI SEMBILAN",
+        "latitude":  2.7297,
+        "longitude":  101.9381
+    },
+    {
+        "id":  "LOCATION:58",
+        "name":  "REMBAU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:7",
+        "state":  "NEGERI SEMBILAN",
+        "latitude":  2.5897,
+        "longitude":  102.0913
+    },
+    {
+        "id":  "LOCATION:57",
+        "name":  "PORT DICKSON",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:7",
+        "state":  "NEGERI SEMBILAN",
+        "latitude":  2.5228,
+        "longitude":  101.7959
+    },
+    {
+        "id":  "LOCATION:56",
+        "name":  "KUALA PILAH",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:7",
+        "state":  "NEGERI SEMBILAN",
+        "latitude":  2.7389,
+        "longitude":  102.2487
+    },
+    {
+        "id":  "LOCATION:55",
+        "name":  "JEMPOL",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:7",
+        "state":  "NEGERI SEMBILAN",
+        "latitude":  2.869634,
+        "longitude":  102.4696778
+    },
+    {
+        "id":  "LOCATION:54",
+        "name":  "JELEBU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:7",
+        "state":  "NEGERI SEMBILAN",
+        "latitude":  3.0606425,
+        "longitude":  102.133645
+    },
+    {
+        "id":  "LOCATION:870",
+        "name":  "PULAU TIOMAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:68",
+        "name":  "PEKAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.4836,
+        "longitude":  103.3996
+    },
+    {
+        "id":  "LOCATION:69",
+        "name":  "RAUB",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.88333,
+        "longitude":  101.83333
+    },
+    {
+        "id":  "LOCATION:70",
+        "name":  "ROMPIN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  2.7083,
+        "longitude":  102.5047
+    },
+    {
+        "id":  "LOCATION:71",
+        "name":  "TEMERLOH",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.460309,
+        "longitude":  102.4715911
+    },
+    {
+        "id":  "LOCATION:67",
+        "name":  "MARAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.586,
+        "longitude":  102.773
+    },
+    {
+        "id":  "LOCATION:61",
+        "name":  "BENTONG",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.413179,
+        "longitude":  102.0466376
+    },
+    {
+        "id":  "LOCATION:62",
+        "name":  "BERA",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.33333,
+        "longitude":  102.5
+    },
+    {
+        "id":  "LOCATION:63",
+        "name":  "CAMERON HIGHLANDS",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  4.469793,
+        "longitude":  101.4703104
+    },
+    {
+        "id":  "LOCATION:64",
+        "name":  "JERANTUT",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.936,
+        "longitude":  102.3626
+    },
+    {
+        "id":  "LOCATION:65",
+        "name":  "KUANTAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  3.8077,
+        "longitude":  103.326
+    },
+    {
+        "id":  "LOCATION:66",
+        "name":  "LIPIS",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:8",
+        "state":  "PAHANG",
+        "latitude":  4.3430119,
+        "longitude":  101.8803489
+    },
+    {
+        "id":  "LOCATION:682",
+        "name":  "SEBERANG PERAI UTARA",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  5.4838717,
+        "longitude":  100.4337653
+    },
+    {
+        "id":  "LOCATION:75",
+        "name":  "TIMUR LAUT",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  5.3917896,
+        "longitude":  100.2906023
+    },
+    {
+        "id":  "LOCATION:761",
+        "name":  "SOUTH SEBERANG PERAI",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:760",
+        "name":  "CENTRAL SEBERANG PERAI",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:759",
+        "name":  "NORTH SEBERANG PERAI",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:757",
+        "name":  "NORTHEAST PENANG ISLAND",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:756",
+        "name":  "SOUTHWEST PENANG ISLAND",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:683",
+        "name":  "SEBERANG PERAI TENGAH",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  5.3647665,
+        "longitude":  100.4503161
+    },
+    {
+        "id":  "LOCATION:684",
+        "name":  "SEBERANG PERAI SELATAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  5.211327,
+        "longitude":  100.4673844
+    },
+    {
+        "id":  "LOCATION:342",
+        "name":  "BARAT DAYA",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:9",
+        "state":  "PULAU PINANG",
+        "latitude":  5.351117,
+        "longitude":  100.2338168
+    },
+    {
+        "id":  "LOCATION:869",
+        "name":  "SELAMA",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:432",
+        "name":  "KAMPAR",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  4.2510996,
+        "longitude":  101.058577
+    },
+    {
+        "id":  "LOCATION:785",
+        "name":  "LARUT MATANG",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:79",
+        "name":  "KERIAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  4.9902264,
+        "longitude":  100.5482652
+    },
+    {
+        "id":  "LOCATION:78",
+        "name":  "HULU PERAK",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  5.4504199,
+        "longitude":  101.3091895
+    },
+    {
+        "id":  "LOCATION:77",
+        "name":  "HILIR PERAK",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  3.9454336,
+        "longitude":  100.9756732
+    },
+    {
+        "id":  "LOCATION:433",
+        "name":  "BAGAN DATUK",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  3.9739429,
+        "longitude":  100.7386851
+    },
+    {
+        "id":  "LOCATION:76",
+        "name":  "BATANG PADANG",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  4.0514081,
+        "longitude":  101.3483544
+    },
+    {
+        "id":  "LOCATION:83",
+        "name":  "MANJUNG",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  4.2766476,
+        "longitude":  100.6943256
+    },
+    {
+        "id":  "LOCATION:84",
+        "name":  "PERAK TENGAH",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  4.265197,
+        "longitude":  100.933448
+    },
+    {
+        "id":  "LOCATION:81",
+        "name":  "KUALA KANGSAR",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  4.76667,
+        "longitude":  100.93333
+    },
+    {
+        "id":  "LOCATION:341",
+        "name":  "LARUT, MATANG \u0026 SELAMA",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  4.779346,
+        "longitude":  100.6962359
+    },
+    {
+        "id":  "LOCATION:80",
+        "name":  "KINTA",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  4.5158319,
+        "longitude":  101.160595
+    },
+    {
+        "id":  "LOCATION:435",
+        "name":  "MUALLIM",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:10",
+        "state":  "PERAK",
+        "latitude":  3.7127301,
+        "longitude":  101.4669059
+    },
+    {
+        "id":  "LOCATION:752",
+        "name":  "PERLIS",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:11",
+        "state":  "PERLIS",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:89",
+        "name":  "PUTRAJAYA",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:12",
+        "state":  "PUTRAJAYA",
+        "latitude":  2.91667,
+        "longitude":  101.7
+    },
+    {
+        "id":  "LOCATION:798",
+        "name":  "PENSIANGAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:250",
+        "name":  "TUARAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  6.08333,
+        "longitude":  116.33333
+    },
+    {
+        "id":  "LOCATION:249",
+        "name":  "PENAMPANG",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  5.83333,
+        "longitude":  116.25
+    },
+    {
+        "id":  "LOCATION:799",
+        "name":  "PAITAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:343",
+        "name":  "NABAWAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  5.0397959,
+        "longitude":  116.4240058
+    },
+    {
+        "id":  "LOCATION:248",
+        "name":  "PAPAR",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  5.73333,
+        "longitude":  115.93333
+    },
+    {
+        "id":  "LOCATION:247",
+        "name":  "LAHAD DATU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  5.0,
+        "longitude":  118.0
+    },
+    {
+        "id":  "LOCATION:871",
+        "name":  "MEMBAKUT",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:872",
+        "name":  "SOOK",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:246",
+        "name":  "KUDAT",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  6.8837,
+        "longitude":  116.8477
+    },
+    {
+        "id":  "LOCATION:245",
+        "name":  "KENINGAU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  5.25,
+        "longitude":  116.25
+    },
+    {
+        "id":  "LOCATION:244",
+        "name":  "KUALA PENYU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  5.41667,
+        "longitude":  115.41667
+    },
+    {
+        "id":  "LOCATION:243",
+        "name":  "KOTA MARUDU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  6.41667,
+        "longitude":  116.75
+    },
+    {
+        "id":  "LOCATION:876",
+        "name":  "LABUAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:874",
+        "name":  "LABUK \u0026 SUGUT",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:873",
+        "name":  "KALABAKAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:239",
+        "name":  "BELURAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  5.8956,
+        "longitude":  117.5557
+    },
+    {
+        "id":  "LOCATION:240",
+        "name":  "KOTA BELUD",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  6.351,
+        "longitude":  116.4305
+    },
+    {
+        "id":  "LOCATION:454",
+        "name":  "TONGOD",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  5.0669967,
+        "longitude":  116.7498352
+    },
+    {
+        "id":  "LOCATION:452",
+        "name":  "KUNAK",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  4.7258393,
+        "longitude":  117.8687431
+    },
+    {
+        "id":  "LOCATION:447",
+        "name":  "PUTATAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  5.8806047,
+        "longitude":  116.0215037
+    },
+    {
+        "id":  "LOCATION:455",
+        "name":  "TELUPID",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  5.6286757,
+        "longitude":  117.1164687
+    },
+    {
+        "id":  "LOCATION:242",
+        "name":  "KINABATANGAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  5.41667,
+        "longitude":  117.58333
+    },
+    {
+        "id":  "LOCATION:258",
+        "name":  "TENOM",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  5.13333,
+        "longitude":  115.95
+    },
+    {
+        "id":  "LOCATION:257",
+        "name":  "TAWAU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  4.2498,
+        "longitude":  117.8871
+    },
+    {
+        "id":  "LOCATION:256",
+        "name":  "TAMBUNAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  5.71667,
+        "longitude":  116.4
+    },
+    {
+        "id":  "LOCATION:241",
+        "name":  "KOTA KINABALU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  5.9749,
+        "longitude":  116.0724
+    },
+    {
+        "id":  "LOCATION:238",
+        "name":  "BEAUFORT",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  5.3473,
+        "longitude":  115.7455
+    },
+    {
+        "id":  "LOCATION:255",
+        "name":  "SIPITANG",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  5.08333,
+        "longitude":  115.55
+    },
+    {
+        "id":  "LOCATION:457",
+        "name":  "PITAS",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  6.7461559,
+        "longitude":  116.9735866
+    },
+    {
+        "id":  "LOCATION:254",
+        "name":  "SEMPORNA",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  4.5,
+        "longitude":  118.33333
+    },
+    {
+        "id":  "LOCATION:252",
+        "name":  "SANDAKAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  5.75,
+        "longitude":  118.0
+    },
+    {
+        "id":  "LOCATION:251",
+        "name":  "RANAU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:13",
+        "state":  "SABAH",
+        "latitude":  5.91667,
+        "longitude":  116.75
+    },
+    {
+        "id":  "LOCATION:882",
+        "name":  "BARIO",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:270",
+        "name":  "LUNDU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  1.58333,
+        "longitude":  109.75
+    },
+    {
+        "id":  "LOCATION:556",
+        "name":  "LUBOK ANTU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  1.25,
+        "longitude":  112.0
+    },
+    {
+        "id":  "LOCATION:548",
+        "name":  "SERIAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  1.43333,
+        "longitude":  111.5
+    },
+    {
+        "id":  "LOCATION:549",
+        "name":  "TEBEDU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  2.88333,
+        "longitude":  112.85
+    },
+    {
+        "id":  "LOCATION:545",
+        "name":  "KUCHING",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  1.58333,
+        "longitude":  110.33333
+    },
+    {
+        "id":  "LOCATION:554",
+        "name":  "SRI AMAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  1.25,
+        "longitude":  111.41667
+    },
+    {
+        "id":  "LOCATION:552",
+        "name":  "SAMARAHAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  1.28333,
+        "longitude":  110.48333
+    },
+    {
+        "id":  "LOCATION:259",
+        "name":  "BELAGA",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  2.7,
+        "longitude":  113.78333
+    },
+    {
+        "id":  "LOCATION:558",
+        "name":  "PUSA",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  1.6035119,
+        "longitude":  111.1493143
+    },
+    {
+        "id":  "LOCATION:563",
+        "name":  "PAKAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  1.7886967,
+        "longitude":  111.5589217
+    },
+    {
+        "id":  "LOCATION:560",
+        "name":  "SARATOK",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  1.75,
+        "longitude":  111.41667
+    },
+    {
+        "id":  "LOCATION:562",
+        "name":  "SARIKEI",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  2.11667,
+        "longitude":  111.51667
+    },
+    {
+        "id":  "LOCATION:800",
+        "name":  "MARADONG",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:458",
+        "name":  "BAU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  1.3812699,
+        "longitude":  109.9717856
+    },
+    {
+        "id":  "LOCATION:463",
+        "name":  "ASAJAYA",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  1.5228954,
+        "longitude":  110.5444191
+    },
+    {
+        "id":  "LOCATION:575",
+        "name":  "DALAT",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  2.5204055,
+        "longitude":  111.891834
+    },
+    {
+        "id":  "LOCATION:573",
+        "name":  "DARO",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  2.5810683,
+        "longitude":  111.3055806
+    },
+    {
+        "id":  "LOCATION:565",
+        "name":  "JULAU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  2.5810683,
+        "longitude":  111.3055806
+    },
+    {
+        "id":  "LOCATION:591",
+        "name":  "MARUDI",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  4.1833,
+        "longitude":  114.31667
+    },
+    {
+        "id":  "LOCATION:574",
+        "name":  "MATU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  2.70659,
+        "longitude":  111.5009024
+    },
+    {
+        "id":  "LOCATION:566",
+        "name":  "MERADONG",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  2.173648,
+        "longitude":  111.4859702
+    },
+    {
+        "id":  "LOCATION:570",
+        "name":  "SELANGAU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  2.3819939,
+        "longitude":  112.3575922
+    },
+    {
+        "id":  "LOCATION:578",
+        "name":  "SONG",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  1.8100434,
+        "longitude":  112.1928259
+    },
+    {
+        "id":  "LOCATION:587",
+        "name":  "SUBIS",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  1.8131082,
+        "longitude":  111.3517944
+    },
+    {
+        "id":  "LOCATION:583",
+        "name":  "TATAU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  2.6256245,
+        "longitude":  112.8873536
+    },
+    {
+        "id":  "LOCATION:589",
+        "name":  "TELANG USAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  1.5539524,
+        "longitude":  110.3489813
+    },
+    {
+        "id":  "LOCATION:582",
+        "name":  "BINTULU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  3.33333,
+        "longitude":  113.16667
+    },
+    {
+        "id":  "LOCATION:577",
+        "name":  "KAPIT",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  1.83333,
+        "longitude":  113.66667
+    },
+    {
+        "id":  "LOCATION:592",
+        "name":  "LIMBANG",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  4.25,
+        "longitude":  115.16667
+    },
+    {
+        "id":  "LOCATION:586",
+        "name":  "MIRI",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  4.16667,
+        "longitude":  113.91667
+    },
+    {
+        "id":  "LOCATION:571",
+        "name":  "MUKAH",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  2.66667,
+        "longitude":  112.25
+    },
+    {
+        "id":  "LOCATION:567",
+        "name":  "SIBU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  2.3,
+        "longitude":  111.81667
+    },
+    {
+        "id":  "LOCATION:484",
+        "name":  "BELURU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  3.9833543,
+        "longitude":  113.8198486
+    },
+    {
+        "id":  "LOCATION:580",
+        "name":  "BUKIT MABONG",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  2.0666881,
+        "longitude":  112.5460612
+    },
+    {
+        "id":  "LOCATION:561",
+        "name":  "KABONG",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  1.8802208,
+        "longitude":  111.0420782
+    },
+    {
+        "id":  "LOCATION:569",
+        "name":  "KANOWIT",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  2.0,
+        "longitude":  112.16667
+    },
+    {
+        "id":  "LOCATION:594",
+        "name":  "LAWAS",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  4.8604,
+        "longitude":  115.409
+    },
+    {
+        "id":  "LOCATION:585",
+        "name":  "SEBAUH",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  3.1486401,
+        "longitude":  113.2065161
+    },
+    {
+        "id":  "LOCATION:553",
+        "name":  "SIMUNJAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  1.2028472,
+        "longitude":  110.6241892
+    },
+    {
+        "id":  "LOCATION:572",
+        "name":  "TANJUNG MANIS",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  2.2287788,
+        "longitude":  111.2118119
+    },
+    {
+        "id":  "LOCATION:557",
+        "name":  "BETONG",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  1.5,
+        "longitude":  111.33333
+    },
+    {
+        "id":  "LOCATION:877",
+        "name":  "SIBURAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:878",
+        "name":  "SEBUYAU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:879",
+        "name":  "GEDONG",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:880",
+        "name":  "PANTU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:881",
+        "name":  "LINGGA",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:14",
+        "state":  "SARAWAK",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:107",
+        "name":  "HULU LANGAT",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  3.1137,
+        "longitude":  101.8142
+    },
+    {
+        "id":  "LOCATION:106",
+        "name":  "GOMBAK",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  3.3,
+        "longitude":  101.7
+    },
+    {
+        "id":  "LOCATION:109",
+        "name":  "KLANG",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  3.0430916,
+        "longitude":  101.4413921
+    },
+    {
+        "id":  "LOCATION:114",
+        "name":  "SEPANG",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  2.75,
+        "longitude":  101.66667
+    },
+    {
+        "id":  "LOCATION:113",
+        "name":  "SABAK BERNAM",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  3.58333,
+        "longitude":  101.11667
+    },
+    {
+        "id":  "LOCATION:112",
+        "name":  "PETALING",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  3.10726,
+        "longitude":  101.60671
+    },
+    {
+        "id":  "LOCATION:111",
+        "name":  "KUALA SELANGOR",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  3.33333,
+        "longitude":  101.25
+    },
+    {
+        "id":  "LOCATION:110",
+        "name":  "KUALA LANGAT",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  2.8,
+        "longitude":  101.4
+    },
+    {
+        "id":  "LOCATION:767",
+        "name":  "KELANG",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  null,
+        "longitude":  null
+    },
+    {
+        "id":  "LOCATION:108",
+        "name":  "HULU SELANGOR",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:15",
+        "state":  "SELANGOR",
+        "latitude":  3.5,
+        "longitude":  101.58333
+    },
+    {
+        "id":  "LOCATION:118",
+        "name":  "KEMAMAN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  4.1557225,
+        "longitude":  103.3222106
+    },
+    {
+        "id":  "LOCATION:116",
+        "name":  "DUNGUN",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  4.775,
+        "longitude":  103.4162
+    },
+    {
+        "id":  "LOCATION:115",
+        "name":  "BESUT",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  5.57107,
+        "longitude":  102.51911
+    },
+    {
+        "id":  "LOCATION:436",
+        "name":  "KUALA NERUS",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  5.367765,
+        "longitude":  103.033576
+    },
+    {
+        "id":  "LOCATION:121",
+        "name":  "SETIU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  5.55008,
+        "longitude":  102.73551
+    },
+    {
+        "id":  "LOCATION:120",
+        "name":  "MARANG",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  5.2056,
+        "longitude":  103.2059
+    },
+    {
+        "id":  "LOCATION:119",
+        "name":  "KUALA TERENGGANU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  5.3302,
+        "longitude":  103.1408
+    },
+    {
+        "id":  "LOCATION:117",
+        "name":  "HULU TERENGGANU",
+        "locationcategoryid":  "DISTRICT",
+        "locationrootid":  "LOCATION:16",
+        "state":  "TERENGGANU",
+        "latitude":  5.0773524,
+        "longitude":  102.8202438
+    }
+]
