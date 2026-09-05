@@ -99,5 +99,39 @@ class DestinationRecommendation {
       weather: weather,
     );
   }
+
+  DestinationRecommendation copyWith({
+    TravelDestination? destination,
+    String? selectedPreference,
+    int? recommendationScore,
+    int? activityMatchScore,
+    int? weatherSuitabilityScore,
+    int? journeyPracticalityScore,
+    TravelRoute? route,
+    String? matchLevel,
+    Color? matchColor,
+    String? bestTravelPeriod,
+    String? reason,
+    bool? isRoadAccessible,
+    String? reachabilityNote,
+    WeatherInfo? weather,
+  }) {
+    return DestinationRecommendation(
+      destination: destination ?? this.destination,
+      selectedPreference: selectedPreference ?? this.selectedPreference,
+      recommendationScore: recommendationScore ?? this.recommendationScore,
+      activityMatchScore: activityMatchScore ?? this.activityMatchScore,
+      weatherSuitabilityScore: weatherSuitabilityScore ?? this.weatherSuitabilityScore,
+      journeyPracticalityScore: journeyPracticalityScore ?? this.journeyPracticalityScore,
+      route: route ?? this.route,
+      matchLevel: matchLevel ?? this.matchLevel,
+      matchColor: matchColor ?? this.matchColor,
+      bestTravelPeriod: bestTravelPeriod ?? this.bestTravelPeriod,
+      reason: reason ?? this.reason,
+      isRoadAccessible: isRoadAccessible ?? this.isRoadAccessible,
+      reachabilityNote: reachabilityNote ?? this.reachabilityNote,
+      weather: weather ?? this.weather,
+    );
+  }
 }
 

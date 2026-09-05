@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../main.dart' show scaffoldMessengerKey;
 import '../models/planned_trip.dart';
 import '../models/travel_score.dart';
 import '../models/weather_info.dart';
@@ -42,6 +43,91 @@ class _TripsScreenState extends State<TripsScreen> {
         tripProvider.loadTrips();
       }
     });
+  }
+
+  Future<void> _handleDeleteTrip(BuildContext context, PlannedTrip trip) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.cardBg(context),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(color: AppColors.borderGlass(context)),
+        ),
+        title: Text(
+          'Delete Trip?',
+          style: TextStyle(color: AppColors.primaryText(context), fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        content: Text(
+          'Are you sure you want to remove your trip to ${trip.destinationName} on ${trip.formattedDate}?',
+          style: TextStyle(color: AppColors.secondaryText(context), fontSize: 14, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('Cancel', style: TextStyle(color: AppColors.secondaryText(context))),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.dangerRed,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 0,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+    if (!context.mounted || trip.id == null) return;
+
+    final tripProvider = Provider.of<TripProvider>(context, listen: false);
+    final tripId = trip.id!;
+    final success = await tripProvider.deleteTrip(tripId);
+
+    if (!context.mounted) return;
+
+    if (!success) {
+      scaffoldMessengerKey.currentState?.showSnackBar(
+        SnackBar(
+          content: const Text('Failed to delete trip. Please try again.', style: TextStyle(color: Colors.white)),
+          backgroundColor: AppColors.dangerRed.withValues(alpha: 0.9),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
+    // Deletion succeeded — show Undo SnackBar
+    scaffoldMessengerKey.currentState
+      ?..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            'Trip removed',
+            style: TextStyle(color: AppColors.primaryText(context), fontWeight: FontWeight.w500),
+          ),
+          backgroundColor: AppColors.cardBg(context),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: AppColors.borderGlass(context)),
+          ),
+          duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: 'UNDO',
+            textColor: AppColors.cyanAccent(context),
+            onPressed: () async {
+              await tripProvider.addTrip(trip);
+            },
+          ),
+        ),
+      );
   }
 
   @override
@@ -223,11 +309,7 @@ class _TripsScreenState extends State<TripsScreen> {
   // ─── Trip Item Wrapper ──────────────────────────────────────────────────────
 
   Widget _buildTripItem(BuildContext context, PlannedTrip trip, TripProvider tripProvider) {
-    return _TripsSwipeWrapper(
-      key: ValueKey('trip_${trip.id}'),
-      trip: trip,
-      child: _buildPolishedTripCard(context, trip, tripProvider),
-    );
+    return _buildPolishedTripCard(context, trip, tripProvider);
   }
 
   // ─── Polished PlannedTripCard ───────────────────────────────────────────────
@@ -318,7 +400,7 @@ class _TripsScreenState extends State<TripsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Top row: Status pill + Trip code pill
+                          // Top row: Status pill + Delete button
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -338,19 +420,20 @@ class _TripsScreenState extends State<TripsScreen> {
                                   ),
                                 ),
                               ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.60),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: AppColors.glassBorderLight),
-                                ),
-                                child: Text(
-                                  trip.tripCode,
-                                  style: const TextStyle(
-                                    color: AppColors.accentCyan,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w800,
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () => _handleDeleteTrip(context, trip),
+                                child: Container(
+                                  padding: const EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.55),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: AppColors.dangerRed.withValues(alpha: 0.4)),
+                                  ),
+                                  child: const Icon(
+                                    Icons.delete_outline_rounded,
+                                    color: AppColors.dangerRed,
+                                    size: 15,
                                   ),
                                 ),
                               ),
@@ -474,12 +557,6 @@ class _TripsScreenState extends State<TripsScreen> {
                       _buildTravelScoreBadge(score),
                     ],
 
-                    // Reminder Banner (for active trips when in-app reminders are enabled)
-                    if (!trip.isPast && tripProvider.remindersEnabled) ...[
-                      const SizedBox(height: 10),
-                      _buildReminderBanner(context, trip, forecastStatus, score),
-                    ],
-
                     // Optional Notes
                     if (trip.notes != null && trip.notes!.trim().isNotEmpty) ...[
                       const SizedBox(height: 8),
@@ -504,7 +581,7 @@ class _TripsScreenState extends State<TripsScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          trip.isPast ? 'Past Trip' : 'Swipe left to delete',
+                          trip.isPast ? 'Past Trip' : 'Planned Trip',
                           style: TextStyle(
                             color: AppColors.mutedText(context),
                             fontSize: 11,
@@ -681,152 +758,13 @@ class _TripsScreenState extends State<TripsScreen> {
           Icon(Icons.stars_rounded, size: 13, color: scoreColor),
           const SizedBox(width: 5),
           Text(
-            'HappyWay Score: $scoreValue — $levelName',
+            'Travel Score: $scoreValue — $levelName',
             style: TextStyle(
               color: scoreColor,
               fontSize: 11,
               fontWeight: FontWeight.w700,
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  // ─── Reminder Banner ────────────────────────────────────────────────────────
-
-  Widget _buildReminderBanner(
-    BuildContext context,
-    PlannedTrip trip,
-    TripForecastStatus forecastStatus,
-    TravelScore? score,
-  ) {
-    late final Color accentColor;
-    late final IconData icon;
-    late final String badgeText;
-    late final String title;
-    late final String subtitle;
-
-    if (trip.isToday) {
-      accentColor = AppColors.safeGreen;
-      icon = Icons.today_rounded;
-      badgeText = 'TRIP TODAY';
-      title = 'Your trip is today!';
-      subtitle = '${trip.destinationName} • from ${trip.originName}';
-    } else if (trip.daysUntil == 1) {
-      accentColor = AppColors.weatherBlue;
-      icon = Icons.alarm_on_rounded;
-      badgeText = 'TOMORROW';
-      title = 'Trip tomorrow';
-      subtitle = '${trip.destinationName} (${trip.formattedDate})';
-    } else if (trip.isWithinForecastRange && forecastStatus == TripForecastStatus.available) {
-      accentColor = AppColors.accentCyan;
-      icon = Icons.cloud_done_rounded;
-      badgeText = 'FORECAST READY';
-      title = 'Official forecast available';
-      subtitle = '${trip.destinationName} • ${trip.relativeDateLabel}';
-    } else if (trip.isUpcoming) {
-      accentColor = AppColors.weatherBlue;
-      icon = Icons.luggage_rounded;
-      badgeText = 'IN ${trip.daysUntil} DAYS';
-      title = 'Upcoming Trip';
-      subtitle = '${trip.destinationName} • ${trip.formattedDate}';
-    } else {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      decoration: BoxDecoration(
-        color: accentColor.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: accentColor.withValues(alpha: 0.25)),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Badge + Title (Wrap for responsive safety)
-          Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.18),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(icon, size: 11, color: accentColor),
-                    const SizedBox(width: 4),
-                    Text(
-                      badgeText,
-                      style: TextStyle(
-                        color: accentColor,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Text(
-                title,
-                style: TextStyle(
-                  color: AppColors.primaryText(context),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 3),
-          Text(
-            subtitle,
-            style: TextStyle(
-              color: AppColors.secondaryText(context),
-              fontSize: 11,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          if (forecastStatus == TripForecastStatus.available && score != null) ...[
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 6,
-              runSpacing: 4,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: score.color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    'Score ${score.score}/100 • ${score.levelName}',
-                    style: TextStyle(
-                      color: score.color,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                if (trip.preferredPeriod.isNotEmpty)
-                  Text(
-                    'Preferred: ${trip.preferredPeriod}',
-                    style: TextStyle(
-                      color: AppColors.secondaryText(context),
-                      fontSize: 10,
-                    ),
-                  ),
-              ],
-            ),
-          ],
         ],
       ),
     );
@@ -1037,140 +975,5 @@ class _TripsScreenState extends State<TripsScreen> {
         ],
       ),
     );
-  }
-}
-
-
-// ─── Swipe-to-Delete Wrapper ──────────────────────────────────────────────────
-
-class _TripsSwipeWrapper extends StatefulWidget {
-  final PlannedTrip trip;
-  final Widget child;
-
-  const _TripsSwipeWrapper({
-    required super.key,
-    required this.trip,
-    required this.child,
-  });
-
-  @override
-  State<_TripsSwipeWrapper> createState() => _TripsSwipeWrapperState();
-}
-
-class _TripsSwipeWrapperState extends State<_TripsSwipeWrapper> {
-  late Key _dismissKey;
-
-  @override
-  void initState() {
-    super.initState();
-    _dismissKey = ValueKey('dismissible_${widget.trip.id}');
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Dismissible(
-      key: _dismissKey,
-      direction: DismissDirection.endToStart,
-      confirmDismiss: (_) => _confirmAndDelete(context),
-      onDismissed: (_) {},
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: AppColors.dangerRed.withValues(alpha: 0.18),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.dangerRed.withValues(alpha: 0.35)),
-        ),
-        child: const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.delete_outline_rounded, color: AppColors.dangerRed, size: 24),
-            SizedBox(height: 4),
-            Text(
-              'Delete',
-              style: TextStyle(
-                color: AppColors.dangerRed,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      ),
-      child: widget.child,
-    );
-  }
-
-  Future<bool> _confirmAndDelete(BuildContext context) async {
-    // Capture context-dependent objects BEFORE any await gap
-    final provider = Provider.of<TripProvider>(context, listen: false);
-    final messenger = ScaffoldMessenger.of(context);
-    final tripId = widget.trip.id;
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.cardBg(context),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: AppColors.borderGlass(context)),
-        ),
-        title: Text(
-          'Delete Trip?',
-          style: TextStyle(color: AppColors.primaryText(context)),
-        ),
-        content: Text(
-          'Remove your trip to ${widget.trip.destinationName} on ${widget.trip.formattedDate}?',
-          style: TextStyle(color: AppColors.secondaryText(context), fontSize: 14),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('Cancel', style: TextStyle(color: AppColors.secondaryText(context))),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.dangerRed,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) {
-      if (mounted) {
-        setState(() {
-          _dismissKey = UniqueKey();
-        });
-      }
-      return false;
-    }
-
-    if (tripId == null) {
-      return false;
-    }
-
-    final success = await provider.deleteTrip(tripId);
-
-    if (!success && mounted) {
-      setState(() {
-        _dismissKey = UniqueKey();
-      });
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Failed to delete trip. Please try again.'),
-          backgroundColor: AppColors.dangerRed,
-          duration: Duration(seconds: 3),
-        ),
-      );
-      await provider.loadTrips();
-    }
-
-    return success;
   }
 }

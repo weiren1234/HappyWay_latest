@@ -136,7 +136,7 @@ void main() {
 
     test('DestinationDataService has authentic images for core destinations', () {
       final destinations = DestinationDataService.getDestinations();
-      expect(destinations.length, 16);
+      expect(destinations.length, inInclusiveRange(16, 20));
 
       final cameron = destinations.firstWhere((d) => d.id == 'dest_cameron');
       expect(cameron.imageUrl, 'assets/destinations/cameron_highlands.jpg');

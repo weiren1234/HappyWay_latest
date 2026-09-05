@@ -109,7 +109,7 @@ void main() {
       // Score must NOT be 100! Neutral baseline for completely missing period data is 50
       expect(score.weatherSubscore, isNot(100));
       expect(score.score, isNot(100));
-      expect(score.bestTravelPeriod, 'Recommended period unavailable');
+      expect(score.bestTravelPeriod, 'Not available');
       expect(score.breakdown.isWeatherComplete, isFalse);
     });
 
@@ -127,7 +127,7 @@ void main() {
 
       expect(score.weatherSubscore, isNot(100));
       expect(score.score, isNot(100));
-      expect(score.bestTravelPeriod, 'Recommended period unavailable');
+      expect(score.bestTravelPeriod, 'Not available');
     });
 
     test('Explicit positive MET dry keywords yield full weather suitability', () {

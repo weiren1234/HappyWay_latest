@@ -108,6 +108,9 @@ class PlannedTrip {
     return days >= 0 && days <= 6;
   }
 
+  // Sentinel to explicitly clear a nullable field via copyWith.
+  static const _clear = Object();
+
   PlannedTrip copyWith({
     int? id,
     String? destinationLocationId,
@@ -122,7 +125,7 @@ class PlannedTrip {
     double? originLatitude,
     double? originLongitude,
     String? preferredPeriod,
-    String? notes,
+    Object? notes = _clear, // use _clear sentinel; pass null to clear the field
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -140,7 +143,7 @@ class PlannedTrip {
       originLatitude: originLatitude ?? this.originLatitude,
       originLongitude: originLongitude ?? this.originLongitude,
       preferredPeriod: preferredPeriod ?? this.preferredPeriod,
-      notes: notes ?? this.notes,
+      notes: identical(notes, _clear) ? this.notes : notes as String?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

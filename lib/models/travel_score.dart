@@ -56,7 +56,7 @@ class TravelScoreBreakdown {
 
   factory TravelScoreBreakdown.fromJson(Map<String, dynamic> json) =>
       TravelScoreBreakdown(
-        weatherScore: (json['weatherScore'] as num?)?.toInt() ?? 75,
+        weatherScore: (json['weatherScore'] as num?)?.toInt() ?? 0,
         journeyScore: (json['journeyScore'] as num?)?.toInt(),
         morningScore: (json['morningScore'] as num?)?.toInt(),
         afternoonScore: (json['afternoonScore'] as num?)?.toInt(),
@@ -75,9 +75,12 @@ class TravelScore {
   final int? journeySubscore;          // Journey Practicality (0 - 100, null if no route)
   final TravelSuitability suitability;
   final String levelName;              // "Excellent", "Very Good", "Good", "Moderate", "Less Ideal"
-  final String bestTravelPeriod;       // "Morning", "Afternoon", "Night", "All Day", etc.
+  final String bestTravelPeriod;       // "Morning", "Afternoon", "Night", "Not available"
   final String? recommendedDeparture;  // e.g. "Around 8:00 AM" (deterministic planning advice)
-  final String? departureReason;       // e.g. "Arrive before afternoon thunderstorms."
+  final String? departureReason;       // e.g. "Arrive before afternoon weather changes."
+  final String? bestWeatherWindow;     // e.g. "8:00 AM – 11:00 AM"
+  final String? selectedPeriod;        // e.g. "Morning", "Afternoon", "Night", "Auto"
+  final String? recommendedPeriod;     // e.g. "Morning", "Afternoon", "Night", "Not available"
   final String recommendation;         // Detailed travel advice summary
   final List<String> highlights;       // Bullet points explaining the conditions
   final List<String> explanationBullets; // "Why this score?" bullets
@@ -88,6 +91,7 @@ class TravelScore {
   final String? analysisLimitation;    // Note if analysis is weather-only due to missing route
   final TravelScoreBreakdown breakdown;
   final Color color;
+  final bool isInitial;                // True only when awaiting calculation
 
   TravelScore({
     required this.score,
@@ -98,6 +102,9 @@ class TravelScore {
     required this.bestTravelPeriod,
     this.recommendedDeparture,
     this.departureReason,
+    this.bestWeatherWindow,
+    this.selectedPeriod,
+    this.recommendedPeriod,
     required this.recommendation,
     required this.highlights,
     this.explanationBullets = const [],
@@ -108,6 +115,7 @@ class TravelScore {
     this.analysisLimitation,
     TravelScoreBreakdown? breakdown,
     Color? color,
+    this.isInitial = false,
   })  : weatherSubscore = weatherSubscore ?? score,
         breakdown = breakdown ??
             TravelScoreBreakdown(
@@ -133,21 +141,30 @@ class TravelScore {
 
   factory TravelScore.initial() {
     return TravelScore(
-      score: 75,
+      score: 0,
+      weatherSubscore: 0,
+      journeySubscore: null,
       suitability: TravelSuitability.moderate,
-      levelName: 'Good',
-      bestTravelPeriod: 'Recommended period unavailable',
-      recommendation: 'Awaiting official forecast from MET Malaysia to calculate travel recommendations.',
+      levelName: 'Calculating...',
+      bestTravelPeriod: 'Not available',
+      recommendedDeparture: null,
+      departureReason: null,
+      bestWeatherWindow: null,
+      selectedPeriod: 'Auto',
+      recommendedPeriod: 'Not available',
+      recommendation: 'Calculating travel recommendations based on latest weather and route conditions...',
       highlights: [],
-      explanationBullets: ['Awaiting live official forecast from MET Malaysia.'],
-      reasons: [TravelRecommendationReason.insufficientWeatherData],
+      explanationBullets: const ['Awaiting live forecast data.'],
+      reasons: const [TravelRecommendationReason.insufficientWeatherData],
       isRouteAvailable: false,
-      analysisLimitation: 'Awaiting official forecast data.',
+      analysisLimitation: 'Calculating...',
+      isInitial: true,
+      color: Colors.grey,
     );
   }
 
   factory TravelScore.fromJson(Map<String, dynamic> json) {
-    final score = (json['score'] as num?)?.toInt() ?? 75;
+    final score = (json['score'] as num?)?.toInt() ?? 0;
     final suitabilityStr = json['suitability'] as String? ?? 'moderate';
     final suitability = TravelSuitability.values.firstWhere(
       (e) => e.name == suitabilityStr,
@@ -168,9 +185,12 @@ class TravelScore {
       journeySubscore: (json['journeySubscore'] as num?)?.toInt(),
       suitability: suitability,
       levelName: json['levelName'] as String?,
-      bestTravelPeriod: json['bestTravelPeriod'] as String? ?? 'Morning',
+      bestTravelPeriod: json['bestTravelPeriod'] as String? ?? 'Not available',
       recommendedDeparture: json['recommendedDeparture'] as String?,
       departureReason: json['departureReason'] as String?,
+      bestWeatherWindow: json['bestWeatherWindow'] as String?,
+      selectedPeriod: json['selectedPeriod'] as String?,
+      recommendedPeriod: json['recommendedPeriod'] as String?,
       recommendation: json['recommendation'] as String? ?? '',
       highlights: (json['highlights'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
       explanationBullets:
@@ -197,6 +217,9 @@ class TravelScore {
       'bestTravelPeriod': bestTravelPeriod,
       'recommendedDeparture': recommendedDeparture,
       'departureReason': departureReason,
+      'bestWeatherWindow': bestWeatherWindow,
+      'selectedPeriod': selectedPeriod,
+      'recommendedPeriod': recommendedPeriod,
       'recommendation': recommendation,
       'highlights': highlights,
       'explanationBullets': explanationBullets,

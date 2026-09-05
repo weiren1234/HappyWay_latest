@@ -5,11 +5,18 @@ import '../models/planned_trip.dart';
 import '../models/travel_location.dart';
 import '../providers/trip_provider.dart';
 import '../providers/location_provider.dart';
+import '../providers/navigation_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import 'glass_card.dart';
 import 'origin_picker_sheet.dart';
 import 'destination_picker_sheet.dart';
+import '../models/travel_score.dart';
+import '../models/travel_route.dart';
+import '../models/weather_info.dart';
+import '../services/route_service.dart';
+import '../services/weather_service.dart';
+import '../utils/travel_score_calculator.dart';
 
 /// PlanTripSheet presents the modal bottom sheet form to plan a new trip or edit an existing one.
 /// Supports both pre-selected destinations (from Explore / Destination Detail / Saved)
@@ -90,11 +97,18 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
 
   bool _isSaving = false;
 
+  final _weatherService = WeatherService();
+  final _routeService = RouteService();
+  WeatherInfo? _previewWeather;
+  TravelRoute? _previewRoute;
+  TravelScore? _previewScore;
+  bool _isLoadingPreview = false;
+
   final List<String> _periods = [
     'Morning',
     'Afternoon',
     'Night',
-    'Auto Recommend',
+    'Auto',
   ];
 
   @override
@@ -170,6 +184,11 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
         }
       });
     }
+
+    // Schedule initial live analysis preview calculation
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _recalculatePreview();
+    });
   }
 
   @override
@@ -196,6 +215,7 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
         _selectedDestination = selected;
         _destinationError = null; // Clear validation error immediately on selection
       });
+      _recalculatePreview();
     }
   }
 
@@ -213,6 +233,94 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
 
     if (picked != null) {
       setState(() => _selectedDate = picked);
+      _recalculatePreview();
+    }
+  }
+
+  Future<void> _recalculatePreview() async {
+    final dest = _selectedDestination;
+    if (dest == null ||
+        ((dest.latitude == 0.0 && dest.longitude == 0.0) &&
+            (dest.metLocationId == null || dest.metLocationId!.isEmpty))) {
+      if (mounted) {
+        setState(() {
+          _previewWeather = null;
+          _previewRoute = null;
+          _previewScore = null;
+          _isLoadingPreview = false;
+        });
+      }
+      return;
+    }
+
+    if (mounted) {
+      setState(() => _isLoadingPreview = true);
+    }
+
+    try {
+      WeatherInfo? weather;
+      if (dest.latitude != 0.0 || dest.longitude != 0.0) {
+        weather = await _weatherService.fetchWeatherForCoordinates(
+          latitude: dest.latitude,
+          longitude: dest.longitude,
+          targetDate: _selectedDate,
+          locationId: dest.metLocationId,
+        );
+      } else if (dest.metLocationId != null && dest.metLocationId!.isNotEmpty) {
+        weather = await _weatherService.fetchWeatherForLocationAndDate(
+          dest.metLocationId!,
+          _selectedDate,
+        );
+      }
+
+      TravelRoute? route;
+      if (_originLat != null &&
+          _originLng != null &&
+          _originLat != 0.0 &&
+          _originLng != 0.0 &&
+          dest.latitude != 0.0 &&
+          dest.longitude != 0.0) {
+        try {
+          final routeResult = await _routeService.calculateRouteDetails(
+            originName: _originName,
+            originLat: _originLat!,
+            originLng: _originLng!,
+            destName: dest.name,
+            destLat: dest.latitude,
+            destLng: dest.longitude,
+          );
+          route = routeResult.route;
+        } catch (e) {
+          debugPrint('[PlanTripSheet] Route calculation error: $e');
+        }
+      }
+
+      if (!mounted) return;
+
+      final score = weather != null
+          ? TravelScoreCalculator.calculateScore(
+              weather: weather,
+              route: route,
+              preferredPeriod: _selectedPeriod,
+              travelDate: _selectedDate,
+            )
+          : null;
+
+      setState(() {
+        _previewWeather = weather;
+        _previewRoute = route;
+        _previewScore = score;
+        _isLoadingPreview = false;
+      });
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _previewWeather = null;
+          _previewRoute = null;
+          _previewScore = null;
+          _isLoadingPreview = false;
+        });
+      }
     }
   }
 
@@ -231,6 +339,7 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
               _originLat = locProvider.currentLocation!.latitude;
               _originLng = locProvider.currentLocation!.longitude;
             });
+            _recalculatePreview();
           }
         },
         onSelectTravelLocation: (loc) {
@@ -239,6 +348,7 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
             _originLat = loc.latitude;
             _originLng = loc.longitude;
           });
+          _recalculatePreview();
         },
       ),
     );
@@ -292,35 +402,76 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
     );
 
     if (isEdit) {
-      await tripProvider.updateTrip(trip);
+      final success = await tripProvider.updateTrip(trip);
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+      if (success) {
+        Navigator.pop(context, trip);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Trip updated successfully!',
+              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primaryText(context)),
+            ),
+            backgroundColor: AppColors.cardBg(context),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: AppColors.borderGlass(context)),
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unable to update trip. Please try again.'),
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
     } else {
-      await tripProvider.addTrip(trip);
+      final createdTrip = await tripProvider.addTrip(trip);
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+      if (createdTrip != null) {
+        // Close bottom sheet, pop back to MainScreen, switch to Home tab, show snackbar
+        final navProvider = Provider.of<NavigationProvider>(context, listen: false);
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        navProvider.setTab(0);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Trip planned successfully!',
+              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primaryText(context)),
+            ),
+            backgroundColor: AppColors.cardBg(context),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: AppColors.borderGlass(context)),
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unable to plan trip. Please check your connection and try again.'),
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
     }
-
-    if (!mounted) return;
-    setState(() => _isSaving = false);
-    Navigator.pop(context, trip);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          isEdit ? 'Trip updated successfully!' : 'Trip to ${dest.name} added to My Trips!',
-          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primaryText(context)),
-        ),
-        backgroundColor: AppColors.cardBg(context),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: AppColors.borderGlass(context)),
-        ),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final isEdit = widget.initialTrip != null;
+    // Lock destination + origin when editing OR when destination was pre-selected
+    // (i.e. opened via "Plan This Trip" from a destination page)
+    final isLocked = isEdit || widget.destinationName != null || widget.initialDestination != null;
     final formattedDate = DateFormat('EEEE, d MMMM yyyy').format(_selectedDate);
 
     return Container(
@@ -382,6 +533,40 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
             ),
             const SizedBox(height: 16),
 
+            // ── Starting Location ───────────────────────────────────────────
+            Text('Starting Location (From)', style: AppTextStyles.titleSmall.copyWith(fontSize: 13, color: AppColors.secondaryText(context))),
+            const SizedBox(height: 6),
+            InkWell(
+              onTap: isLocked ? null : _openOriginPicker,
+              borderRadius: BorderRadius.circular(14),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceGlass(context),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.borderGlass(context)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.my_location_rounded, color: AppColors.safeGreen, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _originName,
+                        style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600, color: AppColors.primaryText(context)),
+                      ),
+                    ),
+                    if (!isLocked)
+                      Text(
+                        'Change',
+                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.blueAccent(context), fontWeight: FontWeight.w600),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
             // ── Destination Selection Box ────────────────────────────────────
             Text('Destination (To)', style: AppTextStyles.titleSmall.copyWith(fontSize: 13, color: AppColors.secondaryText(context))),
             const SizedBox(height: 6),
@@ -417,28 +602,20 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    if (_selectedDestination!.hasWeatherLocation)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceGlass(context),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: AppColors.borderGlass(context)),
+
+                    if (!isLocked)
+                      TextButton(
+                        onPressed: _openDestinationPicker,
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        child: Text('Official MET', style: TextStyle(color: AppColors.cyanAccent(context), fontSize: 10, fontWeight: FontWeight.w600)),
+                        child: Text(
+                          'Change',
+                          style: AppTextStyles.bodySmall.copyWith(color: AppColors.blueAccent(context), fontWeight: FontWeight.w600),
+                        ),
                       ),
-                    TextButton(
-                      onPressed: _openDestinationPicker,
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      child: Text(
-                        'Change',
-                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.blueAccent(context), fontWeight: FontWeight.w600),
-                      ),
-                    ),
                   ],
                 ),
               )
@@ -524,39 +701,6 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
             ),
             const SizedBox(height: 16),
 
-            // ── Starting Location ───────────────────────────────────────────
-            Text('Starting Location (From)', style: AppTextStyles.titleSmall.copyWith(fontSize: 13, color: AppColors.secondaryText(context))),
-            const SizedBox(height: 6),
-            InkWell(
-              onTap: _openOriginPicker,
-              borderRadius: BorderRadius.circular(14),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceGlass(context),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.borderGlass(context)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.my_location_rounded, color: AppColors.safeGreen, size: 20),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        _originName,
-                        style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600, color: AppColors.primaryText(context)),
-                      ),
-                    ),
-                    Text(
-                      'Change',
-                      style: AppTextStyles.bodySmall.copyWith(color: AppColors.blueAccent(context), fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
             // ── Preferred Travel Period ─────────────────────────────────────
             Text('Preferred Travel Period', style: AppTextStyles.titleSmall.copyWith(fontSize: 13, color: AppColors.secondaryText(context))),
             const SizedBox(height: 8),
@@ -568,7 +712,10 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
                 return ChoiceChip(
                   label: Text(period),
                   selected: isSelected,
-                  onSelected: (_) => setState(() => _selectedPeriod = period),
+                  onSelected: (_) {
+                    setState(() => _selectedPeriod = period);
+                    _recalculatePreview();
+                  },
                   labelStyle: TextStyle(
                     color: isSelected ? Colors.white : AppColors.secondaryText(context),
                     fontSize: 12,
@@ -582,6 +729,10 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
                 );
               }).toList(),
             ),
+            const SizedBox(height: 16),
+
+            // ── Live Travel Analysis Preview ────────────────────────────────
+            _buildLiveAnalysisPreview(context),
             const SizedBox(height: 16),
 
             // ── Personal Notes ──────────────────────────────────────────────
@@ -646,6 +797,413 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildLiveAnalysisPreview(BuildContext context) {
+    if (_selectedDestination == null) {
+      return Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceGlass(context),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.borderGlass(context)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.auto_awesome_outlined, color: AppColors.mutedText(context), size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Select a destination to preview real-time travel suitability, best window, and trip advice.',
+                style: AppTextStyles.bodySmall.copyWith(color: AppColors.mutedText(context), fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_isLoadingPreview) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceGlass(context),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.borderGlass(context)),
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppColors.cyanAccent(context),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Analyzing hourly travel weather...',
+              style: AppTextStyles.bodySmall.copyWith(color: AppColors.secondaryText(context), fontSize: 12),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_previewScore != null) {
+      final score = _previewScore!;
+      final scoreColor = score.color;
+      final route = _previewRoute;
+      final isRouteComplete = route != null;
+
+      final formattedDate = DateFormat('EEEE, d MMMM').format(_selectedDate);
+
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceGlass(context),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: scoreColor.withValues(alpha: 0.35),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: scoreColor.withValues(alpha: 0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Row 1: Header Tag
+            Row(
+              children: [
+                Icon(Icons.auto_awesome_rounded, color: AppColors.cyanAccent(context), size: 15),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    isRouteComplete ? 'TRAVEL SUITABILITY PREVIEW' : 'WEATHER SUITABILITY PREVIEW',
+                    style: AppTextStyles.badgeLabel.copyWith(
+                      color: AppColors.cyanAccent(context),
+                      fontWeight: FontWeight.w700,
+                      fontSize: 11,
+                      letterSpacing: 0.8,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 3),
+
+            // Row 2: Selected Travel Date Subtitle
+            Text(
+              formattedDate,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.primaryText(context),
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            // Row 3: Weather/Route Info (Left) + Score Badge (Right)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (_previewWeather?.temperature != null)
+                        Row(
+                          children: [
+                            Text(
+                              '${_previewWeather!.temperature!.round()}°C',
+                              style: TextStyle(
+                                color: AppColors.primaryText(context),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            if (_previewWeather?.condition != null) ...[
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  _previewWeather!.condition,
+                                  style: AppTextStyles.bodySmall.copyWith(
+                                    color: AppColors.secondaryText(context),
+                                    fontSize: 12,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      if (route != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          '${route.durationFormatted} • ${route.distanceFormatted}',
+                          style: TextStyle(
+                            color: AppColors.cyanAccent(context),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ] else ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          'Route unavailable — weather only',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.mutedText(context),
+                            fontSize: 10.5,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: scoreColor.withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: scoreColor.withValues(alpha: 0.4)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${score.score}',
+                        style: TextStyle(
+                          color: scoreColor,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 14,
+                        ),
+                      ),
+                      Text(
+                        '/100 · ${score.levelName}',
+                        style: TextStyle(
+                          color: scoreColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 11.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Two key metrics row: Recommended Period & Best Window
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.inputFill(context),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.inputBorder(context)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Recommended',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.mutedText(context),
+                            fontSize: 10,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Icon(
+                              score.recommendedPeriod == 'Morning'
+                                  ? Icons.wb_sunny_outlined
+                                  : score.recommendedPeriod == 'Afternoon'
+                                      ? Icons.wb_cloudy_outlined
+                                      : Icons.nightlight_outlined,
+                              size: 14,
+                              color: AppColors.cyanAccent(context),
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                score.recommendedPeriod ?? 'Auto',
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primaryText(context),
+                                  fontSize: 12,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.inputFill(context),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.inputBorder(context)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Best Window',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.mutedText(context),
+                            fontSize: 10,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.access_time_rounded,
+                              size: 14,
+                              color: AppColors.cyanAccent(context),
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                score.bestWeatherWindow ?? 'All day',
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primaryText(context),
+                                  fontSize: 12,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            // Suggested Departure (if route available and departure calculated)
+            if (isRouteComplete && score.recommendedDeparture != null) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                decoration: BoxDecoration(
+                  color: AppColors.inputFill(context),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.inputBorder(context)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.departure_board_rounded, size: 15, color: AppColors.cyanAccent(context)),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Suggested Departure: ',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.secondaryText(context),
+                        fontSize: 11.5,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        score.recommendedDeparture!,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.cyanAccent(context),
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            // Advice text
+            if (score.recommendation.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Text(
+                score.recommendation,
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.secondaryText(context),
+                  fontSize: 11.5,
+                  height: 1.4,
+                ),
+              ),
+            ],
+
+            // Tip if user selected period differs from recommended period
+            if (_selectedPeriod != 'Auto' &&
+                score.recommendedPeriod != null &&
+                _selectedPeriod != score.recommendedPeriod) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                decoration: BoxDecoration(
+                  color: AppColors.cautionAmber.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.cautionAmber.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.info_outline_rounded, size: 13, color: AppColors.cautionAmber),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'Tip: ${score.recommendedPeriod} has better forecast conditions than $_selectedPeriod.',
+                        style: const TextStyle(color: AppColors.cautionAmber, fontSize: 11, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceGlass(context),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.borderGlass(context)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.cloud_off_rounded, color: AppColors.mutedText(context), size: 18),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Forecast unavailable for this destination and date.',
+              style: AppTextStyles.bodySmall.copyWith(color: AppColors.mutedText(context), fontSize: 11.5),
+            ),
+          ),
+        ],
       ),
     );
   }

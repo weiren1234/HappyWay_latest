@@ -24,6 +24,10 @@ class DestinationDataService {
     'dest_melaka': 'LOCATION:174', // Melaka Historic City
     'dest_kenyir': 'LOCATION:337', // Tasik Kenyir
     'dest_cherating': 'LOCATION:315', // Cherating
+    'dest_danau_kota': 'LOCATION:172', // Taman Danau Kota (Setapak)
+    'dest_titiwangsa': 'LOCATION:172', // Taman Tasik Titiwangsa
+    'dest_batu_caves': 'LOCATION:172', // Batu Caves
+    'dest_perdana_botanical': 'LOCATION:172', // Perdana Botanical Garden
   };
 
   /// Supported recommendation preference categories.
@@ -255,6 +259,61 @@ class DestinationDataService {
         activityTags: ['Beach', 'Relaxing', 'Nature', 'Family Trip'],
         imageUrl: '',
         description: 'Laid-back coastal village famous for turtle conservation sanctuaries, river mangrove firefly tours, wide beaches, and seasonal surf waves.',
+      ),
+      _build(
+        id: 'dest_danau_kota',
+        name: 'Taman Danau Kota',
+        state: 'Kuala Lumpur',
+        category: 'Nature',
+        metLocationId: 'LOCATION:172',
+        locationCategoryId: 'TOURISTDEST',
+        latitude: 3.20300,
+        longitude: 101.71800,
+        activityTags: ['Nature', 'Relaxing', 'Family Trip', 'Sightseeing'],
+        imageUrl: '',
+        description: 'Serene urban lake park in Setapak featuring scenic jogging loops around the lake, open breezes, and waterfront relaxation.',
+        isTrending: true,
+      ),
+      _build(
+        id: 'dest_titiwangsa',
+        name: 'Taman Tasik Titiwangsa',
+        state: 'Kuala Lumpur',
+        category: 'Nature',
+        metLocationId: 'LOCATION:172',
+        locationCategoryId: 'TOURISTDEST',
+        latitude: 3.17800,
+        longitude: 101.70600,
+        activityTags: ['Nature', 'Relaxing', 'Family Trip', 'Sightseeing'],
+        imageUrl: '',
+        description: 'Iconic 95-hectare recreational park with expansive boating lakes, canopy walk, roller-skating tracks, and panoramic skyline views of KLCC and KL Tower.',
+        isTrending: true,
+      ),
+      _build(
+        id: 'dest_batu_caves',
+        name: 'Batu Caves',
+        state: 'Selangor',
+        category: 'Sightseeing',
+        metLocationId: 'LOCATION:172',
+        locationCategoryId: 'TOURISTDEST',
+        latitude: 3.23790,
+        longitude: 101.68400,
+        activityTags: ['Sightseeing', 'Hiking', 'Nature', 'Family Trip'],
+        imageUrl: '',
+        description: 'World-famous limestone hill featuring 272 vibrant rainbow steps leading up to massive cathedral cave temples and the iconic 42.7m golden Lord Murugan statue.',
+        isTrending: true,
+      ),
+      _build(
+        id: 'dest_perdana_botanical',
+        name: 'Perdana Botanical Garden',
+        state: 'Kuala Lumpur',
+        category: 'Nature',
+        metLocationId: 'LOCATION:172',
+        locationCategoryId: 'TOURISTDEST',
+        latitude: 3.14360,
+        longitude: 101.68880,
+        activityTags: ['Nature', 'Relaxing', 'Family Trip', 'Sightseeing'],
+        imageUrl: '',
+        description: 'Kuala Lumpur\'s premier botanical garden with sunken gardens, bamboo playhouse, hibiscus walk, orchid gardens, and deer park pathways.',
       ),
     ];
   }

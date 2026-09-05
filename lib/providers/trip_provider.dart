@@ -267,6 +267,7 @@ class TripProvider extends ChangeNotifier {
             _tripScores[t.id!] = TravelScoreCalculator.calculateScore(
               weather: weather,
               preferredPeriod: t.preferredPeriod,
+              travelDate: t.travelDate,
             );
           }
         }

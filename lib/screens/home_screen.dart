@@ -132,7 +132,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ─── Analyze Trip ─────────────────────────────────────────────────────────────
 
-  Future<void> _onAnalyzeTrip(BuildContext context, [TravelLocation? explicitDest, TravelDestination? explicitFeatured]) async {
+  Future<void> _onAnalyzeTrip(
+    BuildContext context, [
+    TravelLocation? explicitDest,
+    TravelDestination? explicitFeatured,
+    TravelRoute? explicitRoute,
+    WeatherInfo? explicitWeather,
+  ]) async {
     final loc = explicitDest ?? _selectedDestination;
     if (loc == null) {
       _showSnackBar(context, 'Please select a destination first.');
@@ -162,9 +168,9 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _isAnalyzing = true);
     _showAnalyzingDialog(context, loc);
 
-    // 1. Fetch official MET forecast if a matched MET location exists
-    WeatherInfo? weather;
-    if (loc.hasWeatherLocation) {
+    // 1. Fetch weather forecast if not already provided
+    WeatherInfo? weather = explicitWeather;
+    if (weather == null && loc.hasWeatherLocation) {
       weather = await destProvider.fetchForecastForTravelLocation(loc);
     }
 
@@ -178,40 +184,46 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    // 2. Fetch OSRM route using exact destination coordinates (non-blocking)
+    // 2. Route details using destination coordinates (non-blocking if not pre-computed)
     setState(() {
       _hasAnalyzed = true;
       _analyzedWeather = weather;
-      _isLoadingRoute = true;
+      _isLoadingRoute = explicitRoute == null;
       _routeError = null;
-      _analyzedRoute = null;
+      _analyzedRoute = explicitRoute;
     });
 
     final origin = locProvider.currentLocation!;
     final destLat = loc.latitude;
     final destLng = loc.longitude;
 
-    TravelRoute? route;
+    TravelRoute? route = explicitRoute;
     String? routeErr;
 
-    if (destLat != 0.0 && destLng != 0.0) {
-      final result = await _routeService.calculateRouteDetails(
-        originName: origin.name,
-        originLat: origin.latitude,
-        originLng: origin.longitude,
-        destName: loc.name,
-        destLat: destLat,
-        destLng: destLng,
-      );
-      route = result.route;
-      routeErr = result.errorMessage;
-    } else {
-      routeErr = 'Route unavailable — destination coordinates missing.';
+    if (route == null) {
+      if (destLat != 0.0 && destLng != 0.0) {
+        final result = await _routeService.calculateRouteDetails(
+          originName: origin.name,
+          originLat: origin.latitude,
+          originLng: origin.longitude,
+          destName: loc.name,
+          destLat: destLat,
+          destLng: destLng,
+        );
+        route = result.route;
+        routeErr = result.errorMessage;
+      } else {
+        routeErr = 'Route unavailable — destination coordinates missing.';
+      }
     }
 
     if (!mounted) return;
 
-    final score = TravelScoreCalculator.calculateScore(weather: weather, route: route);
+    final score = TravelScoreCalculator.calculateScore(
+      weather: weather,
+      route: route,
+      travelDate: DateTime.now(),
+    );
 
     setState(() {
       _analyzedRoute = route;
@@ -271,6 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final score = TravelScoreCalculator.calculateScore(
       weather: _analyzedWeather,
       route: result.route,
+      travelDate: DateTime.now(),
     );
 
     setState(() {
@@ -307,8 +320,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 8),
                 Text(
                   loc.hasWeatherLocation
-                      ? 'Requesting official MET Malaysia forecast data for ${loc.metLocationName ?? loc.state}'
-                      : 'Calculating route and travel practical score',
+                      ? 'Loading weather forecast for ${loc.metLocationName ?? loc.state}...'
+                      : 'Estimating travel route and practical travel score...',
                   style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
                   textAlign: TextAlign.center,
                 ),
@@ -337,7 +350,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         content: Text(
-          'Unable to retrieve the latest forecast from MET Malaysia for ${loc.name}. Please check your network connection and try again.',
+          'Unable to load the latest weather forecast for ${loc.name}. Please check your connection and try again.',
           style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primaryText(ctx)),
         ),
         actions: [
@@ -389,6 +402,14 @@ class _HomeScreenState extends State<HomeScreen> {
     final topReminderTrip = remindersEnabled
         ? TripReminderCard.resolveTopReminder(tripProvider.trips, tripProvider)
         : null;
+
+    if (locProvider.currentLocation != null &&
+        (destProvider.currentUserOrigin?.latitude != locProvider.currentLocation?.latitude ||
+         destProvider.currentUserOrigin?.longitude != locProvider.currentLocation?.longitude)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        destProvider.updateUserOrigin(locProvider.currentLocation);
+      });
+    }
 
     final dest = _selectedDestination;
     final hasValidDest = dest != null;
@@ -564,27 +585,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 10),
-
-                        // Search shortcut
-                        GestureDetector(
-                          onTap: () => _openLocationPicker(context),
-                          child: _RowContainer(
-                            child: Row(
-                              children: [
-                                Icon(Icons.search_rounded, color: AppColors.mutedText(context), size: 18),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Search MET location or detailed address...',
-                                    style: AppTextStyles.bodyMedium.copyWith(color: AppColors.mutedText(context)),
-                                  ),
-                                ),
-                                Icon(Icons.arrow_drop_down_rounded, color: AppColors.mutedText(context)),
-                              ],
-                            ),
-                          ),
-                        ),
                         const SizedBox(height: 14),
 
                         // Analyze Button
@@ -673,14 +673,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 11),
-                        child: Text(
-                          'Score-ranked recommendations matching your travel mood & official MET forecasts',
-                          style: AppTextStyles.bodySmall,
-                        ),
-                      ),
                       const SizedBox(height: 12),
 
                       // Preference Selector Chips: "For you:"
@@ -729,7 +721,61 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              // 5. Recommended Destinations List
+              // Distance Range Slider (between preference chips and results)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.near_me_rounded, size: 14, color: AppColors.safeGreen),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Target distance: ',
+                            style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w500),
+                          ),
+                          Text(
+                            'Around ${destProvider.maxDistanceKm.round()} km',
+                            style: AppTextStyles.bodySmall.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.cyanAccent(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      SliderTheme(
+                        data: SliderTheme.of(context).copyWith(
+                          activeTrackColor: AppColors.cyanAccent(context),
+                          inactiveTrackColor: AppColors.borderGlass(context),
+                          thumbColor: Colors.white,
+                          overlayColor: AppColors.cyanAccent(context).withValues(alpha: 0.15),
+                          trackHeight: 3,
+                          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+                        ),
+                        child: Slider(
+                          value: destProvider.maxDistanceKm.clamp(50, 500),
+                          min: 50,
+                          max: 500,
+                          divisions: 9,
+                          onChanged: (val) => destProvider.setMaxDistanceKm(val),
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('50 km  (Nearby)', style: AppTextStyles.bodySmall.copyWith(fontSize: 10, color: AppColors.secondaryText(context))),
+                          Text('500 km  (Any)', style: AppTextStyles.bodySmall.copyWith(fontSize: 10, color: AppColors.secondaryText(context))),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+
               if (destProvider.isLoadingRecommendations)
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
@@ -755,7 +801,35 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 )
+              else if (destProvider.roadAccessibleRecommendations.isEmpty &&
+                  destProvider.getawayRecommendations.isEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+                    child: GlassCard(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          const Icon(Icons.tune_rounded, size: 28, color: AppColors.safeGreen),
+                          const SizedBox(height: 8),
+                          Text(
+                            'No spots found around ${destProvider.maxDistanceKm.round()} km',
+                            style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Try sliding the range further right to see more destinations.',
+                            style: AppTextStyles.bodySmall.copyWith(color: AppColors.secondaryText(context)),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
               else ...[
+
                 // ── Road-Accessible from Your Location ───────────────────────
                 if (destProvider.roadAccessibleRecommendations.isNotEmpty) ...[
                   SliverToBoxAdapter(
@@ -790,12 +864,23 @@ class _HomeScreenState extends State<HomeScreen> {
                               onTap: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => DestinationDetailScreen(destination: rec.destination),
+                                  builder: (_) => DestinationDetailScreen(
+                                    destination: rec.destination,
+                                    route: rec.route,
+                                    userOrigin: destProvider.currentUserOrigin,
+                                    initialWeather: rec.weather,
+                                  ),
                                 ),
                               ),
                               onAnalyze: () {
                                 final travelLoc = TravelLocation.fromFeaturedDestination(rec.destination);
-                                _onAnalyzeTrip(context, travelLoc, rec.destination);
+                                _onAnalyzeTrip(
+                                  context,
+                                  travelLoc,
+                                  rec.destination,
+                                  rec.route,
+                                  rec.weather,
+                                );
                               },
                             ),
                           );
@@ -840,12 +925,23 @@ class _HomeScreenState extends State<HomeScreen> {
                               onTap: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => DestinationDetailScreen(destination: rec.destination),
+                                  builder: (_) => DestinationDetailScreen(
+                                    destination: rec.destination,
+                                    route: rec.route,
+                                    userOrigin: destProvider.currentUserOrigin,
+                                    initialWeather: rec.weather,
+                                  ),
                                 ),
                               ),
                               onAnalyze: () {
                                 final travelLoc = TravelLocation.fromFeaturedDestination(rec.destination);
-                                _onAnalyzeTrip(context, travelLoc, rec.destination);
+                                _onAnalyzeTrip(
+                                  context,
+                                  travelLoc,
+                                  rec.destination,
+                                  rec.route,
+                                  rec.weather,
+                                );
                               },
                             ),
                           );
@@ -922,16 +1018,28 @@ class _HomeScreenState extends State<HomeScreen> {
                                   onTap: () => Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) => DestinationDetailScreen(destination: d),
+                                      builder: (_) => DestinationDetailScreen(
+                                        destination: d,
+                                        userOrigin: Provider.of<LocationProvider>(context, listen: false).currentLocation,
+                                      ),
                                     ),
                                   ),
-                                  onToggleSave: () {
+                                  onToggleSave: () async {
                                     final auth = Provider.of<AuthProvider>(context, listen: false);
-                                    if (auth.isGuest) {
+                                    if (!auth.isAuthenticated || auth.isGuest) {
                                       AuthPromptDialog.show(context);
                                       return;
                                     }
-                                    destProvider.toggleSaveDestination(d.id);
+                                    final success = await destProvider.toggleSaveAnyDestination(d);
+                                    if (!success && context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Unable to update saved destinations. Please check your network connection.'),
+                                          behavior: SnackBarBehavior.floating,
+                                          duration: Duration(seconds: 3),
+                                        ),
+                                      );
+                                    }
                                   },
                                 );
                               },

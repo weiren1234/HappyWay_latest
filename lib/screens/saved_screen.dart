@@ -15,6 +15,7 @@ import '../widgets/destination_image_view.dart';
 import '../routes/app_routes.dart';
 import 'destination_detail_screen.dart';
 import 'travel_insights_screen.dart';
+import '../utils/canonical_destination_id.dart';
 
 /// SavedScreen shows bookmarked travel destinations and MET locations.
 ///
@@ -81,13 +82,48 @@ class _SavedScreenState extends State<SavedScreen> {
     );
   }
 
-  // ─── Swipe-to-remove with Undo ────────────────────────────────────────────
+  // ─── Delete with Undo ───────────────────────────────────────────────────────
 
-  Future<void> _handleSwipeRemove(BuildContext ctx, SavedLocation item) async {
+  Future<void> _handleDelete(BuildContext ctx, SavedLocation item) async {
+    final confirmed = await showDialog<bool>(
+      context: ctx,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: AppColors.cardBg(ctx),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(color: AppColors.borderGlass(ctx)),
+        ),
+        title: Text(
+          'Remove Saved Location?',
+          style: TextStyle(color: AppColors.primaryText(ctx), fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        content: Text(
+          'Are you sure you want to remove "${item.name}" from your saved locations?',
+          style: TextStyle(color: AppColors.secondaryText(ctx), fontSize: 14, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx, false),
+            child: Text('Cancel', style: TextStyle(color: AppColors.secondaryText(ctx))),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogCtx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.dangerRed,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 0,
+            ),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+    if (!ctx.mounted) return;
+
     final destProvider = Provider.of<DestinationProvider>(ctx, listen: false);
-
-    // Cancel any existing undo pending from a prior swipe — the SnackBar for
-    // the previous item will already be dismissed by the new one.
 
     final error = await destProvider.removeSavedLocationWithUndo(item.id);
 
@@ -249,27 +285,6 @@ class _SavedScreenState extends State<SavedScreen> {
               ),
               const SizedBox(height: 14),
 
-              if (savedList.isNotEmpty) ...[
-                GlassCard(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  backgroundColor: AppColors.cyanAccent(context).withValues(alpha: 0.06),
-                  borderColor: AppColors.cyanAccent(context).withValues(alpha: 0.2),
-                  child: Row(
-                    children: [
-                      Icon(Icons.swipe_left_outlined, color: AppColors.cyanAccent(context), size: 16),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Tap a card to view details. Swipe left to remove.',
-                          style: AppTextStyles.bodySmall.copyWith(color: AppColors.secondaryText(context)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 14),
-              ],
-
               Expanded(
                 child: destProvider.isLoadingSaved
                     ? Center(
@@ -298,13 +313,15 @@ class _SavedScreenState extends State<SavedScreen> {
                                 itemCount: savedList.length,
                                 itemBuilder: (context, index) {
                                   final item = savedList[index];
-                                  final featuredMatch = item.isFeatured
-                                      ? destProvider.featuredDestinations
-                                          .where((d) =>
-                                              d.id == item.id ||
-                                              'met:${d.metLocationId}' == item.id)
-                                          .firstOrNull
-                                      : null;
+                                  final itemCanonical = CanonicalDestinationId.fromSavedLocation(item);
+                                  final featuredMatch = destProvider.featuredDestinations
+                                      .where((d) => CanonicalDestinationId.fromDestination(d) == itemCanonical)
+                                      .firstOrNull ?? (
+                                    destProvider.recommendations
+                                        .map((r) => r.destination)
+                                        .where((d) => CanonicalDestinationId.fromDestination(d) == itemCanonical)
+                                        .firstOrNull
+                                  );
                                   return _SavedCard(
                                     key: ValueKey(item.id),
                                     item: item,
@@ -312,8 +329,8 @@ class _SavedScreenState extends State<SavedScreen> {
                                     onTapCard: () => _openDetail(context, item, featuredMatch),
                                     onAnalyze: () => _openAnalysis(context, item, featuredMatch),
                                     onPlanTrip: () => _openPlanTrip(context, item),
-                                    onSwipeRemove: () =>
-                                        _handleSwipeRemove(context, item),
+                                    onDelete: () =>
+                                        _handleDelete(context, item),
                                   );
                                 },
                               ),
@@ -335,7 +352,7 @@ class _SavedCard extends StatelessWidget {
   final VoidCallback onTapCard;
   final VoidCallback onAnalyze;
   final VoidCallback onPlanTrip;
-  final VoidCallback onSwipeRemove;
+  final VoidCallback onDelete;
 
   const _SavedCard({
     super.key,
@@ -344,7 +361,7 @@ class _SavedCard extends StatelessWidget {
     required this.onTapCard,
     required this.onAnalyze,
     required this.onPlanTrip,
-    required this.onSwipeRemove,
+    required this.onDelete,
   });
 
   @override
@@ -352,172 +369,151 @@ class _SavedCard extends StatelessWidget {
     final isGeocoded = item.sourceType == 'geocodedPlace';
     const badgeColor = Color(0xFF00E676);
 
-    return Dismissible(
-      key: ValueKey('dismissible_${item.id}'),
-      direction: DismissDirection.endToStart,
-      // Swipe background — shown under the card as it slides right-to-left.
-      background: Container(
-        margin: const EdgeInsets.only(bottom: 14),
-        decoration: BoxDecoration(
-          color: AppColors.dangerRed.withValues(alpha: 0.15),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      // Wrap the entire card in Material + InkWell for a full-card ripple tap
+      // that opens Destination Detail, while the action buttons inside use
+      // GestureDetector (which stops tap propagation to the InkWell parent).
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(24),
+        child: InkWell(
+          onTap: onTapCard,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.dangerRed.withValues(alpha: 0.4)),
-        ),
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.bookmark_remove_outlined, color: AppColors.dangerRed, size: 24),
-            const SizedBox(height: 4),
-            Text(
-              'Remove',
-              style: AppTextStyles.bodySmall.copyWith(color: AppColors.dangerRed, fontSize: 10),
-            ),
-          ],
-        ),
-      ),
-      // Dismiss fires after the swipe animation completes — trigger remove + undo.
-      onDismissed: (_) => onSwipeRemove(),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 14),
-        // Wrap the entire card in Material + InkWell for a full-card ripple tap
-        // that opens Destination Detail, while the action buttons inside use
-        // GestureDetector (which stops tap propagation to the InkWell parent).
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(24),
-          child: InkWell(
-            onTap: onTapCard,
-            borderRadius: BorderRadius.circular(24),
-            splashColor: AppColors.accentCyan.withValues(alpha: 0.08),
-            highlightColor: AppColors.accentCyan.withValues(alpha: 0.04),
-            child: GlassCard(
-              padding: EdgeInsets.zero,
-              // GlassCard already has a borderRadius of 24 — wrap with ClipRRect
-              // so the InkWell ripple is clipped to the card boundary.
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: Row(
-                  children: [
-                    // ── Thumbnail ─────────────────────────────────────────────
-                    DestinationImageView(
-                      name: item.name,
-                      state: item.state,
-                      locationId: item.metLocationId ?? item.id,
-                      imageUrl: item.imageUrl,
-                      width: 90,
-                      height: 108,
-                      fit: BoxFit.cover,
-                      borderRadius: const BorderRadius.horizontal(left: Radius.circular(24)),
-                    ),
+          splashColor: AppColors.accentCyan.withValues(alpha: 0.08),
+          highlightColor: AppColors.accentCyan.withValues(alpha: 0.04),
+          child: GlassCard(
+            padding: EdgeInsets.zero,
+            // GlassCard already has a borderRadius of 24 — wrap with ClipRRect
+            // so the InkWell ripple is clipped to the card boundary.
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: Row(
+                children: [
+                  // ── Thumbnail ─────────────────────────────────────────────
+                  DestinationImageView(
+                    name: item.name,
+                    state: item.state,
+                    locationId: item.metLocationId ?? item.id,
+                    imageUrl: item.imageUrl,
+                    width: 90,
+                    height: 108,
+                    fit: BoxFit.cover,
+                    borderRadius: const BorderRadius.horizontal(left: Radius.circular(24)),
+                  ),
 
-                    // ── Info ──────────────────────────────────────────────────
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Name + category badge row
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    item.name,
-                                    style: AppTextStyles.titleSmall.copyWith(color: AppColors.primaryText(context)),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                  // ── Info ──────────────────────────────────────────────────
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Name + category badge + delete button row
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  item.name,
+                                  style: AppTextStyles.titleSmall.copyWith(color: AppColors.primaryText(context)),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                const SizedBox(width: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 7, vertical: 2),
-                                  decoration: BoxDecoration(
+                              ),
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 7, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: isGeocoded
+                                      ? badgeColor.withValues(alpha: 0.15)
+                                      : AppColors.weatherBlue.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
                                     color: isGeocoded
-                                        ? badgeColor.withValues(alpha: 0.15)
-                                        : AppColors.weatherBlue.withValues(alpha: 0.15),
+                                        ? badgeColor.withValues(alpha: 0.4)
+                                        : AppColors.weatherBlue.withValues(alpha: 0.3),
+                                  ),
+                                ),
+                                child: Text(
+                                  isGeocoded ? 'Detailed Place' : item.category,
+                                  style: TextStyle(
+                                    color: isGeocoded ? badgeColor : AppColors.cyanAccent(context),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: onDelete,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.dangerRed.withValues(alpha: 0.12),
                                     borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(
-                                      color: isGeocoded
-                                          ? badgeColor.withValues(alpha: 0.4)
-                                          : AppColors.weatherBlue.withValues(alpha: 0.3),
-                                    ),
                                   ),
-                                  child: Text(
-                                    isGeocoded ? 'Detailed Place' : item.category,
-                                    style: TextStyle(
-                                      color: isGeocoded ? badgeColor : AppColors.cyanAccent(context),
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                                  child: const Icon(
+                                    Icons.delete_outline_rounded,
+                                    color: AppColors.dangerRed,
+                                    size: 15,
                                   ),
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 3),
-                            // State / weather area subtitle
-                            Row(
-                              children: [
-                                Icon(
-                                  isGeocoded
-                                      ? Icons.pin_drop_outlined
-                                      : Icons.location_on_outlined,
-                                  color: isGeocoded ? badgeColor : AppColors.cyanAccent(context),
-                                  size: 12,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 3),
+                          // State / weather area subtitle
+                          Row(
+                            children: [
+                              Icon(
+                                isGeocoded
+                                    ? Icons.pin_drop_outlined
+                                    : Icons.location_on_outlined,
+                                color: isGeocoded ? badgeColor : AppColors.cyanAccent(context),
+                                size: 12,
+                              ),
+                              const SizedBox(width: 3),
+                              Expanded(
+                                child: Text(
+                                  item.metLocationName != null && isGeocoded
+                                      ? '${item.state} • Weather: ${item.metLocationName}'
+                                      : item.state,
+                                  style: AppTextStyles.bodySmall.copyWith(fontSize: 11, color: AppColors.secondaryText(context)),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                const SizedBox(width: 3),
-                                Expanded(
-                                  child: Text(
-                                    item.metLocationName != null && isGeocoded
-                                        ? '${item.state} • Weather: ${item.metLocationName}'
-                                        : item.state,
-                                    style: AppTextStyles.bodySmall.copyWith(fontSize: 11, color: AppColors.secondaryText(context)),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
 
-                            // ── Action row ──────────────────────────────────
-                            // GestureDetector on each button absorbs the tap so
-                            // it does NOT bubble up to the parent InkWell/onTapCard.
-                            Row(
-                              children: [
-                                _ActionButton(
-                                  label: 'Analysis',
-                                  icon: Icons.insights_rounded,
-                                  onTap: onAnalyze,
-                                ),
-                                const SizedBox(width: 8),
-                                _ActionButton(
-                                  label: 'Plan Trip',
-                                  icon: Icons.luggage_rounded,
-                                  isPrimary: true,
-                                  onTap: onPlanTrip,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                          // ── Action row ──────────────────────────────────
+                          // GestureDetector on each button absorbs the tap so
+                          // it does NOT bubble up to the parent InkWell/onTapCard.
+                          Row(
+                            children: [
+                              _ActionButton(
+                                label: 'Analysis',
+                                icon: Icons.insights_rounded,
+                                onTap: onAnalyze,
+                              ),
+                              const SizedBox(width: 8),
+                              _ActionButton(
+                                label: 'Plan Trip',
+                                icon: Icons.luggage_rounded,
+                                isPrimary: true,
+                                onTap: onPlanTrip,
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-
-                    // Small chevron hint for "tap to view detail"
-                    Padding(
-                      padding: const EdgeInsets.only(right: 10),
-                      child: Icon(
-                        Icons.chevron_right_rounded,
-                        color: AppColors.mutedText(context),
-                        size: 18,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),

@@ -88,36 +88,7 @@ class RecommendationCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: recommendation.matchColor.withValues(alpha: 0.25),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: recommendation.matchColor.withValues(alpha: 0.7)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              '${recommendation.recommendationScore}%',
-                              style: TextStyle(
-                                color: recommendation.matchColor,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Match',
-                              style: TextStyle(
-                                color: recommendation.matchColor,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+
                     ],
                   ),
                 ),
@@ -253,36 +224,17 @@ class RecommendationCard extends StatelessWidget {
                     const SizedBox(height: 10),
                   ],
 
-                  // Best Travel Period & Activity Match
+                  // Best Travel Period
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Icon(Icons.schedule_rounded, size: 13, color: AppColors.cyanAccent(context)),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Best period: ${recommendation.bestTravelPeriod}',
-                            style: AppTextStyles.bodySmall.copyWith(
-                              color: AppColors.cyanAccent(context),
-                              fontWeight: FontWeight.w600,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceGlass(context),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          '${recommendation.selectedPreference} match: ${recommendation.activityMatchScore}%',
-                          style: AppTextStyles.bodySmall.copyWith(
-                            fontSize: 10,
-                            color: AppColors.mutedText(context),
-                          ),
+                      Icon(Icons.schedule_rounded, size: 13, color: AppColors.cyanAccent(context)),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Best period: ${recommendation.bestTravelPeriod}',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.cyanAccent(context),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 11,
                         ),
                       ),
                     ],

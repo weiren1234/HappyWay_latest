@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../main.dart' show scaffoldMessengerKey;
 import '../models/planned_trip.dart';
 import '../models/weather_info.dart';
 import '../models/travel_route.dart';
@@ -13,6 +14,7 @@ import '../theme/app_text_styles.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/plan_trip_sheet.dart';
 import '../widgets/destination_image_view.dart';
+import '../widgets/hourly_weather_card.dart';
 
 /// TripDetailScreen provides the complete breakdown of an explicitly planned trip:
 /// - Route information (OSRM distance & driving duration)
@@ -65,7 +67,10 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
 
   Future<void> _loadForecast({bool forceRefresh = false}) async {
     final metId = _effectiveMETLocationId;
-    if (metId == null) {
+    final destLat = _trip.destinationLatitude;
+    final destLng = _trip.destinationLongitude;
+
+    if (metId == null && (destLat == null || destLng == null)) {
       if (mounted) {
         setState(() {
           _weather = null;
@@ -78,8 +83,10 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
     setState(() => _isLoadingWeather = true);
     try {
       final weather = await _weatherService.fetchWeatherForLocationAndDate(
-        metId,
+        metId ?? '',
         _trip.travelDate,
+        latitude: destLat,
+        longitude: destLng,
         forceRefresh: forceRefresh,
       );
       if (mounted) {
@@ -145,6 +152,87 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
     }
   }
 
+  void _openEditNotesDialog() async {
+    final controller = TextEditingController(text: _trip.notes ?? '');
+    final updatedNote = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.cardBg(context),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(color: AppColors.borderGlass(context)),
+        ),
+        title: Row(
+          children: [
+            Icon(Icons.note_alt_outlined, color: AppColors.cyanAccent(context), size: 20),
+            const SizedBox(width: 8),
+            Text(
+              _trip.notes != null && _trip.notes!.trim().isNotEmpty ? 'Edit Note' : 'Add Note',
+              style: TextStyle(color: AppColors.primaryText(context), fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+          ],
+        ),
+        content: TextField(
+          controller: controller,
+          maxLines: 4,
+          style: TextStyle(color: AppColors.primaryText(context), fontSize: 14),
+          decoration: InputDecoration(
+            hintText: 'Record activities, packing reminders, or travel notes...',
+            hintStyle: TextStyle(color: AppColors.mutedText(context), fontSize: 13),
+            filled: true,
+            fillColor: AppColors.surfaceGlass(context),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.borderGlass(context)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.borderGlass(context)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.cyanAccent(context)),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Cancel', style: TextStyle(color: AppColors.secondaryText(context))),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.weatherBlue,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 0,
+            ),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    if (updatedNote != null && mounted) {
+      final tripProvider = Provider.of<TripProvider>(context, listen: false);
+      final newTrip = _trip.copyWith(notes: updatedNote.isEmpty ? null : updatedNote);
+      final success = await tripProvider.updateTrip(newTrip);
+      if (success && mounted) {
+        setState(() => _trip = newTrip);
+        scaffoldMessengerKey.currentState?.showSnackBar(
+          SnackBar(
+            content: const Text('Note updated successfully', style: TextStyle(color: Colors.white)),
+            backgroundColor: AppColors.safeGreen.withValues(alpha: 0.9),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
   void _deleteTrip() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -193,17 +281,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
     }
   }
 
-  IconData _weatherIcon(String iconCode) {
-    switch (iconCode) {
-      case 'thunderstorm': return Icons.thunderstorm_rounded;
-      case 'rain': return Icons.grain_rounded;
-      case 'sunny': return Icons.wb_sunny_rounded;
-      case 'cloudy': return Icons.wb_cloudy_rounded;
-      case 'partly_cloudy': return Icons.wb_cloudy_outlined;
-      case 'foggy': return Icons.foggy;
-      default: return Icons.wb_cloudy_rounded;
-    }
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -213,6 +291,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
             weather: _weather,
             route: _route,
             preferredPeriod: _trip.preferredPeriod,
+            travelDate: _trip.travelDate,
           )
         : null;
 
@@ -391,16 +470,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                 Text(_trip.destinationName, style: AppTextStyles.titleLarge.copyWith(fontSize: 20, color: AppColors.primaryText(context))),
                 const SizedBox(height: 4),
                 Text('${_trip.destinationState} • ${_trip.destinationCategory}', style: AppTextStyles.bodySmall.copyWith(color: AppColors.secondaryText(context))),
-                const SizedBox(height: 5),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.weatherBlue.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: AppColors.weatherBlue.withValues(alpha: 0.3)),
-                  ),
-                  child: Text('Official MET Malaysia Location', style: TextStyle(color: AppColors.cyanAccent(context), fontSize: 10, fontWeight: FontWeight.w500)),
-                ),
+
               ],
             ),
           ),
@@ -488,7 +558,11 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                 child: _InfoTile(
                   icon: Icons.access_time_rounded,
                   label: 'Preferred Period',
-                  value: '${_trip.preferredPeriod} Trip',
+                  value: () {
+                    final period = _trip.preferredPeriod;
+                    if (period == 'Auto Recommend' || period == 'Auto') return 'Auto';
+                    return '$period Trip';
+                  }(),
                   color: AppColors.cyanAccent(context),
                 ),
               ),
@@ -642,7 +716,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
             children: [
               const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.accentCyan)),
               const SizedBox(width: 12),
-              Text('Retrieving official MET Malaysia forecast...', style: TextStyle(color: AppColors.secondaryText(context), fontSize: 13)),
+              Text('Loading weather forecast...', style: TextStyle(color: AppColors.secondaryText(context), fontSize: 13)),
             ],
           ),
         ),
@@ -671,70 +745,9 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       );
     }
 
-    final weather = _weather!;
-    return GlassCard(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.cloud_outlined, color: AppColors.cyanAccent(context), size: 17),
-                  const SizedBox(width: 7),
-                  Text('MET Malaysia Forecast', style: AppTextStyles.titleMedium.copyWith(color: AppColors.primaryText(context))),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.cyanAccent(context).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text('Official MET API', style: TextStyle(color: AppColors.cyanAccent(context), fontSize: 10, fontWeight: FontWeight.w600)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-
-          // Weather Summary
-          Row(
-            children: [
-              Icon(_weatherIcon(weather.iconCode), size: 36, color: const Color(0xFFFBBF24)),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      weather.minTemperature != null && weather.maxTemperature != null
-                          ? '${weather.minTemperature!.round()}°C – ${weather.maxTemperature!.round()}°C'
-                          : weather.temperature != null ? '${weather.temperature!.round()}°C' : '—',
-                      style: AppTextStyles.titleLarge.copyWith(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.primaryText(context)),
-                    ),
-                    Text(weather.condition, style: AppTextStyles.bodyMedium.copyWith(color: AppColors.cyanAccent(context), fontSize: 13)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Divider(height: 1, color: AppColors.dividerColor(context)),
-          const SizedBox(height: 10),
-
-          // Morning / Afternoon / Night Periods
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _PeriodTile(label: 'Morning', condition: weather.morningCondition ?? '—', icon: Icons.wb_twilight_rounded),
-              _PeriodTile(label: 'Afternoon', condition: weather.afternoonCondition ?? '—', icon: Icons.wb_sunny_rounded),
-              _PeriodTile(label: 'Night', condition: weather.nightCondition ?? '—', icon: Icons.nights_stay_rounded),
-            ],
-          ),
-        ],
-      ),
+    return HourlyWeatherCard(
+      weather: _weather!,
+      title: 'Weather',
     );
   }
 
@@ -869,7 +882,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                 ],
               ),
               GestureDetector(
-                onTap: _editTrip,
+                onTap: _openEditNotesDialog,
                 child: Text(
                   _trip.notes != null && _trip.notes!.isNotEmpty ? 'Edit' : 'Add Note',
                   style: AppTextStyles.bodySmall.copyWith(color: AppColors.blueAccent(context), fontWeight: FontWeight.w600),
@@ -878,16 +891,18 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          if (_trip.notes != null && _trip.notes!.isNotEmpty)
-            Text(
-              _trip.notes!,
-              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primaryText(context), height: 1.45),
-            )
-          else
-            Text(
-              'No personal notes added for this trip yet. Tap "Add Note" to record activities or packing reminders.',
-              style: AppTextStyles.bodySmall.copyWith(color: AppColors.mutedText(context), fontStyle: FontStyle.italic),
-            ),
+          GestureDetector(
+            onTap: _openEditNotesDialog,
+            child: _trip.notes != null && _trip.notes!.isNotEmpty
+                ? Text(
+                    _trip.notes!,
+                    style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primaryText(context), height: 1.45),
+                  )
+                : Text(
+                    'No personal notes added for this trip yet. Tap "Add Note" to record activities or packing reminders.',
+                    style: AppTextStyles.bodySmall.copyWith(color: AppColors.mutedText(context), fontStyle: FontStyle.italic),
+                  ),
+          ),
         ],
       ),
     );
@@ -896,7 +911,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
   Widget _buildDisclaimer() {
     return Center(
       child: Text(
-        'Travel Suitability and Departure suggestions are HappyWay rule-based recommendations derived from official MET Malaysia forecasts. They do not constitute official statements.',
+        'Travel Suitability and Departure suggestions are based on official MET Malaysia weather forecasts. They are planning aids and do not constitute official statements.',
         style: AppTextStyles.bodySmall.copyWith(fontSize: 10, color: AppColors.mutedText(context)),
         textAlign: TextAlign.center,
       ),
@@ -941,29 +956,4 @@ class _InfoTile extends StatelessWidget {
   }
 }
 
-class _PeriodTile extends StatelessWidget {
-  final String label;
-  final String condition;
-  final IconData icon;
 
-  const _PeriodTile({required this.label, required this.condition, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(icon, color: AppColors.cyanAccent(context), size: 16),
-        const SizedBox(height: 3),
-        Text(label, style: AppTextStyles.bodySmall.copyWith(fontSize: 10, color: AppColors.secondaryText(context))),
-        const SizedBox(height: 2),
-        Text(
-          condition,
-          style: AppTextStyles.titleSmall.copyWith(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primaryText(context)),
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
-    );
-  }
-}

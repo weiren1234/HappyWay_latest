@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -16,6 +17,7 @@ import '../services/recommendation_service.dart';
 import '../services/saved_destination_service.dart';
 import '../services/geocoding_service.dart';
 import '../utils/travel_score_calculator.dart';
+import '../utils/canonical_destination_id.dart';
 
 /// DestinationProvider manages state for travel destinations:
 /// - 16 Curated Featured Destinations with rich travel metadata & verified MET IDs
@@ -42,6 +44,7 @@ class DestinationProvider extends ChangeNotifier {
   String _selectedRecommendationTag = 'Nature';
   List<DestinationRecommendation> _recommendations = [];
   bool _isLoadingRecommendations = false;
+  double _maxDistanceKm = 300; // default 300 km radius
 
   // Filter / Search State
   String _searchQuery = '';
@@ -61,14 +64,54 @@ class DestinationProvider extends ChangeNotifier {
 
   String get selectedRecommendationTag => _selectedRecommendationTag;
   List<DestinationRecommendation> get recommendations => _recommendations;
+  double get maxDistanceKm => _maxDistanceKm;
+  UserLocation? get currentUserOrigin => _currentUserOrigin;
   
-  /// Recommendations that have a direct driving road route feasible from current location.
-  List<DestinationRecommendation> get roadAccessibleRecommendations =>
-      _recommendations.where((r) => r.isRoadAccessible).toList();
+  /// All road-accessible recs strictly within targetDistance ± 50 km (or 0-100km if target is 50km),
+  /// sorted strictly by road distance ascending. Shows all matching destinations without a 5-item cap.
+  List<DestinationRecommendation> get roadAccessibleRecommendations {
+    final roadRecs = _recommendations.where((r) => r.isRoadAccessible).toList();
+    if (roadRecs.isEmpty) return [];
 
-  /// Recommendations requiring water/air transport (e.g. Sabah, Sarawak, offshore islands).
+    // Strictly target distance ± 50 km window (or 0 to 100km if <= 50km)
+    final double minKm = _maxDistanceKm <= 50 ? 0.0 : (_maxDistanceKm - 50.0).clamp(0.0, double.infinity);
+    final double maxKm = _maxDistanceKm + 50.0;
+
+    // Filter strictly within [target - 50, target + 50] km
+    final matched = roadRecs.where((r) {
+      final d = _getRoadDistanceKm(r);
+      return d >= minKm && d <= maxKm;
+    }).toList();
+
+    // Sort all matching items strictly in ascending order of road distance
+    matched.sort((a, b) {
+      final distA = _getRoadDistanceKm(a);
+      final distB = _getRoadDistanceKm(b);
+      return distA.compareTo(distB);
+    });
+
+    return matched;
+  }
+
+  double _getRoadDistanceKm(DestinationRecommendation r) {
+    if (r.route?.distanceKm != null) {
+      return r.route!.distanceKm;
+    }
+    final originLat = _currentUserOrigin?.latitude ?? 3.1950;
+    final originLng = _currentUserOrigin?.longitude ?? 101.7100;
+    if (r.destination.latitude != null && r.destination.longitude != null) {
+      final straightKm = _haversineKm(
+        originLat, originLng,
+        r.destination.latitude!, r.destination.longitude!,
+      );
+      return straightKm * 1.3;
+    }
+    return double.infinity;
+  }
+
+  /// Getaway recs (islands / cross-region) — top 4 by score, no distance filter.
   List<DestinationRecommendation> get getawayRecommendations =>
-      _recommendations.where((r) => !r.isRoadAccessible).toList();
+      _recommendations.where((r) => !r.isRoadAccessible).take(4).toList();
 
   bool get isLoadingRecommendations => _isLoadingRecommendations;
 
@@ -109,6 +152,29 @@ class DestinationProvider extends ChangeNotifier {
     _refreshRecommendations();
   }
 
+  /// Updates the target distance for road-accessible recommendations and refreshes options.
+  void setMaxDistanceKm(double km) {
+    if (_maxDistanceKm == km) return;
+    _maxDistanceKm = km;
+    notifyListeners();
+    _refreshRecommendations();
+  }
+
+  // Haversine for the provider-level distance filter fallback.
+  static double _haversineKm(double lat1, double lng1, double lat2, double lng2) {
+    const r = 6371.0;
+    final dLat = (lat2 - lat1) * math.pi / 180.0;
+    final dLng = (lng2 - lng1) * math.pi / 180.0;
+    final sinDLat = math.sin(dLat / 2);
+    final sinDLng = math.sin(dLng / 2);
+    final a = sinDLat * sinDLat +
+        math.cos(lat1 * math.pi / 180.0) *
+        math.cos(lat2 * math.pi / 180.0) *
+        sinDLng * sinDLng;
+    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+    return r * c;
+  }
+
   /// Loads curated featured destinations and initialises smart recommendations.
   Future<void> loadDestinations() async {
     _isLoading = true;
@@ -118,14 +184,7 @@ class DestinationProvider extends ChangeNotifier {
     try {
       _featuredDestinations = DestinationDataService.getDestinations();
 
-      // Sync saved status from persistent storage
-      final savedIds = _savedLocations.map((s) => s.id).toSet();
-      _featuredDestinations = _featuredDestinations.map((dest) {
-        final isSaved = savedIds.contains(dest.id) ||
-            savedIds.contains('met:${dest.metLocationId}') ||
-            savedIds.contains('met:${dest.id}');
-        return dest.copyWith(isSaved: isSaved);
-      }).toList();
+      _syncFeaturedSavedState();
 
       // Generate initial recommendations for default preference
       await _refreshRecommendations();
@@ -150,15 +209,40 @@ class DestinationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Generates recommendations for the current preference tag (queries max candidate pool).
+  /// Generates recommendations for the current preference tag (queries full nationwide candidate pool).
   Future<void> _refreshRecommendations() async {
     try {
+      if (_searchableLocations.isEmpty) {
+        _searchableLocations = await MetLocationService.getLocations();
+      }
+
+      // Build comprehensive candidate pool from curated destinations + all official MET locations
+      final candidatePool = <TravelDestination>[..._featuredDestinations];
+      final seenMetIds = _featuredDestinations.map((d) => d.metLocationId).toSet();
+      final seenNames = _featuredDestinations.map((d) => d.name.toLowerCase()).toSet();
+
+      for (final loc in _searchableLocations) {
+        if (loc.latitude != null &&
+            loc.longitude != null &&
+            loc.latitude != 0.0 &&
+            loc.longitude != 0.0) {
+          final formattedLower = loc.formattedName.toLowerCase();
+          if (!seenMetIds.contains(loc.id) && !seenNames.contains(formattedLower)) {
+            candidatePool.add(TravelDestination.fromMetLocation(loc));
+            seenMetIds.add(loc.id);
+            seenNames.add(formattedLower);
+          }
+        }
+      }
+
       final recs = await _recommendationService.getRecommendations(
         preference: _selectedRecommendationTag,
-        allDestinations: _featuredDestinations,
+        allDestinations: candidatePool,
         userOrigin: _currentUserOrigin,
+        targetDistanceKm: _maxDistanceKm,
       );
       _recommendations = recs;
+      notifyListeners();
 
       // Update destination forecast in memory if retrieved
       for (final rec in recs) {
@@ -248,12 +332,13 @@ class DestinationProvider extends ChangeNotifier {
     }
   }
 
-  /// Fetches official MET forecast on-demand for a [TravelLocation] using its matched MET location ID.
+  /// Fetches official forecast on-demand for a [TravelLocation].
   Future<WeatherInfo?> fetchForecastForTravelLocation(TravelLocation location, {bool forceRefresh = false}) async {
-    if (!location.hasWeatherLocation) return null;
     try {
       final weather = await _weatherService.fetchWeatherForLocationId(
-        location.metLocationId!,
+        location.metLocationId ?? '',
+        latitude: location.latitude != 0.0 ? location.latitude : null,
+        longitude: location.longitude != 0.0 ? location.longitude : null,
         forceRefresh: forceRefresh,
       );
 
@@ -270,11 +355,13 @@ class DestinationProvider extends ChangeNotifier {
     }
   }
 
-  /// Fetches official MET forecast for a [TravelDestination] on-demand.
+  /// Fetches official forecast for a [TravelDestination] on-demand.
   Future<WeatherInfo?> fetchForecastForDestination(TravelDestination dest, {bool forceRefresh = false}) async {
     try {
       final weather = await _weatherService.fetchWeatherForLocationId(
         dest.metLocationId,
+        latitude: dest.latitude,
+        longitude: dest.longitude,
         forceRefresh: forceRefresh,
       );
 
@@ -285,6 +372,17 @@ class DestinationProvider extends ChangeNotifier {
           _featuredDestinations[idx] = _featuredDestinations[idx].copyWith(
             weather: weather,
             travelScore: updatedScore,
+          );
+          notifyListeners();
+        }
+        final recIdx = _recommendations.indexWhere(
+          (r) => CanonicalDestinationId.fromDestination(r.destination) == CanonicalDestinationId.fromDestination(dest),
+        );
+        if (recIdx != -1) {
+          final currentRec = _recommendations[recIdx];
+          _recommendations[recIdx] = currentRec.copyWith(
+            destination: currentRec.destination.copyWith(weather: weather),
+            weather: weather,
           );
           notifyListeners();
         }
@@ -323,8 +421,13 @@ class DestinationProvider extends ChangeNotifier {
   // ─── Cloud-Backed Saved Locations (Supabase `saved_destinations`) ─────────
 
   bool isLocationSaved(String id) {
-    final cleanId = id.startsWith('met:') || id.startsWith('geo:') ? id : 'met:$id';
-    return _savedLocations.any((s) => s.id == cleanId || s.id == id || s.metLocationId == id);
+    final target = CanonicalDestinationId.fromString(id);
+    return _savedLocations.any((s) => CanonicalDestinationId.fromSavedLocation(s) == target);
+  }
+
+  bool isDestinationSaved(TravelDestination dest) {
+    final target = CanonicalDestinationId.fromDestination(dest);
+    return _savedLocations.any((s) => CanonicalDestinationId.fromSavedLocation(s) == target);
   }
 
   /// Loads saved destinations for the authenticated user from Supabase.
@@ -351,84 +454,162 @@ class DestinationProvider extends ChangeNotifier {
     }
   }
 
-  /// Saves or unsaves any [TravelLocation] (official MET or geocoded detailed place).
-  Future<void> toggleSaveTravelLocation(TravelLocation location) async {
+  /// Universal method to toggle saving any [TravelDestination] (curated or dynamic recommendation).
+  ///
+  /// Optimistically updates UI immediately. If Supabase persistence fails,
+  /// automatically rolls back to the previous state and returns false.
+  Future<bool> toggleSaveAnyDestination(TravelDestination destination) async {
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
-    if (currentUserId == null) return;
+    if (currentUserId == null) return false;
 
-    final existingIndex = _savedLocations.indexWhere((s) => s.id == location.id);
-    if (existingIndex != -1) {
-      _savedLocations.removeAt(existingIndex);
+    final canonicalId = CanonicalDestinationId.fromDestination(destination);
+    final wasSaved = isDestinationSaved(destination);
+    final previousSavedLocations = List<SavedLocation>.from(_savedLocations);
+
+    debugPrint('[SAVE DEBUG] toggleSaveAnyDestination: destination="${destination.name}" canonical="$canonicalId" wasSaved=$wasSaved');
+
+    // 1. Build SavedLocation object BEFORE optimistic update so we can reference it later
+    final SavedLocation? newSavedLoc = wasSaved ? null : SavedLocation.fromAnyDestination(destination);
+
+    // 2. Optimistic update
+    if (wasSaved) {
+      _savedLocations.removeWhere((s) => CanonicalDestinationId.fromSavedLocation(s) == canonicalId);
+      debugPrint('[SAVE DEBUG] Optimistic remove: canonical="$canonicalId"');
+    } else {
+      _savedLocations.removeWhere((s) => CanonicalDestinationId.fromSavedLocation(s) == canonicalId);
+      _savedLocations.insert(0, newSavedLoc!);
+      debugPrint('[SAVE DEBUG] Optimistic insert: location_id="${newSavedLoc.id}" name="${newSavedLoc.name}"');
+    }
+    _syncFeaturedSavedState();
+    notifyListeners();
+
+    // 3. Persist to Supabase
+    try {
+      if (wasSaved) {
+        debugPrint('[SAVE DEBUG] Calling unsaveDestination: userId=$currentUserId canonical="$canonicalId"');
+        await _savedDestinationService.unsaveDestination(currentUserId, canonicalId);
+        debugPrint('[SAVE DEBUG] unsaveDestination succeeded');
+      } else {
+        debugPrint('[SAVE DEBUG] Calling saveDestination: userId=$currentUserId location_id="${newSavedLoc!.id}"');
+        await _savedDestinationService.saveDestination(currentUserId, newSavedLoc);
+        debugPrint('[SAVE DEBUG] saveDestination succeeded');
+      }
+      return true;
+    } catch (e, st) {
+      debugPrint('[SAVE DEBUG] Supabase error: $e\n$st');
+      // 4. Rollback on failure
+      _savedLocations = previousSavedLocations;
       _syncFeaturedSavedState();
       notifyListeners();
-      try {
-        await _savedDestinationService.unsaveDestination(currentUserId, location.id);
-      } catch (_) {}
+      return false;
+    }
+  }
+
+  /// Saves or unsaves any [TravelLocation] with optimistic update and rollback.
+  Future<bool> toggleSaveTravelLocation(TravelLocation location) async {
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    if (currentUserId == null) return false;
+
+    final canonicalId = CanonicalDestinationId.fromTravelLocation(location);
+    final wasSaved = _savedLocations.any((s) => CanonicalDestinationId.fromSavedLocation(s) == canonicalId);
+    final previousSavedLocations = List<SavedLocation>.from(_savedLocations);
+
+    if (wasSaved) {
+      _savedLocations.removeWhere((s) => CanonicalDestinationId.fromSavedLocation(s) == canonicalId);
     } else {
       final savedLoc = SavedLocation.fromTravelLocation(location);
+      _savedLocations.removeWhere((s) => CanonicalDestinationId.fromSavedLocation(s) == canonicalId);
       _savedLocations.insert(0, savedLoc);
+    }
+    _syncFeaturedSavedState();
+    notifyListeners();
+
+    try {
+      if (wasSaved) {
+        await _savedDestinationService.unsaveDestination(currentUserId, canonicalId);
+      } else {
+        final savedLoc = _savedLocations.firstWhere(
+          (s) => CanonicalDestinationId.fromSavedLocation(s) == canonicalId,
+        );
+        await _savedDestinationService.saveDestination(currentUserId, savedLoc);
+      }
+      return true;
+    } catch (_) {
+      _savedLocations = previousSavedLocations;
       _syncFeaturedSavedState();
       notifyListeners();
-      try {
-        await _savedDestinationService.saveDestination(currentUserId, savedLoc);
-      } catch (_) {}
+      return false;
     }
   }
 
-  Future<void> toggleSaveFeaturedDestination(String id) async {
+  /// Saves or unsaves an official [MetLocation] with optimistic update and rollback.
+  Future<bool> toggleSaveMetLocation(MetLocation location) async {
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
-    if (currentUserId == null) return;
+    if (currentUserId == null) return false;
 
-    final index = _featuredDestinations.indexWhere((item) => item.id == id);
-    if (index != -1) {
-      final current = _featuredDestinations[index];
-      final newSaved = !current.isSaved;
-      _featuredDestinations[index] = current.copyWith(isSaved: newSaved);
+    final canonicalId = CanonicalDestinationId.fromMetLocation(location);
+    final wasSaved = _savedLocations.any((s) => CanonicalDestinationId.fromSavedLocation(s) == canonicalId);
+    final previousSavedLocations = List<SavedLocation>.from(_savedLocations);
 
-      final locationId = 'met:${current.metLocationId.isNotEmpty ? current.metLocationId : current.id}';
-
-      if (newSaved) {
-        final savedLoc = SavedLocation.fromFeaturedDestination(_featuredDestinations[index]);
-        _savedLocations.removeWhere((s) => s.id == locationId || s.id == id);
-        _savedLocations.insert(0, savedLoc);
-        notifyListeners();
-        try {
-          await _savedDestinationService.saveDestination(currentUserId, savedLoc);
-        } catch (_) {}
-      } else {
-        _savedLocations.removeWhere((s) => s.id == locationId || s.id == id);
-        notifyListeners();
-        try {
-          await _savedDestinationService.unsaveDestination(currentUserId, locationId);
-        } catch (_) {}
-      }
-    }
-  }
-
-  Future<void> toggleSaveDestination(String id) async {
-    await toggleSaveFeaturedDestination(id);
-  }
-
-  Future<void> toggleSaveMetLocation(MetLocation location) async {
-    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
-    if (currentUserId == null) return;
-
-    final locationId = 'met:${location.id}';
-    final existingIndex = _savedLocations.indexWhere((s) => s.id == locationId || s.id == location.id);
-    if (existingIndex != -1) {
-      _savedLocations.removeAt(existingIndex);
-      notifyListeners();
-      try {
-        await _savedDestinationService.unsaveDestination(currentUserId, locationId);
-      } catch (_) {}
+    if (wasSaved) {
+      _savedLocations.removeWhere((s) => CanonicalDestinationId.fromSavedLocation(s) == canonicalId);
     } else {
       final savedLoc = SavedLocation.fromMetLocation(location);
+      _savedLocations.removeWhere((s) => CanonicalDestinationId.fromSavedLocation(s) == canonicalId);
       _savedLocations.insert(0, savedLoc);
-      notifyListeners();
-      try {
-        await _savedDestinationService.saveDestination(currentUserId, savedLoc);
-      } catch (_) {}
     }
+    _syncFeaturedSavedState();
+    notifyListeners();
+
+    try {
+      if (wasSaved) {
+        await _savedDestinationService.unsaveDestination(currentUserId, canonicalId);
+      } else {
+        final savedLoc = _savedLocations.firstWhere(
+          (s) => CanonicalDestinationId.fromSavedLocation(s) == canonicalId,
+        );
+        await _savedDestinationService.saveDestination(currentUserId, savedLoc);
+      }
+      return true;
+    } catch (_) {
+      _savedLocations = previousSavedLocations;
+      _syncFeaturedSavedState();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> toggleSaveFeaturedDestination(String id) async {
+    final canonicalId = CanonicalDestinationId.fromString(id);
+    final matchingFeatured = _featuredDestinations.where(
+      (d) => CanonicalDestinationId.fromDestination(d) == canonicalId || d.id == id,
+    ).firstOrNull;
+
+    if (matchingFeatured != null) {
+      return await toggleSaveAnyDestination(matchingFeatured);
+    }
+
+    final matchingRec = _recommendations.where(
+      (r) => CanonicalDestinationId.fromDestination(r.destination) == canonicalId || r.destination.id == id,
+    ).firstOrNull;
+
+    if (matchingRec != null) {
+      return await toggleSaveAnyDestination(matchingRec.destination);
+    }
+
+    final matchingMet = _searchableLocations.where(
+      (m) => CanonicalDestinationId.fromMetLocation(m) == canonicalId || m.id == id,
+    ).firstOrNull;
+
+    if (matchingMet != null) {
+      return await toggleSaveMetLocation(matchingMet);
+    }
+
+    return false;
+  }
+
+  Future<bool> toggleSaveDestination(String id) async {
+    return await toggleSaveFeaturedDestination(id);
   }
 
   /// Removes a saved location from Supabase with optimistic UI update.
@@ -511,12 +692,24 @@ class DestinationProvider extends ChangeNotifier {
   }
 
   void _syncFeaturedSavedState() {
-    final savedIds = _savedLocations.map((s) => s.id).toSet();
+    final savedCanonicals = _savedLocations
+        .map(CanonicalDestinationId.fromSavedLocation)
+        .toSet();
+
     _featuredDestinations = _featuredDestinations.map((dest) {
-      final isSaved = savedIds.contains(dest.id) ||
-          savedIds.contains('met:${dest.metLocationId}') ||
-          savedIds.contains('met:${dest.id}');
-      return dest.copyWith(isSaved: isSaved);
+      final canonical = CanonicalDestinationId.fromDestination(dest);
+      return dest.copyWith(isSaved: savedCanonicals.contains(canonical));
+    }).toList();
+
+    _recommendations = _recommendations.map((rec) {
+      final canonical = CanonicalDestinationId.fromDestination(rec.destination);
+      final isSaved = savedCanonicals.contains(canonical);
+      if (rec.destination.isSaved != isSaved) {
+        return rec.copyWith(
+          destination: rec.destination.copyWith(isSaved: isSaved),
+        );
+      }
+      return rec;
     }).toList();
   }
 

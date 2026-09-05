@@ -35,11 +35,12 @@ class SavedDestinationService {
   Future<void> unsaveDestination(String userId, String locationId) async {
     final bareId = locationId.startsWith('met:') ? locationId.substring(4) : locationId;
     final prefixedId = locationId.startsWith('met:') ? locationId : 'met:$locationId';
+    final candidates = {locationId, bareId, prefixedId}.where((id) => id.isNotEmpty).toList();
     await _client
         .from('saved_destinations')
         .delete()
         .eq('user_id', userId)
-        .or('location_id.eq.$locationId,location_id.eq.$bareId,location_id.eq.$prefixedId');
+        .inFilter('location_id', candidates);
   }
 
   /// Checks if a location is saved by the user.

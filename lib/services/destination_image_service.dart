@@ -132,6 +132,12 @@ class DestinationImageService {
     'kuala lumpur': 'Kuala Lumpur',
     'putrajaya': 'Putrajaya',
     'batu caves': 'Batu Caves',
+    'taman danau kota': 'Danau Kota Lake Kuala Lumpur',
+    'danau kota': 'Danau Kota Lake Kuala Lumpur',
+    'taman tasik titiwangsa': 'Titiwangsa Lake Kuala Lumpur',
+    'titiwangsa': 'Titiwangsa Lake Kuala Lumpur',
+    'perdana botanical garden': 'Perdana Botanical Garden Kuala Lumpur',
+    'lake gardens': 'Perdana Botanical Garden Kuala Lumpur',
     'kota kinabalu': 'Kota Kinabalu',
     'kuching': 'Kuching Sarawak',
     'ipoh': 'Ipoh Perak',
@@ -212,15 +218,11 @@ class DestinationImageService {
     return false;
   }
 
-  /// Generates a deterministic cache key from location metadata.
+  /// Generates a deterministic cache key from location metadata (keyed by name + state).
   static String _cacheKey({String? locationId, required String name, String? state}) {
-    if (locationId != null && locationId.trim().isNotEmpty) {
-      final sanitized = locationId.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9_:]'), '_');
-      return 'img_id_$sanitized';
-    }
     final sanitizedName = name.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_');
     final sanitizedState = (state ?? '').trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_');
-    return 'img_name_${sanitizedName}_$sanitizedState';
+    return 'img_${sanitizedName}_$sanitizedState';
   }
 
   /// Resolves an image for a destination lazily on demand.

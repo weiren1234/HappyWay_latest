@@ -191,11 +191,7 @@ class TravelOverviewCard extends StatelessWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    (weatherAreaName != null &&
-                            weatherAreaName!.isNotEmpty &&
-                            weatherAreaName!.toLowerCase() != toName.toLowerCase())
-                        ? 'Official MET Forecast • Area: $weatherAreaName'
-                        : 'Official MET Malaysia Forecast',
+                    'Weather',
                     style: AppTextStyles.bodySmall.copyWith(
                       color: AppColors.secondaryText(context),
                       fontWeight: FontWeight.w600,
@@ -225,7 +221,7 @@ class TravelOverviewCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Official MET forecast is not available for this destination.',
+                      'Weather forecast is not available for this destination.',
                       style: AppTextStyles.bodySmall.copyWith(color: AppColors.secondaryText(context), fontSize: 11),
                     ),
                   ),
@@ -353,7 +349,7 @@ class TravelOverviewCard extends StatelessWidget {
           // HappyWay disclaimer
           const SizedBox(height: 10),
           Text(
-            'Travel Score and Departure advice are HappyWay rule-based recommendations derived from official MET Malaysia data.',
+            'Travel Score and departure suggestions are personalized recommendations based on current weather and route estimates.\nSource: MET Malaysia',
             style: AppTextStyles.bodySmall.copyWith(fontSize: 10, color: AppColors.mutedText(context)),
             textAlign: TextAlign.center,
           ),

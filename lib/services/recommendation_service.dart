@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import '../models/travel_destination.dart';
 import '../models/destination_recommendation.dart';
 import '../models/travel_route.dart';
@@ -22,14 +23,19 @@ class RecommendationService {
     required String preference,
     required List<TravelDestination> allDestinations,
     UserLocation? userOrigin,
+    double targetDistanceKm = 50.0,
   }) async {
     final prefLower = preference.trim().toLowerCase();
 
     final originState = userOrigin?.state ?? 'Kuala Lumpur';
-    final originLat = userOrigin?.latitude;
-    final originLng = userOrigin?.longitude;
+    final originLat = (userOrigin?.latitude != null && userOrigin!.latitude != 0.0)
+        ? userOrigin.latitude
+        : 3.1950; // Central KL fallback if GPS is pending
+    final originLng = (userOrigin?.longitude != null && userOrigin!.longitude != 0.0)
+        ? userOrigin.longitude
+        : 101.7100;
 
-    //Candidate Pool & Reachability Classification
+    // 1. Candidate Pool: filter by activity match and classify reachability
     final roadCandidates = <_CandidateItem>[];
     final getawayCandidates = <_CandidateItem>[];
 
@@ -47,10 +53,20 @@ class RecommendationService {
           destinationCategory: dest.category,
         );
 
+        // Compute straight-line km to destination (Haversine)
+        double distanceKm = double.infinity;
+        if (dest.latitude != null && dest.longitude != null) {
+          distanceKm = _haversineKm(
+            originLat, originLng,
+            dest.latitude!, dest.longitude!,
+          );
+        }
+
         final item = _CandidateItem(
           destination: dest,
           activityScore: activityMatch,
           isRoadAccessible: isRoadAccessible,
+          distanceKm: distanceKm,
         );
 
         if (isRoadAccessible) {
@@ -61,15 +77,26 @@ class RecommendationService {
       }
     }
 
-    // 2. Process Road-Accessible Candidates
+    // 2. Sort road candidates based on targetDistanceKm
+    if (targetDistanceKm <= 50.0) {
+      roadCandidates.sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
+    } else {
+      // Estimated straight-line distance corresponding to target road driving distance (~ road / 1.3)
+      final targetStraightKm = targetDistanceKm / 1.3;
+      roadCandidates.sort((a, b) =>
+          (a.distanceKm - targetStraightKm).abs().compareTo((b.distanceKm - targetStraightKm).abs()));
+    }
+    getawayCandidates.sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
+
+    // 3. Take distance-matching candidates for full scoring (evaluates all places in the target distance band)
+    final roadBatch = roadCandidates.take(35).toList();
+    final getawayBatch = getawayCandidates.take(6).toList();
+
+    // 4. Process Road-Accessible Candidates
     final processedRoadRecs = <DestinationRecommendation>[];
 
-    if (roadCandidates.isNotEmpty) {
-      // Sort by activity match first to take initial top batch
-      roadCandidates.sort((a, b) => b.activityScore.compareTo(a.activityScore));
-      final roadBatch = roadCandidates.take(6).toList();
-
-      // Fetch official MET Forecasts for candidates
+    if (roadBatch.isNotEmpty) {
+      // Fetch weather and pre-score
       final scoredRoadCandidates = <_ScoredPreCandidate>[];
       for (final item in roadBatch) {
         final dest = item.destination;
@@ -80,22 +107,17 @@ class RecommendationService {
         }
 
         final weatherScore = TravelScoreCalculator.calculateWeatherSuitability(weather);
-        final preRankScore = (item.activityScore * 0.40) + (weatherScore * 0.60);
 
         scoredRoadCandidates.add(_ScoredPreCandidate(
           item: item,
           weather: weather,
           weatherScore: weatherScore,
-          preRankScore: preRankScore,
+          preRankScore: 0, // not used for filtering when proximity-first
         ));
       }
 
-      // Pre-rank road candidates by Activity + Weather to form a small shortlist (Top 5)
-      scoredRoadCandidates.sort((a, b) => b.preRankScore.compareTo(a.preRankScore));
-      final roadShortlist = scoredRoadCandidates.take(5).toList();
-
-      // Call OSRM ONLY for the small road shortlist if valid coordinates exist
-      for (final scored in roadShortlist) {
+      // Call OSRM for all road candidates
+      for (final scored in scoredRoadCandidates) {
         final dest = scored.item.destination;
         final weather = scored.weather;
         final bestPeriod = _calculateBestPeriod(weather);
@@ -103,11 +125,7 @@ class RecommendationService {
         TravelRoute? route;
         int? journeyScore;
 
-        if (originLat != null &&
-            originLng != null &&
-            originLat != 0.0 &&
-            originLng != 0.0 &&
-            dest.latitude != null &&
+        if (dest.latitude != null &&
             dest.longitude != null &&
             dest.latitude != 0.0 &&
             dest.longitude != 0.0) {
@@ -158,19 +176,17 @@ class RecommendationService {
         processedRoadRecs.add(rec);
       }
 
-      // Sort road candidates by final score descending
+      // Sort road recs by score descending before returning
       processedRoadRecs.sort((a, b) => b.recommendationScore.compareTo(a.recommendationScore));
     }
 
-    final finalRoadRecs = processedRoadRecs.take(5).toList();
+    // Return all road recs — distance-window filtering + take(5) happens in the provider
+    final finalRoadRecs = processedRoadRecs;
 
-    // 3. Process Getaway Candidates (Non-direct road / Island / Flight / Ferry)
+    // 5. Process Getaway Candidates (Non-direct road / Island / Flight / Ferry)
     final processedGetawayRecs = <DestinationRecommendation>[];
 
-    if (getawayCandidates.isNotEmpty) {
-      getawayCandidates.sort((a, b) => b.activityScore.compareTo(a.activityScore));
-      final getawayBatch = getawayCandidates.take(4).toList();
-
+    if (getawayBatch.isNotEmpty) {
       for (final item in getawayBatch) {
         final dest = item.destination;
         WeatherInfo? weather = dest.weather;
@@ -215,10 +231,27 @@ class RecommendationService {
       processedGetawayRecs.sort((a, b) => b.recommendationScore.compareTo(a.recommendationScore));
     }
 
-    final finalGetawayRecs = processedGetawayRecs.take(4).toList();
+    // Return all getaway recs sorted by score (provider displays top N)
+    final finalGetawayRecs = processedGetawayRecs;
 
     return [...finalRoadRecs, ...finalGetawayRecs];
   }
+
+  /// Haversine formula: straight-line distance in km between two lat/lng points.
+  static double _haversineKm(double lat1, double lng1, double lat2, double lng2) {
+    const r = 6371.0; // Earth radius in km
+    final dLat = (lat2 - lat1) * math.pi / 180.0;
+    final dLng = (lng2 - lng1) * math.pi / 180.0;
+    final sinDLat = math.sin(dLat / 2);
+    final sinDLng = math.sin(dLng / 2);
+    final a = sinDLat * sinDLat +
+        math.cos(lat1 * math.pi / 180.0) *
+        math.cos(lat2 * math.pi / 180.0) *
+        sinDLng * sinDLng;
+    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+    return r * c;
+  }
+
 
   static int _calculateActivityMatch(TravelDestination dest, String preferenceLower) {
     for (final tag in dest.activityTags) {
@@ -242,14 +275,14 @@ class RecommendationService {
   }
 
   static String _calculateBestPeriod(WeatherInfo? weather) {
-    if (weather == null) return 'Recommended period unavailable';
+    if (weather == null) return 'Not available';
 
     final morning = weather.morningCondition?.toLowerCase().trim() ?? '';
     final afternoon = weather.afternoonCondition?.toLowerCase().trim() ?? '';
     final night = weather.nightCondition?.toLowerCase().trim() ?? '';
 
     if (morning.isEmpty && afternoon.isEmpty && night.isEmpty) {
-      return 'Recommended period unavailable';
+      return 'Not available';
     }
 
     final isMorningDry = _isDry(morning);
@@ -365,11 +398,13 @@ class _CandidateItem {
   final TravelDestination destination;
   final int activityScore;
   final bool isRoadAccessible;
+  final double distanceKm;
 
   _CandidateItem({
     required this.destination,
     required this.activityScore,
     required this.isRoadAccessible,
+    this.distanceKm = double.infinity,
   });
 }
 

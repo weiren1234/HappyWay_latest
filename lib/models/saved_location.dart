@@ -1,6 +1,7 @@
 import 'met_location.dart';
 import 'travel_destination.dart';
 import 'travel_location.dart';
+import '../utils/canonical_destination_id.dart';
 
 /// SavedLocation stores persistent metadata to restore a saved travel destination
 /// (either an official MET location, a curated featured destination, or a precise geocoded place).
@@ -62,30 +63,36 @@ class SavedLocation {
     );
   }
 
-  /// Factory for a curated featured destination.
-  factory SavedLocation.fromFeaturedDestination(TravelDestination dest) {
-    final metId = dest.metLocationId.isNotEmpty ? dest.metLocationId : dest.id;
+  /// Factory for any TravelDestination (curated, recommended, or candidate).
+  factory SavedLocation.fromAnyDestination(TravelDestination dest) {
+    final canonicalId = CanonicalDestinationId.fromDestination(dest);
+    final metId = dest.metLocationId.isNotEmpty ? dest.metLocationId : (dest.id.startsWith('dest_') ? '' : dest.id);
     return SavedLocation(
-      id: 'met:$metId',
+      id: canonicalId,
       name: dest.name,
       category: dest.category,
       state: dest.state,
       latitude: dest.latitude,
       longitude: dest.longitude,
-      metLocationId: metId,
+      metLocationId: metId.isNotEmpty ? metId : null,
       metLocationName: dest.name,
       sourceType: 'metLocation',
       imageUrl: dest.imageUrl,
       description: dest.description,
-      isFeatured: true,
+      isFeatured: dest.id.startsWith('dest_'),
       savedAt: DateTime.now(),
     );
+  }
+
+  /// Factory for a curated featured destination.
+  factory SavedLocation.fromFeaturedDestination(TravelDestination dest) {
+    return SavedLocation.fromAnyDestination(dest);
   }
 
   /// Factory for an official MET location.
   factory SavedLocation.fromMetLocation(MetLocation loc) {
     return SavedLocation(
-      id: 'met:${loc.id}',
+      id: CanonicalDestinationId.fromMetLocation(loc),
       name: loc.formattedName,
       category: loc.categoryLabel,
       state: loc.state,
@@ -96,6 +103,40 @@ class SavedLocation {
       sourceType: 'metLocation',
       isFeatured: false,
       savedAt: DateTime.now(),
+    );
+  }
+
+  SavedLocation copyWith({
+    String? id,
+    String? name,
+    String? category,
+    String? state,
+    double? latitude,
+    double? longitude,
+    String? metLocationId,
+    String? metLocationName,
+    String? sourceType,
+    String? formattedAddress,
+    String? imageUrl,
+    String? description,
+    bool? isFeatured,
+    DateTime? savedAt,
+  }) {
+    return SavedLocation(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      category: category ?? this.category,
+      state: state ?? this.state,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      metLocationId: metLocationId ?? this.metLocationId,
+      metLocationName: metLocationName ?? this.metLocationName,
+      sourceType: sourceType ?? this.sourceType,
+      formattedAddress: formattedAddress ?? this.formattedAddress,
+      imageUrl: imageUrl ?? this.imageUrl,
+      description: description ?? this.description,
+      isFeatured: isFeatured ?? this.isFeatured,
+      savedAt: savedAt ?? this.savedAt,
     );
   }
 

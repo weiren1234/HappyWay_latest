@@ -1,5 +1,6 @@
 import 'weather_info.dart';
 import 'travel_score.dart';
+import 'met_location.dart';
 
 /// TravelDestination encapsulates curated data for featured Malaysian tourist destinations.
 class TravelDestination {
@@ -74,6 +75,62 @@ class TravelDestination {
     );
   }
 
+  factory TravelDestination.fromMetLocation(MetLocation loc) {
+    final nameLower = loc.name.toLowerCase();
+    String category = 'Sightseeing';
+    List<String> tags = ['Sightseeing', 'Relaxing', 'Family Trip'];
+
+    if (nameLower.contains('highland') ||
+        nameLower.contains('bukit') ||
+        nameLower.contains('gunung') ||
+        nameLower.contains('genting') ||
+        nameLower.contains('fraser') ||
+        nameLower.contains('cameron')) {
+      category = 'Highlands';
+      tags = ['Highlands', 'Nature', 'Relaxing', 'Sightseeing'];
+    } else if (nameLower.contains('pantai') ||
+        nameLower.contains('beach') ||
+        nameLower.contains('teluk') ||
+        nameLower.contains('tanjung') ||
+        nameLower.contains('laut')) {
+      category = 'Beach';
+      tags = ['Beach', 'Relaxing', 'Family Trip', 'Sightseeing'];
+    } else if (nameLower.contains('pulau') || nameLower.contains('island')) {
+      category = 'Island';
+      tags = ['Island', 'Beach', 'Relaxing', 'Nature'];
+    } else if (nameLower.contains('taman negara') ||
+        nameLower.contains('hutan') ||
+        nameLower.contains('tasik') ||
+        nameLower.contains('lake') ||
+        nameLower.contains('air terjun') ||
+        nameLower.contains('waterfall') ||
+        nameLower.contains('gua') ||
+        nameLower.contains('cave') ||
+        nameLower.contains('danau') ||
+        nameLower.contains('wetland') ||
+        nameLower.contains('botani') ||
+        nameLower.contains('park') ||
+        nameLower.contains('taman')) {
+      category = 'Nature';
+      tags = ['Nature', 'Relaxing', 'Hiking', 'Family Trip', 'Sightseeing'];
+    }
+
+    return TravelDestination(
+      id: 'met_${loc.id}',
+      name: loc.formattedName,
+      state: loc.state,
+      category: category,
+      imageUrl: '',
+      description: '${loc.formattedName} is a ${category.toLowerCase()} destination in ${loc.state}. Weather forecasts are sourced from MET Malaysia.',
+      travelScore: TravelScore.initial(),
+      metLocationId: loc.id,
+      activityTags: tags,
+      latitude: loc.latitude,
+      longitude: loc.longitude,
+      locationCategoryId: loc.locationCategoryId,
+    );
+  }
+
   factory TravelDestination.fromJson(Map<String, dynamic> json) {
     return TravelDestination(
       id: json['id'] as String,
@@ -84,13 +141,7 @@ class TravelDestination {
       description: json['description'] as String,
       travelScore: json['travelScore'] != null
           ? TravelScore.fromJson(json['travelScore'] as Map<String, dynamic>)
-          : TravelScore(
-              score: 100,
-              suitability: TravelSuitability.ideal,
-              recommendation: 'Stable travel conditions',
-              bestTravelPeriod: 'All Day',
-              highlights: [],
-            ),
+          : TravelScore.initial(),
       weather: json['weather'] != null
           ? WeatherInfo.fromJson(json['weather'] as Map<String, dynamic>)
           : null,

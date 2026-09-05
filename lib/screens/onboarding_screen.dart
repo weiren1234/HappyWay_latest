@@ -38,7 +38,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     },
     {
       'title': 'Smart Travel Planning',
-      'subtitle': 'Get rule-based Travel Scores (0-100), estimated driving durations, and optimal departure windows for your journeys.',
+      'subtitle': 'Get Travel Suitability Scores (0-100), estimated driving durations, and optimal departure windows for your journeys.',
       'icon': Icons.route_rounded,
       'badge': 'SMART ROUTING',
       'color': AppColors.safeGreen,

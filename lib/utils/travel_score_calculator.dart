@@ -5,65 +5,135 @@ import '../models/weather_info.dart';
 import '../models/travel_route.dart';
 import '../models/travel_score.dart';
 import '../theme/app_colors.dart';
+import 'hourly_travel_analyzer.dart';
 
 class TravelScoreCalculator {
-    static TravelScore calculateScore({
+  static TravelScore calculateScore({
     required WeatherInfo? weather,
     TravelRoute? route,
     String? preferredPeriod,
     List<String>? activityTags,
+    DateTime? travelDate,
+    DateTime? currentTimeOverride,
   }) {
     if (weather == null) {
       return TravelScore.initial();
     }
 
-        final (weatherSubscore, isWeatherComplete, morningScore, afternoonScore, nightScore) =
-        _calculateWeatherSuitabilityWithBreakdown(weather);
+    final date = travelDate ?? DateTime.now();
 
-       final journeySubscore = route != null ? _calculateJourneyPracticality(route) : null;
+    // ── 1. Hourly Weather Integration (Real Open-Meteo Data) ────────────────
+    if (weather.hourlyForecast != null && weather.hourlyForecast!.isNotEmpty) {
+      final hourlyResult = HourlyTravelAnalyzer.analyze(
+        hourlyForecast: weather.hourlyForecast,
+        targetDate: date,
+        route: route,
+        preferredPeriod: preferredPeriod,
+        currentTimeOverride: currentTimeOverride,
+      );
+
+      int weatherSubscore = hourlyResult.hourlyWeatherSuitability;
+
+      // Official MET Malaysia Significant Weather Warning penalty (FSIGW)
+      final sig = (weather.significantWeather ?? '').toLowerCase();
+      if (sig.contains('warning') || sig.contains('amaran')) {
+        weatherSubscore = (weatherSubscore - 20).clamp(10, 100);
+      } else if (sig.contains('heavy rain') || sig.contains('hujan lebat')) {
+        weatherSubscore = (weatherSubscore - 20).clamp(10, 100);
+      }
+
+      final journeySubscore = route != null ? _calculateJourneyPracticality(route) : null;
+      final isRouteAvailable = journeySubscore != null;
+
+      final int overallScore = isRouteAvailable
+          ? ((weatherSubscore * 0.60) + (journeySubscore * 0.40)).round().clamp(0, 100)
+          : weatherSubscore;
+
+      final (suitability, levelName, color) = _resolveScoreTiers(overallScore);
+
+      final (preferredMatchReason, preferredComparisonText) =
+          _comparePreferredPeriod(preferredPeriod, hourlyResult.recommendedPeriod);
+
+      final (reasons, explanationBullets) = _generateReasonsAndBullets(
+        weather: weather,
+        route: route,
+        bestPeriod: hourlyResult.recommendedPeriod,
+        preferredReason: preferredMatchReason,
+        preferredComparisonText: preferredComparisonText,
+        isWeatherComplete: hourlyResult.hasSufficientData,
+      );
+
+      final combinedBullets = <String>[
+        ...hourlyResult.explanationBullets,
+        ...explanationBullets.where((b) => !b.contains('Estimated driving duration') && !b.contains('Driving route unavailable')),
+      ];
+
+      final recommendedActivities = _generateActivityRecommendations(
+        activityTags: activityTags,
+        weather: weather,
+        bestPeriod: hourlyResult.recommendedPeriod,
+      );
+
+      final highlights = _generateHighlights(weather, route, hourlyResult.recommendedPeriod);
+
+      final breakdown = TravelScoreBreakdown(
+        weatherScore: weatherSubscore,
+        journeyScore: journeySubscore,
+        morningScore: hourlyResult.morningSuitability,
+        afternoonScore: hourlyResult.afternoonSuitability,
+        nightScore: hourlyResult.nightSuitability,
+        isWeatherComplete: hourlyResult.hasSufficientData,
+      );
+
+      return TravelScore(
+        score: overallScore,
+        weatherSubscore: weatherSubscore,
+        journeySubscore: journeySubscore,
+        suitability: suitability,
+        levelName: levelName,
+        bestTravelPeriod: hourlyResult.recommendedPeriod,
+        recommendedDeparture: hourlyResult.suggestedDeparture,
+        departureReason: hourlyResult.departureReason,
+        bestWeatherWindow: hourlyResult.bestWeatherWindow,
+        selectedPeriod: hourlyResult.selectedPeriod,
+        recommendedPeriod: hourlyResult.recommendedPeriod,
+        recommendation: hourlyResult.travelAdvice,
+        highlights: highlights,
+        explanationBullets: combinedBullets,
+        reasons: reasons,
+        recommendedActivities: recommendedActivities,
+        preferredPeriodComparison: preferredComparisonText,
+        isRouteAvailable: isRouteAvailable,
+        analysisLimitation: !isRouteAvailable
+            ? 'Weather-based analysis only (driving route unavailable)'
+            : null,
+        breakdown: breakdown,
+        color: color,
+        isInitial: false,
+      );
+    }
+
+    // ── 2. MET Malaysia 3-Period Fallback (When Hourly Unavailable) ─────────
+    final isWeatherComplete = weather.morningCondition != null && weather.afternoonCondition != null;
+    final bestPeriod = _calculateBestTravelPeriod(weather, isWeatherComplete);
+
+    final (weatherSubscore, _, morningScore, afternoonScore, nightScore) =
+        _calculateWeatherSuitabilityWithBreakdown(weather, preferredPeriod, bestPeriod);
+
+    final journeySubscore = route != null ? _calculateJourneyPracticality(route) : null;
     final isRouteAvailable = journeySubscore != null;
 
-        final int overallScore = isRouteAvailable
+    final int overallScore = isRouteAvailable
         ? ((weatherSubscore * 0.60) + (journeySubscore * 0.40)).round().clamp(0, 100)
         : weatherSubscore;
 
-    final TravelSuitability suitability;
-    final String levelName;
-    final Color color;
+    final (suitability, levelName, color) = _resolveScoreTiers(overallScore);
 
-    if (overallScore >= 90) {
-      suitability = TravelSuitability.ideal;
-      levelName = 'Excellent';
-      color = AppColors.safeGreen;
-    } else if (overallScore >= 80) {
-      suitability = TravelSuitability.ideal;
-      levelName = 'Very Good';
-      color = AppColors.safeGreen;
-    } else if (overallScore >= 70) {
-      suitability = TravelSuitability.moderate;
-      levelName = 'Good';
-      color = AppColors.accentCyan;
-    } else if (overallScore >= 60) {
-      suitability = TravelSuitability.moderate;
-      levelName = 'Moderate';
-      color = AppColors.cautionAmber;
-    } else {
-      suitability = TravelSuitability.challenging;
-      levelName = 'Less Ideal';
-      color = AppColors.dangerRed;
-    }
-
-    //Calculate Best Travel Period
-    final bestPeriod = _calculateBestTravelPeriod(weather, isWeatherComplete);
-
-    //Calculate Recommended Departure & Reason
     final (departure, departureReason) = _calculateRecommendedDeparture(weather, route, isWeatherComplete);
 
-    //Preferred Period Matching
     final (preferredMatchReason, preferredComparisonText) =
         _comparePreferredPeriod(preferredPeriod, bestPeriod);
 
-    //Generate Reasons & Explanations
     final (reasons, explanationBullets) = _generateReasonsAndBullets(
       weather: weather,
       route: route,
@@ -73,16 +143,14 @@ class TravelScoreCalculator {
       isWeatherComplete: isWeatherComplete,
     );
 
-    //Generate Weather-informed Activity Suggestions
     final recommendedActivities = _generateActivityRecommendations(
       activityTags: activityTags,
       weather: weather,
       bestPeriod: bestPeriod,
     );
 
-    //Highlights
     final highlights = _generateHighlights(weather, route, bestPeriod);
-    final recommendation = _generateRecommendation(overallScore, bestPeriod, isRouteAvailable);
+    final recommendation = _generateRecommendation(overallScore, bestPeriod, isRouteAvailable, weather);
 
     final breakdown = TravelScoreBreakdown(
       weatherScore: weatherSubscore,
@@ -102,6 +170,9 @@ class TravelScoreCalculator {
       bestTravelPeriod: bestPeriod,
       recommendedDeparture: departure,
       departureReason: departureReason,
+      bestWeatherWindow: null,
+      selectedPeriod: preferredPeriod ?? 'Auto',
+      recommendedPeriod: bestPeriod,
       recommendation: recommendation,
       highlights: highlights,
       explanationBullets: explanationBullets,
@@ -114,20 +185,40 @@ class TravelScoreCalculator {
           : null,
       breakdown: breakdown,
       color: color,
+      isInitial: false,
     );
   }
 
-  //Weather Suitability Algorithm
+  static (TravelSuitability, String, Color) _resolveScoreTiers(int overallScore) {
+    if (overallScore >= 90) {
+      return (TravelSuitability.ideal, 'Excellent', AppColors.safeGreen);
+    } else if (overallScore >= 80) {
+      return (TravelSuitability.ideal, 'Very Good', AppColors.safeGreen);
+    } else if (overallScore >= 70) {
+      return (TravelSuitability.moderate, 'Good', AppColors.accentCyan);
+    } else if (overallScore >= 60) {
+      return (TravelSuitability.moderate, 'Moderate', AppColors.cautionAmber);
+    } else {
+      return (TravelSuitability.challenging, 'Less Ideal', AppColors.dangerRed);
+    }
+  }
+
+  // ─── Weather Suitability Algorithm ──────────────────────────────────────────
 
   /// Calculates Weather Suitability Score (0 - 100) from official MET fields.
-  static int calculateWeatherSuitability(WeatherInfo? weather) {
-    if (weather == null) return 75;
-    final (score, _, _, _, _) = _calculateWeatherSuitabilityWithBreakdown(weather);
+  static int calculateWeatherSuitability(WeatherInfo? weather, [String? preferredPeriod]) {
+    if (weather == null) return 0;
+    final bestPeriod = _calculateBestTravelPeriod(weather, true);
+    final (score, _, _, _, _) = _calculateWeatherSuitabilityWithBreakdown(weather, preferredPeriod, bestPeriod);
     return score;
   }
 
   static (int score, bool isComplete, int morning, int afternoon, int night)
-      _calculateWeatherSuitabilityWithBreakdown(WeatherInfo weather) {
+      _calculateWeatherSuitabilityWithBreakdown(
+    WeatherInfo weather, [
+    String? preferredPeriod,
+    String? resolvedBestPeriod,
+  ]) {
     final (morningPenalty, morningScore) = _evaluatePeriod(weather.morningCondition, 1.0);
     final (afternoonPenalty, afternoonScore) = _evaluatePeriod(weather.afternoonCondition, 1.0);
     final (nightPenalty, nightScore) = _evaluatePeriod(weather.nightCondition, 0.6);
@@ -138,12 +229,39 @@ class TravelScoreCalculator {
 
     final isComplete = hasMorning && hasAfternoon;
 
-    // If all period conditions are missing, weather data is insufficient -> neutral baseline
     if (!hasMorning && !hasAfternoon && !hasNight) {
       return (50, false, 50, 50, 50);
     }
 
-    int score = 100 - morningPenalty - afternoonPenalty - nightPenalty;
+    final int baseDayScore = (100 - morningPenalty - afternoonPenalty - nightPenalty).clamp(10, 100);
+
+    final pClean = (preferredPeriod ?? '').trim().toLowerCase();
+    int score;
+    if (pClean.startsWith('morning')) {
+      // User chose Morning: score reflects morning travel condition
+      score = morningScore;
+    } else if (pClean.startsWith('afternoon')) {
+      // User chose Afternoon: score reflects afternoon travel condition
+      score = afternoonScore;
+    } else if (pClean.startsWith('night')) {
+      // User chose Night: score reflects night travel condition
+      score = nightScore;
+    } else if (pClean.startsWith('auto')) {
+      // Auto / Auto Recommend: optimizes around best travel period while considering overall day
+      final best = (resolvedBestPeriod ?? '').toLowerCase();
+      if (best.contains('morning')) {
+        score = ((morningScore * 0.7) + (baseDayScore * 0.3)).round();
+      } else if (best.contains('afternoon')) {
+        score = ((afternoonScore * 0.7) + (baseDayScore * 0.3)).round();
+      } else if (best.contains('night')) {
+        score = ((nightScore * 0.7) + (baseDayScore * 0.3)).round();
+      } else {
+        score = baseDayScore;
+      }
+    } else {
+      // General destination analysis without a selected travel period
+      score = baseDayScore;
+    }
 
     // Significant Weather / Alert evaluation
     final sig = (weather.significantWeather ?? '').toLowerCase();
@@ -153,10 +271,12 @@ class TravelScoreCalculator {
       score -= 20;
     }
 
-    // Extreme Temperature Penalties
-    if (weather.maxTemperature != null) {
-      if (weather.maxTemperature! >= 35.0) {
-        score -= 6; // Very hot afternoon
+    // Extreme Temperature Penalties (relevant for daytime periods)
+    if (!pClean.startsWith('night')) {
+      if (weather.maxTemperature != null) {
+        if (weather.maxTemperature! >= 35.0) {
+          score -= 6;
+        }
       }
     }
 
@@ -275,7 +395,7 @@ class TravelScoreCalculator {
     final night = weather.nightCondition?.toLowerCase().trim() ?? '';
 
     if (morning.isEmpty && afternoon.isEmpty && night.isEmpty) {
-      return 'Recommended period unavailable';
+      return 'Not available';
     }
 
     final isMorningDry = _isDryCondition(morning);
@@ -293,7 +413,8 @@ class TravelScoreCalculator {
     } else if (!isMorningDry && !isAfternoonDry && isNightDry) {
       return 'Night';
     } else if (!isMorningDry && !isAfternoonDry && !isNightDry) {
-      return 'Indoor Activities Recommended';
+      // All periods have precipitation — recommend Morning as the least-worst option
+      return 'Morning';
     } else {
       return isMorningDry ? 'Morning' : (isAfternoonDry ? 'Afternoon' : 'Morning');
     }
@@ -308,37 +429,51 @@ class TravelScoreCalculator {
   ) {
     final morning = weather.morningCondition?.toLowerCase().trim() ?? '';
     final afternoon = weather.afternoonCondition?.toLowerCase().trim() ?? '';
+    final night = weather.nightCondition?.toLowerCase().trim() ?? '';
 
     final isMorningDry = _isDryCondition(morning);
     final isAfternoonDry = _isDryCondition(afternoon);
+    final isNightDry = _isDryCondition(night);
+
+    if (morning.isEmpty && afternoon.isEmpty && night.isEmpty) {
+      return ('Not available', 'Weather forecast data is currently unavailable for this destination.');
+    }
 
     if (isMorningDry && !isAfternoonDry) {
       final hours = route != null ? (route.durationMinutes / 60.0) : 2.5;
       if (hours <= 4.0) {
         return (
           'Around 8:00 AM',
-          'Departing in the morning allows completing the drive before afternoon rain or thunderstorms develop at the destination (planning advice).',
+          'Departing in the morning lets you complete the drive before afternoon showers develop at the destination.',
         );
       } else {
         return (
           'Early Morning (Around 7:00 AM)',
-          'Early departure recommended due to the longer driving duration, helping you arrive before afternoon weather worsens (planning advice).',
+          'An early start is recommended for this longer journey, so you arrive before afternoon weather changes.',
         );
       }
     } else if (!isMorningDry && isAfternoonDry) {
       return (
-        'Around 1:00 PM',
-        'Conditions at destination are forecast to improve in the afternoon as morning showers ease (planning advice).',
+        'Afternoon',
+        'Conditions are forecast to improve in the afternoon as morning showers ease. Departing after midday is advisable.',
       );
     } else if (isMorningDry && isAfternoonDry) {
+      final hours = route != null ? (route.durationMinutes / 60.0) : 2.5;
+      final timeStr = hours <= 3.0 ? 'Around 8:30 AM' : 'Around 7:30 AM';
       return (
-        'Flexible Departure',
-        'Dry and stable weather conditions are forecast throughout the day (planning advice).',
+        timeStr,
+        'Dry and stable conditions are forecast throughout the day — morning departure is recommended.',
+      );
+    } else if (!isMorningDry && !isAfternoonDry && isNightDry) {
+      return (
+        'Around 7:00 PM',
+        'Rain is expected during the day. An evening departure encounters more favourable night conditions.',
       );
     } else {
+      // All periods have precipitation — recommend morning as conditions tend to be calmer early
       return (
-        'Plan with Caution',
-        'Showers or thunderstorms are forecast during multiple periods. Consider allowing extra travel time or choosing indoor activities.',
+        'Around 7:30 AM',
+        'Rain is forecast throughout the day. Conditions are more suitable earlier in the day — allow extra travel time and prepare for wet conditions.',
       );
     }
   }
@@ -349,7 +484,8 @@ class TravelScoreCalculator {
     String? preferredPeriod,
     String bestPeriod,
   ) {
-    if (preferredPeriod == null || preferredPeriod.isEmpty || preferredPeriod == 'Auto Recommend') {
+    if (preferredPeriod == null || preferredPeriod.isEmpty ||
+        preferredPeriod == 'Auto Recommend' || preferredPeriod == 'Auto') {
       return (null, null);
     }
 
@@ -404,7 +540,7 @@ class TravelScoreCalculator {
       bullets.add('Afternoon weather (${weather.afternoonCondition}) is clear and stable.');
     } else if (afternoon.contains('thunderstorm') || afternoon.contains('ribut') || afternoon.contains('heavy rain')) {
       reasons.add(TravelRecommendationReason.afternoonThunderstorms);
-      bullets.add('Afternoon thunderstorms or rain forecast (${weather.afternoonCondition}); plan indoor options.');
+      bullets.add('Afternoon thunderstorms or rain forecast (${weather.afternoonCondition}); consider adjusting departure time if conditions worsen.');
     } else if (afternoon.contains('hazy') || afternoon.contains('haze') || afternoon.contains('jerebu')) {
       bullets.add('Afternoon haze forecast (${weather.afternoonCondition}); visibility may be reduced.');
     } else if (afternoon.isNotEmpty) {
@@ -510,8 +646,10 @@ class TravelScoreCalculator {
       if (morningDry) {
         activities.add('Outdoor exploration recommended during the morning window');
       }
-      if (!afternoonDry) {
-        activities.add('Indoor activities recommended during afternoon periods');
+      if (afternoonDry) {
+        activities.add('Afternoon sightseeing and scenic spots');
+      } else {
+        activities.add('Local sightseeing and cultural exploration during afternoon');
       }
     }
 
@@ -555,14 +693,21 @@ class TravelScoreCalculator {
     int score,
     String bestPeriod,
     bool isRouteAvailable,
+    WeatherInfo? weather,
   ) {
-    final routeNote = isRouteAvailable ? '' : ' (weather-based analysis)';
+    final allWet = weather != null &&
+        !_isDryCondition(weather.morningCondition) &&
+        !_isDryCondition(weather.afternoonCondition) &&
+        !_isDryCondition(weather.nightCondition);
+
     if (score >= 80) {
-      return 'Conditions are favourable for travel$routeNote. $bestPeriod is the optimal window for outdoor activities.';
+      return 'Good conditions for travel. $bestPeriod is the recommended window for outdoor activities.';
     } else if (score >= 60) {
-      return 'Moderate travel conditions$routeNote. We recommend planning activities around the $bestPeriod window.';
+      return 'Some weather changes expected. Plan your activities around the $bestPeriod window and check the latest forecast before departure.';
+    } else if (allWet) {
+      return 'Rain may affect your plans. Allow extra travel time and prepare for wet conditions. Conditions are more suitable earlier in the day.';
     } else {
-      return 'Challenging weather forecast$routeNote. Prioritize indoor activities and check official MET updates.';
+      return 'Thunderstorms may affect travel. Consider adjusting your departure time if conditions worsen.';
     }
   }
 }

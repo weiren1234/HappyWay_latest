@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/travel_destination.dart';
 import '../models/travel_location.dart';
@@ -17,7 +18,9 @@ import '../widgets/glass_card.dart';
 import '../widgets/plan_trip_sheet.dart';
 import '../widgets/destination_image_view.dart';
 import '../widgets/auth_prompt_dialog.dart';
+import '../widgets/hourly_weather_card.dart';
 import '../utils/travel_score_calculator.dart';
+import '../utils/canonical_destination_id.dart';
 
 /// TravelInsightsScreen displays the full travel analysis for any travel destination:
 /// - Trip Summary (From → To, Distance, Estimated Drive Time)
@@ -161,7 +164,7 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
         _weather = weather;
         _isLoadingWeather = false;
         if (weather == null && _hasWeatherLocation) {
-          _weatherError = 'Unable to retrieve the latest forecast from MET Malaysia. Please try again.';
+          _weatherError = 'Unable to load the latest weather forecast. Please check your connection and try again.';
         }
       });
     }
@@ -220,26 +223,21 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
     }
   }
 
-  IconData _weatherIcon(String iconCode) {
-    switch (iconCode) {
-      case 'thunderstorm': return Icons.thunderstorm_rounded;
-      case 'rain': return Icons.grain_rounded;
-      case 'sunny': return Icons.wb_sunny_rounded;
-      case 'cloudy': return Icons.wb_cloudy_rounded;
-      case 'partly_cloudy': return Icons.wb_cloudy_outlined;
-      case 'foggy': return Icons.foggy;
-      default: return Icons.wb_cloudy_rounded;
-    }
-  }
+
 
   @override
   Widget build(BuildContext context) {
     final destProvider = Provider.of<DestinationProvider>(context);
-    final isSaved = destProvider.isLocationSaved(_locationId);
+    final isSaved = widget.destination != null
+        ? destProvider.isDestinationSaved(widget.destination!)
+        : (widget.travelLocation != null
+            ? destProvider.isLocationSaved(CanonicalDestinationId.fromTravelLocation(widget.travelLocation!))
+            : destProvider.isLocationSaved(_locationId));
     final travelScore = TravelScoreCalculator.calculateScore(
       weather: _weather,
       route: _route,
       activityTags: widget.destination?.activityTags,
+      travelDate: DateTime.now(),
     );
 
     return Scaffold(
@@ -266,7 +264,16 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
                 ),
                 onPressed: () => Navigator.pop(context),
               ),
-              title: Text('Travel Analysis', style: AppTextStyles.titleMedium.copyWith(color: AppColors.primaryText(context))),
+              title: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Today\'s Travel Analysis', style: AppTextStyles.titleMedium.copyWith(color: AppColors.primaryText(context))),
+                  Text(
+                    'Today · ${DateFormat('d MMM').format(DateTime.now())}',
+                    style: AppTextStyles.bodySmall.copyWith(color: AppColors.cyanAccent(context), fontSize: 11, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
               centerTitle: true,
               actions: [
                 IconButton(
@@ -298,18 +305,28 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
                       size: 18,
                     ),
                   ),
-                  onPressed: () {
+                  onPressed: () async {
                     final auth = Provider.of<AuthProvider>(context, listen: false);
                     if (!auth.isAuthenticated || auth.isGuest) {
                       AuthPromptDialog.show(context);
                       return;
                     }
-                    if (widget.travelLocation != null) {
-                      destProvider.toggleSaveTravelLocation(widget.travelLocation!);
-                    } else if (_isFeatured) {
-                      destProvider.toggleSaveFeaturedDestination(_locationId);
+                    bool success = false;
+                    if (widget.destination != null) {
+                      success = await destProvider.toggleSaveAnyDestination(widget.destination!);
+                    } else if (widget.travelLocation != null) {
+                      success = await destProvider.toggleSaveTravelLocation(widget.travelLocation!);
                     } else if (widget.metLocation != null) {
-                      destProvider.toggleSaveMetLocation(widget.metLocation!);
+                      success = await destProvider.toggleSaveMetLocation(widget.metLocation!);
+                    }
+                    if (!success && context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Unable to update saved destinations. Please check your network connection.'),
+                          behavior: SnackBarBehavior.floating,
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
                     }
                   },
                 ),
@@ -554,16 +571,7 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
                 Text(_locationName, style: AppTextStyles.titleLarge.copyWith(fontSize: 20, color: AppColors.primaryText(context))),
                 const SizedBox(height: 4),
                 Text('$_locationCategory • $_locationState', style: AppTextStyles.bodySmall.copyWith(color: AppColors.secondaryText(context))),
-                const SizedBox(height: 5),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.weatherBlue.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: AppColors.weatherBlue.withValues(alpha: 0.3)),
-                  ),
-                  child: Text('Official MET Malaysia Location', style: TextStyle(color: AppColors.cyanAccent(context), fontSize: 10, fontWeight: FontWeight.w500)),
-                ),
+
               ],
             ),
           ),
@@ -714,7 +722,10 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Travel Suitability', style: AppTextStyles.bodySmall.copyWith(color: AppColors.secondaryText(context))),
+                Text(
+                  score.isRouteAvailable ? "Today's Travel Score" : "Today's Weather Suitability",
+                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.secondaryText(context), fontWeight: FontWeight.w600),
+                ),
                 const SizedBox(height: 3),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -726,7 +737,7 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
                   child: Text(score.levelName, style: TextStyle(color: score.color, fontSize: 12, fontWeight: FontWeight.w600)),
                 ),
                 const SizedBox(height: 5),
-                Text('Best Period: ${score.bestTravelPeriod}',
+                Text('Best Time Today: ${score.bestTravelPeriod}',
                     style: AppTextStyles.bodySmall.copyWith(color: AppColors.cyanAccent(context), fontWeight: FontWeight.w600)),
               ],
             ),
@@ -748,7 +759,7 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Official MET forecast is not available for this destination.',
+                'Weather forecast is currently unavailable for this destination.',
                 style: AppTextStyles.bodyMedium.copyWith(color: AppColors.secondaryText(context)),
               ),
             ),
@@ -757,119 +768,9 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
       );
     }
 
-    final weather = _weather!;
-    final isGeocoded = widget.travelLocation?.source == TravelLocationSource.geocodedPlace;
-    final weatherArea = _metLocationName ?? _locationState;
-
-    return GlassCard(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.cloud_outlined, color: AppColors.cyanAccent(context), size: 17),
-                  const SizedBox(width: 7),
-                  Text(
-                    isGeocoded ? 'MET Forecast ($weatherArea)' : 'MET Malaysia Forecast',
-                    style: AppTextStyles.titleMedium.copyWith(color: AppColors.primaryText(context)),
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.cyanAccent(context).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  isGeocoded ? 'Weather: $weatherArea' : 'Official MET API',
-                  style: TextStyle(color: AppColors.cyanAccent(context), fontSize: 10, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Icon(_weatherIcon(weather.iconCode), size: 42, color: const Color(0xFFFBBF24)),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      weather.minTemperature != null && weather.maxTemperature != null
-                          ? '${weather.minTemperature!.round()}°C – ${weather.maxTemperature!.round()}°C'
-                          : weather.temperature != null ? '${weather.temperature!.round()}°C' : '—',
-                      style: AppTextStyles.titleLarge.copyWith(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.primaryText(context)),
-                    ),
-                    Text(weather.condition, style: AppTextStyles.bodyMedium.copyWith(color: AppColors.cyanAccent(context))),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          if (weather.morningCondition != null || weather.afternoonCondition != null || weather.nightCondition != null) ...[
-            const SizedBox(height: 12),
-            Divider(height: 1, color: AppColors.dividerColor(context)),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: _PeriodTile(
-                    label: 'Morning',
-                    condition: weather.morningCondition ?? '—',
-                    icon: Icons.wb_twilight_rounded,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _PeriodTile(
-                    label: 'Afternoon',
-                    condition: weather.afternoonCondition ?? '—',
-                    icon: Icons.wb_sunny_rounded,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _PeriodTile(
-                    label: 'Night',
-                    condition: weather.nightCondition ?? '—',
-                    icon: Icons.nights_stay_rounded,
-                  ),
-                ),
-              ],
-            ),
-          ],
-          if (weather.alertLevel != 'None') ...[
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.cautionAmber.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.cautionAmber.withValues(alpha: 0.4)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.warning_amber_rounded, color: AppColors.cautionAmber, size: 16),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      'MET Alert: ${weather.alertLevel}',
-                      style: const TextStyle(color: AppColors.cautionAmber, fontSize: 11, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
+    return HourlyWeatherCard(
+      weather: _weather!,
+      title: "Today's Hourly Forecast",
     );
   }
 
@@ -1118,7 +1019,7 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
           children: [
             const CircularProgressIndicator(color: AppColors.accentCyan),
             const SizedBox(height: 12),
-            Text('Retrieving official MET Malaysia forecast...', style: TextStyle(color: AppColors.secondaryText(context), fontSize: 13)),
+            Text('Loading weather forecast...', style: TextStyle(color: AppColors.secondaryText(context), fontSize: 13)),
           ],
         ),
       ),
@@ -1153,7 +1054,7 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Text(
-          'Official forecasts provided by MET Malaysia (api.met.gov.my).\nRoad distance estimated via OSRM open routing.',
+          'Source: MET Malaysia\nRoute & travel times are estimates.',
           style: AppTextStyles.bodySmall.copyWith(color: AppColors.mutedText(context), fontSize: 10),
           textAlign: TextAlign.center,
         ),
@@ -1162,46 +1063,7 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
   }
 }
 
-// ── Supporting Widgets ──────────────────────────────────────────────────────────
 
-class _PeriodTile extends StatelessWidget {
-  final String label;
-  final String condition;
-  final IconData icon;
-
-  const _PeriodTile({required this.label, required this.condition, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceGlass(context),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.borderGlass(context)),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, size: 18, color: AppColors.cyanAccent(context)),
-          const SizedBox(height: 4),
-          Text(label, style: AppTextStyles.bodySmall.copyWith(fontSize: 10, color: AppColors.mutedText(context))),
-          const SizedBox(height: 2),
-          Text(
-            condition,
-            style: AppTextStyles.bodySmall.copyWith(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primaryText(context),
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _SummaryTile extends StatelessWidget {
   final IconData icon;
