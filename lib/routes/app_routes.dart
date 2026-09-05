@@ -17,7 +17,7 @@ import '../theme/app_theme.dart';
 class AppRoutes {
   AppRoutes._();
 
-  static const String splash = '/splash';
+  static const String splash = '/';
   static const String onboarding = '/onboarding';
   static const String login = '/login';
   static const String register = '/register';
@@ -38,6 +38,7 @@ class AppRoutes {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case splash:
+      case '/splash':
         return MaterialPageRoute(builder: (_) => _wrapDarkAuth(const SplashScreen()));
 
       case onboarding:
@@ -144,7 +145,7 @@ class AppRoutes {
         );
 
       default:
-        return MaterialPageRoute(builder: (_) => const SplashScreen());
+        return MaterialPageRoute(builder: (_) => const MainScreen());
     }
   }
 }

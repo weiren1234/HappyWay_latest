@@ -169,7 +169,9 @@ class _TripsScreenState extends State<TripsScreen> {
                 subtitle: totalTrips > 0
                     ? '$totalTrips planned ${totalTrips == 1 ? 'trip' : 'trips'}'
                     : 'Weather-optimized travel itineraries',
-                trailing: _buildPlanTripButton(context),
+                trailing: authProvider.isAuthenticated && !authProvider.isGuest
+                    ? _buildPlanTripButton(context)
+                    : null,
               ),
 
               const SizedBox(height: 16),
@@ -967,13 +969,13 @@ class _TripsScreenState extends State<TripsScreen> {
           ),
           const SizedBox(height: 20),
           Text(
-            'Sign in to continue',
+            'My Trips',
             style: AppTextStyles.titleLarge.copyWith(color: AppColors.primaryText(context), fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 10),
           Text(
-            'Sign in to save destinations and plan your trips.',
+            'Sign in to plan and manage your trips.',
             style: AppTextStyles.bodyMedium.copyWith(color: AppColors.secondaryText(context)),
             textAlign: TextAlign.center,
           ),

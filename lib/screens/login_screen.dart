@@ -54,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ]);
 
       if (mounted) {
-        Navigator.pushReplacementNamed(context, AppRoutes.main);
+        Navigator.pushNamedAndRemoveUntil(context, AppRoutes.main, (route) => false);
       }
     } else {
       debugPrint('Supabase login error: ${auth.errorMessage}');
@@ -412,11 +412,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {
                           final auth = Provider.of<AuthProvider>(context, listen: false);
                           auth.continueAsGuest();
-                          if (Navigator.canPop(context)) {
-                            Navigator.pop(context);
-                          } else {
-                            Navigator.pushReplacementNamed(context, AppRoutes.main);
-                          }
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            AppRoutes.main,
+                            (route) => false,
+                          );
                         },
                         child: Text(
                           'Continue as Guest',
@@ -434,24 +434,33 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
 
-          // Top Back button if pushed from inside the app
-          if (Navigator.canPop(context))
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 8,
-              left: 16,
-              child: IconButton(
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.glassSurface,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.glassBorderLight),
-                  ),
-                  child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 18),
+          // Top Back button — always go to MainScreen as Guest, never back to Splash
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            left: 16,
+            child: IconButton(
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.glassSurface,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.glassBorderLight),
                 ),
-                onPressed: () => Navigator.pop(context),
+                child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 18),
               ),
+              onPressed: () {
+                final auth = Provider.of<AuthProvider>(context, listen: false);
+                if (!auth.isLoggedIn) {
+                  auth.continueAsGuest();
+                }
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  AppRoutes.main,
+                  (route) => false,
+                );
+              },
             ),
+          ),
         ],
       ),
     );

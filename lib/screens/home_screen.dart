@@ -103,16 +103,19 @@ class _HomeScreenState extends State<HomeScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => OriginPickerSheet(
-        onSelectCurrentLocation: () {
+        onSelectCurrentLocation: () async {
           final locProvider = Provider.of<LocationProvider>(context, listen: false);
-          locProvider.selectCurrentLocation();
-          setState(() {
-            _hasAnalyzed = false;
-            _analyzedWeather = null;
-            _analyzedRoute = null;
-            _routeError = null;
-            _analyzedScore = null;
-          });
+          final success = await locProvider.requestCurrentLocation(context);
+          if (success && mounted) {
+            setState(() {
+              _hasAnalyzed = false;
+              _analyzedWeather = null;
+              _analyzedRoute = null;
+              _routeError = null;
+              _analyzedScore = null;
+            });
+          }
+          return success;
         },
         onSelectTravelLocation: (loc) {
           final locProvider = Provider.of<LocationProvider>(context, listen: false);
@@ -459,7 +462,20 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                       GestureDetector(
-                        onTap: () => locProvider.retryGpsLocation(),
+                        onTap: (locProvider.isLoading || locProvider.isResolvingLocation)
+                            ? null
+                            : () async {
+                                final success = await locProvider.requestCurrentLocation(context);
+                                if (success && mounted) {
+                                  setState(() {
+                                    _hasAnalyzed = false;
+                                    _analyzedWeather = null;
+                                    _analyzedRoute = null;
+                                    _routeError = null;
+                                    _analyzedScore = null;
+                                  });
+                                }
+                              },
                         child: Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
@@ -467,7 +483,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             shape: BoxShape.circle,
                             border: Border.all(color: AppColors.borderGlass(context)),
                           ),
-                          child: locProvider.isLoading
+                          child: (locProvider.isLoading || locProvider.isResolvingLocation)
                               ? const SizedBox(
                                   width: 20,
                                   height: 20,
@@ -532,7 +548,18 @@ class _HomeScreenState extends State<HomeScreen> {
                         _CurrentLocationTile(
                           locProvider: locProvider,
                           onTapChange: () => _openOriginPicker(context),
-                          onRetryGps: () => locProvider.retryGpsLocation(),
+                          onRetryGps: () async {
+                            final success = await locProvider.requestCurrentLocation(context);
+                            if (success && mounted) {
+                              setState(() {
+                                _hasAnalyzed = false;
+                                _analyzedWeather = null;
+                                _analyzedRoute = null;
+                                _routeError = null;
+                                _analyzedScore = null;
+                              });
+                            }
+                          },
                           onOpenSettings: () => LocationService.openAppSettings(),
                         ),
                         const SizedBox(height: 10),
@@ -1075,22 +1102,23 @@ class _CurrentLocationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = locProvider.permissionState;
+    final isResolving = locProvider.isLoading || locProvider.isResolvingLocation;
 
     Widget trailing;
-    if (locProvider.isLoading) {
+    if (isResolving) {
       trailing = const SizedBox(
         width: 16, height: 16,
         child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.accentCyan),
       );
     } else if (state == LocationPermissionState.permanentlyDenied) {
       trailing = GestureDetector(
-        onTap: () async { await LocationService.openAppSettings(); },
+        onTap: onOpenSettings,
         child: Text('Settings', style: AppTextStyles.bodySmall.copyWith(color: AppColors.weatherBlue, fontWeight: FontWeight.w600)),
       );
     } else if (state == LocationPermissionState.denied || state == LocationPermissionState.serviceDisabled) {
       trailing = GestureDetector(
-        onTap: onTapChange,
-        child: Text('Select', style: AppTextStyles.bodySmall.copyWith(color: AppColors.weatherBlue, fontWeight: FontWeight.w600)),
+        onTap: onRetryGps,
+        child: Text('Turn On', style: AppTextStyles.bodySmall.copyWith(color: AppColors.weatherBlue, fontWeight: FontWeight.w600)),
       );
     } else {
       trailing = GestureDetector(
@@ -1103,7 +1131,7 @@ class _CurrentLocationTile extends StatelessWidget {
     String locationSubtitle;
     Color dotColor = AppColors.weatherBlue;
 
-    if (locProvider.isLoading) {
+    if (isResolving) {
       locationTitle = 'Locating...';
       locationSubtitle = 'Requesting GPS position';
     } else if (locProvider.currentLocation != null) {
@@ -1124,30 +1152,50 @@ class _CurrentLocationTile extends StatelessWidget {
       dotColor = AppColors.cautionAmber;
     }
 
-    return _RowContainer(
-      child: Row(
-        children: [
-          _DotIcon(color: dotColor, icon: Icons.my_location_rounded),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  locProvider.isGps ? 'Origin (GPS)' : 'Origin (Manual)',
-                  style: AppTextStyles.bodySmall.copyWith(fontSize: 10, color: AppColors.mutedText(context)),
-                ),
-                Text(locationTitle, style: AppTextStyles.titleSmall.copyWith(color: AppColors.primaryText(context))),
-                if (locationSubtitle.isNotEmpty)
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        if (isResolving) return;
+        if (state == LocationPermissionState.permanentlyDenied) {
+          onOpenSettings();
+        } else if (state == LocationPermissionState.denied || state == LocationPermissionState.serviceDisabled) {
+          onRetryGps();
+        } else {
+          onTapChange();
+        }
+      },
+      child: _RowContainer(
+        child: Row(
+          children: [
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                if (isResolving) return;
+                onRetryGps();
+              },
+              child: _DotIcon(color: dotColor, icon: Icons.my_location_rounded),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    locationSubtitle,
+                    locProvider.isGps ? 'Origin (GPS)' : 'Origin (Manual)',
                     style: AppTextStyles.bodySmall.copyWith(fontSize: 10, color: AppColors.mutedText(context)),
                   ),
-              ],
+                  Text(locationTitle, style: AppTextStyles.titleSmall.copyWith(color: AppColors.primaryText(context))),
+                  if (locationSubtitle.isNotEmpty)
+                    Text(
+                      locationSubtitle,
+                      style: AppTextStyles.bodySmall.copyWith(fontSize: 10, color: AppColors.mutedText(context)),
+                    ),
+                ],
+              ),
             ),
-          ),
-          trailing,
-        ],
+            trailing,
+          ],
+        ),
       ),
     );
   }

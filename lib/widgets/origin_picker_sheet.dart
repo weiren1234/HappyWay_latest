@@ -13,7 +13,7 @@ import '../theme/app_text_styles.dart';
 /// 2. 🔎 Search another place or address (manual starting point)
 class OriginPickerSheet extends StatefulWidget {
   final ValueChanged<TravelLocation>? onSelectTravelLocation;
-  final VoidCallback? onSelectCurrentLocation;
+  final Future<bool> Function()? onSelectCurrentLocation;
 
   const OriginPickerSheet({
     super.key,
@@ -32,6 +32,7 @@ class _OriginPickerSheetState extends State<OriginPickerSheet> {
   List<TravelLocation> _geocodedResults = [];
   bool _isLoadingCatalogue = true;
   bool _isGeocoding = false;
+  bool _isLoadingGps = false;
   String? _geocodingError;
 
   @override
@@ -118,14 +119,26 @@ class _OriginPickerSheetState extends State<OriginPickerSheet> {
     }
   }
 
-  void _selectCurrentLocation() {
-    if (widget.onSelectCurrentLocation != null) {
-      widget.onSelectCurrentLocation!();
-    } else {
-      final locProvider = Provider.of<LocationProvider>(context, listen: false);
-      locProvider.selectCurrentLocation();
+  Future<void> _selectCurrentLocation() async {
+    final locProvider = Provider.of<LocationProvider>(context, listen: false);
+    if (_isLoadingGps || locProvider.isLoading || locProvider.isResolvingLocation) return;
+    setState(() => _isLoadingGps = true);
+
+    bool success = false;
+    try {
+      if (widget.onSelectCurrentLocation != null) {
+        success = await widget.onSelectCurrentLocation!();
+      } else {
+        success = await locProvider.requestCurrentLocation(context);
+      }
+    } catch (e) {
+      debugPrint('[OriginPickerSheet] GPS selection error: $e');
+      success = false;
     }
-    Navigator.pop(context);
+
+    if (!mounted) return;
+    setState(() => _isLoadingGps = false);
+    if (success) Navigator.pop(context);
   }
 
   void _selectManualLocation(TravelLocation loc) {
@@ -149,50 +162,83 @@ class _OriginPickerSheetState extends State<OriginPickerSheet> {
     final locProvider = Provider.of<LocationProvider>(context);
     final isCurrentGps = locProvider.isGps;
     final hasSearchQuery = _searchCtrl.text.trim().isNotEmpty;
+    final isResolving = _isLoadingGps || locProvider.isLoading || locProvider.isResolvingLocation;
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
       decoration: BoxDecoration(
         color: AppColors.cardBg(context),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        border: Border(
-          top: BorderSide(color: AppColors.borderGlass(context), width: 1.5),
-        ),
+        border: Border.all(color: AppColors.borderGlass(context)),
       ),
       child: Column(
         children: [
-          // Drag indicator
-          Container(
-            margin: const EdgeInsets.only(top: 12, bottom: 8),
-            width: 44,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppColors.glassBorder,
-              borderRadius: BorderRadius.circular(2),
+          // ── Handle Bar ──
+          Center(
+            child: Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.mutedText(context).withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
           ),
 
-          // Header
+          // ── Title Row ──
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Choose Origin', style: AppTextStyles.titleMedium.copyWith(color: AppColors.primaryText(context))),
-                    Text(
-                      'Select GPS or search another starting location',
-                      style: AppTextStyles.bodySmall.copyWith(color: AppColors.secondaryText(context)),
-                    ),
-                  ],
+                Text(
+                  'Select Starting Point',
+                  style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w700),
                 ),
                 IconButton(
+                  icon: const Icon(Icons.close_rounded),
                   onPressed: () => Navigator.pop(context),
-                  icon: Icon(Icons.close_rounded, color: AppColors.secondaryText(context)),
+                  color: AppColors.mutedText(context),
                 ),
               ],
+            ),
+          ),
+
+          // ── Search Input ──
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+            child: TextField(
+              controller: _searchCtrl,
+              decoration: InputDecoration(
+                hintText: 'Search city, town, or area in Malaysia...',
+                prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                suffixIcon: hasSearchQuery
+                    ? IconButton(
+                        icon: const Icon(Icons.clear_rounded, size: 18),
+                        onPressed: () {
+                          _searchCtrl.clear();
+                          setState(() {});
+                        },
+                      )
+                    : null,
+                filled: true,
+                fillColor: AppColors.surfaceGlass(context),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide(color: AppColors.borderGlass(context)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide(color: AppColors.borderGlass(context)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: AppColors.weatherBlue, width: 1.5),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              ),
+              onChanged: (_) => setState(() {}),
             ),
           ),
 
@@ -202,7 +248,7 @@ class _OriginPickerSheetState extends State<OriginPickerSheet> {
             child: Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: _selectCurrentLocation,
+                onTap: isResolving ? null : _selectCurrentLocation,
                 borderRadius: BorderRadius.circular(16),
                 child: Container(
                   padding: const EdgeInsets.all(14),
@@ -226,11 +272,20 @@ class _OriginPickerSheetState extends State<OriginPickerSheet> {
                           color: AppColors.safeGreen.withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
-                          Icons.my_location_rounded,
-                          color: AppColors.safeGreen,
-                          size: 20,
-                        ),
+                        child: isResolving
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.safeGreen,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.my_location_rounded,
+                                color: AppColors.safeGreen,
+                                size: 20,
+                              ),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -240,13 +295,13 @@ class _OriginPickerSheetState extends State<OriginPickerSheet> {
                             Row(
                               children: [
                                 Text(
-                                  'Current Location',
+                                  isResolving ? 'Getting current location...' : 'Current Location',
                                   style: AppTextStyles.titleSmall.copyWith(
                                     color: isCurrentGps ? AppColors.safeGreen : AppColors.primaryText(context),
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                if (isCurrentGps) ...[
+                                if (isCurrentGps && !isResolving) ...[
                                   const SizedBox(width: 8),
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -268,7 +323,9 @@ class _OriginPickerSheetState extends State<OriginPickerSheet> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'Use your device\'s current GPS position',
+                              _isLoadingGps
+                                  ? 'Please wait…'
+                                  : 'Use your device\'s current GPS position',
                               style: AppTextStyles.bodySmall.copyWith(
                                 color: AppColors.secondaryText(context),
                                 fontSize: 12,
@@ -277,7 +334,8 @@ class _OriginPickerSheetState extends State<OriginPickerSheet> {
                           ],
                         ),
                       ),
-                      Icon(Icons.chevron_right_rounded, color: AppColors.mutedText(context), size: 20),
+                      if (!_isLoadingGps)
+                        Icon(Icons.chevron_right_rounded, color: AppColors.mutedText(context), size: 20),
                     ],
                   ),
                 ),

@@ -22,7 +22,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<Map<String, dynamic>> _pages = [
     {
       'title': 'Discover Destinations',
-      'subtitle': 'Explore ~450 official tourist destinations, towns, and districts across Malaysia with official MET forecast conditions.',
+      'subtitle': 'Explore 450+ locations across Malaysia with official MET Malaysia weather forecasts.',
       'icon': Icons.travel_explore_rounded,
       'badge': 'SMART EXPLORATION',
       'color': AppColors.weatherBlue,
@@ -30,17 +30,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     },
     {
       'title': 'Official MET Malaysia Forecasts',
-      'subtitle': 'Real-time weather data and multi-period forecasts directly from the Malaysian Meteorological Department.',
+      'subtitle': 'Get official forecasts with morning, afternoon, and night weather conditions.',
       'icon': Icons.cloud_outlined,
-      'badge': 'REAL-TIME DATA',
+      'badge': 'WEATHER INSIGHTS',
       'color': AppColors.accentCyan,
       'iconBg': Color(0xFF0C4A6E),
     },
     {
       'title': 'Smart Travel Planning',
-      'subtitle': 'Get Travel Suitability Scores (0-100), estimated driving durations, and optimal departure windows for your journeys.',
+      'subtitle': 'Get Travel Suitability Scores, estimated driving times, and recommended departure windows for your journey.',
       'icon': Icons.route_rounded,
-      'badge': 'SMART ROUTING',
+      'badge': 'SMART PLANNING',
       'color': AppColors.safeGreen,
       'iconBg': Color(0xFF064E3B),
     },
@@ -64,7 +64,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     auth.completeOnboarding();
     auth.continueAsGuest();
-    Navigator.pushReplacementNamed(context, AppRoutes.main);
+    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.main, (route) => false);
   }
 
   @override

@@ -45,19 +45,18 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     // Check first-launch flag and Supabase session to route correctly
     _navTimer = Timer(const Duration(milliseconds: 2000), () async {
-      if (mounted) {
-        final session = Supabase.instance.client.auth.currentSession;
-        if (session != null) {
-          Navigator.pushReplacementNamed(context, AppRoutes.main);
+      if (!mounted) return;
+      final session = Supabase.instance.client.auth.currentSession;
+      if (session != null) {
+        Navigator.pushNamedAndRemoveUntil(context, AppRoutes.main, (route) => false);
+      } else {
+        final prefs = await SharedPreferences.getInstance();
+        final bool hasCompletedFirstLaunch = prefs.getBool('first_launch_completed') ?? false;
+        if (!mounted) return;
+        if (!hasCompletedFirstLaunch) {
+          Navigator.pushNamedAndRemoveUntil(context, AppRoutes.onboarding, (route) => false);
         } else {
-          final prefs = await SharedPreferences.getInstance();
-          final bool hasCompletedFirstLaunch = prefs.getBool('first_launch_completed') ?? false;
-          if (!mounted) return;
-          if (!hasCompletedFirstLaunch) {
-            Navigator.pushReplacementNamed(context, AppRoutes.onboarding);
-          } else {
-            Navigator.pushReplacementNamed(context, AppRoutes.login);
-          }
+          Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (route) => false);
         }
       }
     });

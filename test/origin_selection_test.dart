@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:happyway/models/user_location.dart';
 import 'package:happyway/models/travel_location.dart';
+import 'package:happyway/providers/location_provider.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -149,5 +151,38 @@ void main() {
       expect(restoredManual.longitude, equals(101.37));
       expect(restoredManual.accuracy, isNull);
     });
+
+    test('Test D: Manual location is preserved when manual place is set', () {
+      final locProvider = LocationProvider();
+
+      final manualLoc = TravelLocation.fromGeocodedPlace(
+        name: 'George Town, Penang',
+        latitude: 5.4141,
+        longitude: 100.3288,
+        state: 'Penang',
+      );
+      locProvider.setManualLocation(manualLoc);
+
+      expect(locProvider.currentLocation?.name, equals('George Town, Penang'));
+      expect(locProvider.isGps, isFalse);
+      expect(locProvider.currentLocation?.latitude, equals(5.4141));
+      expect(locProvider.currentLocation?.longitude, equals(100.3288));
+
+      // Disposing provider unregisters lifecycle observer cleanly
+      locProvider.dispose();
+    });
+
+    test('Test E: Lifecycle observer responds to AppLifecycleState without crashing', () {
+      final locProvider = LocationProvider();
+
+      // Inactive or paused when not waiting for settings does nothing
+      locProvider.didChangeAppLifecycleState(AppLifecycleState.inactive);
+      locProvider.didChangeAppLifecycleState(AppLifecycleState.paused);
+      locProvider.didChangeAppLifecycleState(AppLifecycleState.resumed);
+
+      expect(locProvider.isResolvingLocation, isFalse);
+      locProvider.dispose();
+    });
   });
 }
+

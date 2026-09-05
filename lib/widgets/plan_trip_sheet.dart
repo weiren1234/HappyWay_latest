@@ -367,8 +367,8 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
       builder: (ctx) => OriginPickerSheet(
         onSelectCurrentLocation: () async {
           final locProvider = Provider.of<LocationProvider>(context, listen: false);
-          await locProvider.selectCurrentLocation();
-          if (mounted) {
+          final success = await locProvider.requestCurrentLocation(context);
+          if (mounted && success) {
             setState(() {
               _originName = 'Current Location';
               if (locProvider.currentLocation != null) {
@@ -378,6 +378,7 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
             });
             _recalculatePreview();
           }
+          return success;
         },
         onSelectTravelLocation: (loc) {
           setState(() {

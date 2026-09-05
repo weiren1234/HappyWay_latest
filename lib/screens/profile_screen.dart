@@ -429,10 +429,9 @@ class ProfileScreen extends StatelessWidget {
               children: [
                 const SizedBox(height: 16),
                 const HeaderSection(
-                  title: 'Profile & Settings',
-                  subtitle: 'Sign in to access your account',
+                  title: 'Profile',
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 40),
                 Center(
                   child: Column(
                     children: [
@@ -460,22 +459,23 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 14),
                       Text(
-                        'Guest Traveler',
+                        'Guest',
                         style: AppTextStyles.titleMedium.copyWith(
                           color: AppColors.primaryText(context),
                           fontWeight: FontWeight.bold,
-                          fontSize: 18,
+                          fontSize: 22,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       Text(
-                        'Browsing without an account',
+                        'Sign in to save trips and destinations.',
                         style: AppTextStyles.bodySmall.copyWith(color: AppColors.secondaryText(context)),
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 36),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -505,32 +505,45 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 40),
-                // Theme preference still accessible for guests
-                _SectionLabel(label: 'PREFERENCES'),
+                // About section visible for all users
+                _SectionLabel(label: 'APP'),
                 const SizedBox(height: 10),
                 GlassCard(
                   padding: EdgeInsets.zero,
-                  child: _TappableRow(
-                    icon: Icons.palette_outlined,
-                    iconColor: AppColors.accentCyan,
-                    title: 'App Theme',
-                    subtitle: themeProvider.isDarkMode ? 'Dark Mode' : 'Light Mode',
-                    trailingWidget: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          themeProvider.isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-                          size: 16,
-                          color: AppColors.secondaryText(context),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          themeProvider.isDarkMode ? 'Dark' : 'Light',
-                          style: AppTextStyles.bodySmall.copyWith(color: AppColors.secondaryText(context)),
-                        ),
-                      ],
-                    ),
-                    onTap: () => _showThemeDialog(context, themeProvider, auth),
+                  child: Column(
+                    children: [
+                      _TappableRow(
+                        icon: Icons.info_outline_rounded,
+                        iconColor: AppColors.accentCyan,
+                        title: 'Data Sources & About',
+                        subtitle: 'Official travel data and app information',
+                        onTap: () => _showDataSourcesSheet(context),
+                      ),
+                      const Divider(height: 1, indent: 52),
+                      _TappableRow(
+                        icon: Icons.shield_outlined,
+                        iconColor: AppColors.safeGreen,
+                        title: 'Privacy & Data',
+                        subtitle: 'How your information is handled',
+                        onTap: () => _showPrivacySheet(context),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 28),
+                Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        'HappyWay v1.2.0',
+                        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Smart Malaysian Travel Assistant',
+                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.textMuted),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 120),
