@@ -17,6 +17,8 @@ import '../models/weather_info.dart';
 import '../services/route_service.dart';
 import '../services/weather_service.dart';
 import '../utils/travel_score_calculator.dart';
+import '../main.dart' show navigatorKey, scaffoldMessengerKey;
+import '../routes/app_routes.dart';
 
 /// PlanTripSheet presents the modal bottom sheet form to plan a new trip or edit an existing one.
 /// Supports both pre-selected destinations (from Explore / Destination Detail / Saved)
@@ -34,6 +36,10 @@ class PlanTripSheet extends StatefulWidget {
   final double? destinationLongitude;
   final String? destinationImageUrl;
 
+  /// Optional: override the initial travel date (e.g. passed from Travel Analysis so
+  /// Plan This Trip opens on the same date as the analysis, rather than defaulting to tomorrow).
+  final DateTime? initialTravelDate;
+
   const PlanTripSheet({
     super.key,
     this.initialDestination,
@@ -45,6 +51,7 @@ class PlanTripSheet extends StatefulWidget {
     this.destinationLatitude,
     this.destinationLongitude,
     this.destinationImageUrl,
+    this.initialTravelDate,
   });
 
   /// Static helper to show the sheet easily from any screen.
@@ -59,6 +66,7 @@ class PlanTripSheet extends StatefulWidget {
     double? destinationLatitude,
     double? destinationLongitude,
     String? destinationImageUrl,
+    DateTime? initialTravelDate,
   }) {
     return showModalBottomSheet<PlannedTrip>(
       context: context,
@@ -74,6 +82,7 @@ class PlanTripSheet extends StatefulWidget {
         destinationLatitude: destinationLatitude,
         destinationLongitude: destinationLongitude,
         destinationImageUrl: destinationImageUrl,
+        initialTravelDate: initialTravelDate,
       ),
     );
   }
@@ -83,6 +92,7 @@ class PlanTripSheet extends StatefulWidget {
 }
 
 class _PlanTripSheetState extends State<PlanTripSheet> {
+  int _calcVersion = 0;
   TravelLocation? _selectedDestination;
   String? _destinationError;
 
@@ -141,7 +151,10 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
       );
     } else if (widget.initialDestination != null) {
       _selectedDestination = widget.initialDestination;
-      _selectedDate = DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+      // Use initialTravelDate if provided (e.g. from Travel Analysis), otherwise default to tomorrow
+      _selectedDate = widget.initialTravelDate != null
+          ? DateTime(widget.initialTravelDate!.year, widget.initialTravelDate!.month, widget.initialTravelDate!.day)
+          : DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
       _selectedPeriod = 'Morning';
       _notesController = TextEditingController();
     } else if (widget.destinationName != null && widget.destinationName!.isNotEmpty) {
@@ -158,13 +171,18 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
         metLocationName: hasMet ? widget.destinationName : null,
         imageUrl: widget.destinationImageUrl,
       );
-      _selectedDate = DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+      // Use initialTravelDate if provided, otherwise default to tomorrow
+      _selectedDate = widget.initialTravelDate != null
+          ? DateTime(widget.initialTravelDate!.year, widget.initialTravelDate!.month, widget.initialTravelDate!.day)
+          : DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
       _selectedPeriod = 'Morning';
       _notesController = TextEditingController();
     } else {
       // Open without pre-selected destination
       _selectedDestination = null;
-      _selectedDate = DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+      _selectedDate = widget.initialTravelDate != null
+          ? DateTime(widget.initialTravelDate!.year, widget.initialTravelDate!.month, widget.initialTravelDate!.day)
+          : DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
       _selectedPeriod = 'Morning';
       _notesController = TextEditingController();
     }
@@ -238,11 +256,12 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
   }
 
   Future<void> _recalculatePreview() async {
+    final thisVersion = ++_calcVersion;
     final dest = _selectedDestination;
     if (dest == null ||
         ((dest.latitude == 0.0 && dest.longitude == 0.0) &&
             (dest.metLocationId == null || dest.metLocationId!.isEmpty))) {
-      if (mounted) {
+      if (mounted && thisVersion == _calcVersion) {
         setState(() {
           _previewWeather = null;
           _previewRoute = null;
@@ -255,6 +274,16 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
 
     if (mounted) {
       setState(() => _isLoadingPreview = true);
+    }
+
+    // Ensure origin coordinates are populated from LocationProvider if not set
+    if ((_originLat == null || _originLng == null) && mounted) {
+      final locProvider = Provider.of<LocationProvider>(context, listen: false);
+      if (locProvider.currentLocation != null) {
+        _originName = locProvider.isGps ? 'Current Location' : locProvider.currentLocation!.name;
+        _originLat = locProvider.currentLocation!.latitude;
+        _originLng = locProvider.currentLocation!.longitude;
+      }
     }
 
     try {
@@ -272,6 +301,8 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
           _selectedDate,
         );
       }
+
+      if (thisVersion != _calcVersion || !mounted) return;
 
       TravelRoute? route;
       if (_originLat != null &&
@@ -295,7 +326,7 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
         }
       }
 
-      if (!mounted) return;
+      if (thisVersion != _calcVersion || !mounted) return;
 
       final score = weather != null
           ? TravelScoreCalculator.calculateScore(
@@ -306,6 +337,10 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
             )
           : null;
 
+      debugPrint('[PLAN WEATHER DEBUG] Recalculated preview: date=${DateFormat('yyyy-MM-dd').format(_selectedDate)}, origin=$_originName (${_originLat?.toStringAsFixed(3)}, ${_originLng?.toStringAsFixed(3)}), dest=${dest.name} (${dest.latitude.toStringAsFixed(3)}, ${dest.longitude.toStringAsFixed(3)}), routeDuration=${route?.durationFormatted ?? "none"}, score=${score?.score}');
+
+      if (thisVersion != _calcVersion || !mounted) return;
+
       setState(() {
         _previewWeather = weather;
         _previewRoute = route;
@@ -313,7 +348,7 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
         _isLoadingPreview = false;
       });
     } catch (_) {
-      if (mounted) {
+      if (mounted && thisVersion == _calcVersion) {
         setState(() {
           _previewWeather = null;
           _previewRoute = null;
@@ -330,14 +365,16 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => OriginPickerSheet(
-        onSelectCurrentLocation: () {
+        onSelectCurrentLocation: () async {
           final locProvider = Provider.of<LocationProvider>(context, listen: false);
-          locProvider.selectCurrentLocation();
-          if (locProvider.currentLocation != null) {
+          await locProvider.selectCurrentLocation();
+          if (mounted) {
             setState(() {
               _originName = 'Current Location';
-              _originLat = locProvider.currentLocation!.latitude;
-              _originLng = locProvider.currentLocation!.longitude;
+              if (locProvider.currentLocation != null) {
+                _originLat = locProvider.currentLocation!.latitude;
+                _originLng = locProvider.currentLocation!.longitude;
+              }
             });
             _recalculatePreview();
           }
@@ -435,15 +472,15 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
       if (!mounted) return;
       setState(() => _isSaving = false);
       if (createdTrip != null) {
-        // Close bottom sheet, pop back to MainScreen, switch to Home tab, show snackbar
+        // Switch to Home tab, navigate cleanly to MainScreen, and show success SnackBar
         final navProvider = Provider.of<NavigationProvider>(context, listen: false);
-        Navigator.of(context).popUntil((route) => route.isFirst);
         navProvider.setTab(0);
-        ScaffoldMessenger.of(context).showSnackBar(
+        navigatorKey.currentState?.pushNamedAndRemoveUntil(AppRoutes.main, (route) => false);
+        scaffoldMessengerKey.currentState?.showSnackBar(
           SnackBar(
             content: Text(
               'Trip planned successfully!',
-              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primaryText(context)),
+              style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
             ),
             backgroundColor: AppColors.cardBg(context),
             behavior: SnackBarBehavior.floating,
@@ -469,9 +506,9 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final isEdit = widget.initialTrip != null;
-    // Lock destination + origin when editing OR when destination was pre-selected
-    // (i.e. opened via "Plan This Trip" from a destination page)
-    final isLocked = isEdit || widget.destinationName != null || widget.initialDestination != null;
+    // Location is locked ONLY when editing an existing trip.
+    // For any NEW trip, both Starting Location and Destination are editable!
+    final isLocked = isEdit;
     final formattedDate = DateFormat('EEEE, d MMMM yyyy').format(_selectedDate);
 
     return Container(
@@ -703,6 +740,11 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
 
             // ── Preferred Travel Period ─────────────────────────────────────
             Text('Preferred Travel Period', style: AppTextStyles.titleSmall.copyWith(fontSize: 13, color: AppColors.secondaryText(context))),
+            const SizedBox(height: 4),
+            Text(
+              'Choose when you\'d like to start your journey.',
+              style: AppTextStyles.bodySmall.copyWith(fontSize: 12, color: AppColors.mutedText(context)),
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -801,7 +843,129 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
     );
   }
 
+  /// Builds a Suggested Departure tile with a clear date prefix.
+  /// e.g. "6 Sep · Around 11:30 PM"
+  /// If the journey crosses midnight, also shows an Estimated Arrival row.
+  Widget _buildDepartureTile(BuildContext context, TravelScore score) {
+    final now = DateTime.now();
+    final isToday = _selectedDate.year == now.year &&
+        _selectedDate.month == now.month &&
+        _selectedDate.day == now.day;
+    final datePrefix = isToday ? 'Today' : DateFormat('d MMM').format(_selectedDate);
+    final departure = score.recommendedDeparture!;
+    final departureWithDate = '$datePrefix · $departure';
+
+    // Attempt to detect overnight arrival from the departureReason text or route duration.
+    // The analyzer already encodes overnight info in departureReason ("on d MMM at h:mm a").
+    String? estimatedArrival;
+    final reason = score.departureReason ?? '';
+    final onMatch = RegExp(r'on (\d+ \w+) at (\d+:\d+ [AP]M)', caseSensitive: false).firstMatch(reason);
+    if (onMatch != null) {
+      estimatedArrival = '${onMatch.group(1)} · Around ${onMatch.group(2)}';
+    } else if (_previewRoute != null) {
+      final timeMatch = RegExp(r'(\d+):(\d+)\s*([AP]M)', caseSensitive: false).firstMatch(departure);
+      if (timeMatch != null) {
+        int hour = int.parse(timeMatch.group(1)!);
+        final min = int.parse(timeMatch.group(2)!);
+        final isPm = timeMatch.group(3)!.toUpperCase() == 'PM';
+        if (isPm && hour < 12) hour += 12;
+        if (!isPm && hour == 12) hour = 0;
+        final depDateTime = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, hour, min);
+        final arrDateTime = depDateTime.add(Duration(minutes: _previewRoute!.durationMinutes));
+        if (arrDateTime.day != _selectedDate.day) {
+          final arrDatePrefix = DateFormat('d MMM').format(arrDateTime);
+          final arrTime = DateFormat('h:mm a').format(arrDateTime);
+          estimatedArrival = '$arrDatePrefix · Around $arrTime';
+        }
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.inputFill(context),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.inputBorder(context)),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.departure_board_rounded, size: 15, color: AppColors.cyanAccent(context)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Suggested Departure',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.mutedText(context),
+                        fontSize: 10,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      departureWithDate,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.cyanAccent(context),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (estimatedArrival != null) ...[
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.inputFill(context),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.inputBorder(context)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.location_on_rounded, size: 15, color: AppColors.blueAccent(context)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Estimated Arrival',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.mutedText(context),
+                          fontSize: 10,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        estimatedArrival,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.blueAccent(context),
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   Widget _buildLiveAnalysisPreview(BuildContext context) {
+
     if (_selectedDestination == null) {
       return Container(
         padding: const EdgeInsets.all(14),
@@ -1070,7 +1234,7 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Best Window',
+                          'Best Departure Window',
                           style: AppTextStyles.bodySmall.copyWith(
                             color: AppColors.mutedText(context),
                             fontSize: 10,
@@ -1105,41 +1269,10 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
               ],
             ),
 
-            // Suggested Departure (if route available and departure calculated)
-            if (isRouteComplete && score.recommendedDeparture != null) ...[
+            // Suggested Departure (if departure calculated — shown even without route for weather-only)
+            if (score.recommendedDeparture != null) ...[
               const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                decoration: BoxDecoration(
-                  color: AppColors.inputFill(context),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.inputBorder(context)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.departure_board_rounded, size: 15, color: AppColors.cyanAccent(context)),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Suggested Departure: ',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.secondaryText(context),
-                        fontSize: 11.5,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        score.recommendedDeparture!,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.cyanAccent(context),
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _buildDepartureTile(context, score),
             ],
 
             // Advice text

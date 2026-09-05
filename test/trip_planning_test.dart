@@ -1,9 +1,14 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 import 'package:happyway/models/planned_trip.dart';
 import 'package:happyway/models/travel_location.dart';
 import 'package:happyway/models/weather_info.dart';
+import 'package:happyway/models/travel_route.dart';
 import 'package:happyway/providers/trip_provider.dart';
 import 'package:happyway/services/weather_service.dart';
+import 'package:happyway/models/travel_score.dart';
+import 'package:happyway/screens/trip_detail_screen.dart';
 import 'package:happyway/utils/travel_score_calculator.dart';
 import 'package:happyway/widgets/trip_reminder_card.dart';
 
@@ -403,6 +408,235 @@ void main() {
       expect(score.score, greaterThan(0));
       expect(score.score, lessThan(100));
       expect(score.reasons, isNotEmpty);
+    });
+  });
+
+  group('TravelScore Consumer Summary & Consistency Tests', () {
+    test('consumerSummary returns user-friendly phrases according to levelName', () {
+      final excellentScore = TravelScore(
+        score: 95,
+        suitability: TravelSuitability.ideal,
+        levelName: 'Excellent',
+        bestTravelPeriod: 'Morning',
+        recommendation: 'Technical recommendation string',
+        highlights: [],
+      );
+      expect(excellentScore.consumerSummary, 'Great conditions expected for your trip.');
+
+      final goodScore = TravelScore(
+        score: 75,
+        suitability: TravelSuitability.moderate,
+        levelName: 'Good',
+        bestTravelPeriod: 'Morning',
+        recommendation: 'Technical recommendation string',
+        highlights: [],
+      );
+      expect(goodScore.consumerSummary, 'Good conditions expected for your trip.');
+
+      final moderateScore = TravelScore(
+        score: 65,
+        suitability: TravelSuitability.moderate,
+        levelName: 'Moderate',
+        bestTravelPeriod: 'Morning',
+        recommendation: 'Technical recommendation string',
+        highlights: [],
+      );
+      expect(moderateScore.consumerSummary, 'Conditions are generally suitable for your trip.');
+
+      final challengingScore = TravelScore(
+        score: 45,
+        suitability: TravelSuitability.challenging,
+        levelName: 'Less Ideal',
+        bestTravelPeriod: 'Morning',
+        recommendation: 'Technical recommendation string',
+        highlights: [],
+      );
+      expect(challengingScore.consumerSummary, 'Less favorable conditions expected for your trip.');
+    });
+
+    test('TripProvider calculateScoreForPlannedTrip skips past trips and out-of-range trips', () async {
+      final tripProvider = TripProvider();
+      final now = DateTime.now();
+
+      final pastTrip = PlannedTrip(
+        id: 991,
+        destinationLocationId: 'LOCATION:174',
+        destinationName: 'Melaka',
+        destinationState: 'Melaka',
+        destinationCategory: 'Town',
+        travelDate: now.subtract(const Duration(days: 3)),
+        originName: 'Kuala Lumpur',
+        createdAt: now.subtract(const Duration(days: 5)),
+      );
+
+      final pastScore = await tripProvider.calculateScoreForPlannedTrip(pastTrip);
+      expect(pastScore, isNull);
+      expect(tripProvider.isScoreLoadingForTrip(991), isFalse);
+
+      final futureTrip = PlannedTrip(
+        id: 992,
+        destinationLocationId: 'LOCATION:174',
+        destinationName: 'Melaka',
+        destinationState: 'Melaka',
+        destinationCategory: 'Town',
+        travelDate: now.add(const Duration(days: 20)),
+        originName: 'Kuala Lumpur',
+        createdAt: now,
+      );
+
+      final futureScore = await tripProvider.calculateScoreForPlannedTrip(futureTrip);
+      expect(futureScore, isNull);
+      expect(tripProvider.forecastStatusForTrip(992), TripForecastStatus.pending);
+      expect(tripProvider.isScoreLoadingForTrip(992), isFalse);
+    });
+  });
+
+  group('TripDetailScreen Responsive Layout Tests', () {
+    testWidgets('Renders on Samsung A52s dimensions (411x915) without RenderFlex overflow (Light & Dark)', (tester) async {
+      for (final brightness in [Brightness.light, Brightness.dark]) {
+        tester.view.physicalSize = const Size(1080, 2400);
+        tester.view.devicePixelRatio = 2.625; // 411.4 x 914.3 dp logical size (Samsung A52s)
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final trip = PlannedTrip(
+          id: 501,
+          destinationLocationId: 'LOCATION:314',
+          destinationName: 'Cameron Highlands',
+          destinationState: 'Pahang',
+          destinationCategory: 'Highlands',
+          travelDate: DateTime.now().add(const Duration(days: 2)),
+          originName: 'Kuala Lumpur',
+          originLatitude: 3.139,
+          originLongitude: 101.686,
+          destinationLatitude: 4.47,
+          destinationLongitude: 101.38,
+          preferredPeriod: 'Morning',
+          createdAt: DateTime.now(),
+        );
+
+        final score = TravelScore(
+          score: 96,
+          suitability: TravelSuitability.ideal,
+          levelName: 'Excellent',
+          bestTravelPeriod: 'Morning',
+          recommendedPeriod: 'Morning',
+          bestWeatherWindow: '8:00 AM – 11:00 AM',
+          recommendedDeparture: 'Around 8:00 AM',
+          departureReason: 'Clear morning skies on 26 Aug at 10:45 AM',
+          recommendation: 'Conditions are great.',
+          highlights: ['Clear morning skies'],
+        );
+
+        final tripProvider = TripProvider();
+        tripProvider.setTripScoreForTesting(
+          tripId: 501,
+          score: score,
+          route: TravelRoute(
+            originName: 'Kuala Lumpur',
+            originLatitude: 3.139,
+            originLongitude: 101.686,
+            destinationName: 'Cameron Highlands',
+            destinationLatitude: 4.47,
+            destinationLongitude: 101.38,
+            distanceMeters: 200000,
+            distanceKm: 200.0,
+            durationSeconds: 7200,
+            fetchedAt: DateTime.now(),
+          ),
+          weather: WeatherInfo(
+            condition: 'Fair',
+            iconCode: 'clear',
+            alertLevel: 'None',
+            morningCondition: 'Tiada hujan',
+            afternoonCondition: 'Tiada hujan',
+            nightCondition: 'Tiada hujan',
+            maxTemperature: 24.0,
+            minTemperature: 16.0,
+          ),
+          status: TripForecastStatus.available,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: brightness == Brightness.light ? ThemeData.light() : ThemeData.dark(),
+            home: ChangeNotifierProvider<TripProvider>.value(
+              value: tripProvider,
+              child: TripDetailScreen(trip: trip),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('Recommended Period'), findsOneWidget);
+        expect(find.text('Best Window'), findsOneWidget);
+        expect(find.text('Morning'), findsWidgets);
+        expect(find.text('8:00 AM – 11:00 AM'), findsOneWidget);
+      }
+    });
+
+    testWidgets('Renders long Best Departure Window on narrow screen (360x800) without RenderFlex overflow', (tester) async {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1.0; // 360 x 800 dp logical size
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final trip = PlannedTrip(
+        id: 502,
+        destinationLocationId: 'LOCATION:314',
+        destinationName: 'Cameron Highlands',
+        destinationState: 'Pahang',
+        destinationCategory: 'Highlands',
+        travelDate: DateTime.now().add(const Duration(days: 2)),
+        originName: 'Kuala Lumpur',
+        preferredPeriod: 'Morning',
+        createdAt: DateTime.now(),
+      );
+
+      final score = TravelScore(
+        score: 96,
+        suitability: TravelSuitability.ideal,
+        levelName: 'Excellent',
+        bestTravelPeriod: 'Morning',
+        recommendedPeriod: 'Morning',
+        bestWeatherWindow: '6:30 AM – 10:30 AM (Extended Window)',
+        recommendedDeparture: 'Around 6:30 AM',
+        recommendation: 'Conditions are great.',
+        highlights: ['Clear morning skies'],
+      );
+
+      final tripProvider = TripProvider();
+      tripProvider.setTripScoreForTesting(
+        tripId: 502,
+        score: score,
+        weather: WeatherInfo(
+          condition: 'Fair',
+          iconCode: 'clear',
+          alertLevel: 'None',
+          morningCondition: 'Tiada hujan',
+          afternoonCondition: 'Tiada hujan',
+          nightCondition: 'Tiada hujan',
+          maxTemperature: 24.0,
+          minTemperature: 16.0,
+        ),
+        status: TripForecastStatus.available,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ChangeNotifierProvider<TripProvider>.value(
+            value: tripProvider,
+            child: TripDetailScreen(trip: trip),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Recommended Period'), findsOneWidget);
+      expect(find.text('Best Window'), findsOneWidget);
+      expect(find.text('6:30 AM – 10:30 AM (Extended Window)'), findsOneWidget);
     });
   });
 }

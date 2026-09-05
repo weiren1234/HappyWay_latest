@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/travel_route.dart';
 import '../models/travel_score.dart';
 import '../models/weather_info.dart';
@@ -18,6 +19,7 @@ class TravelOverviewCard extends StatelessWidget {
   final String? routeError;
   final String? weatherAreaName;
   final bool hasWeatherLocation;
+  final DateTime? travelDate;
   final VoidCallback? onRetryRoute;
   final VoidCallback? onViewInsights;
 
@@ -32,6 +34,7 @@ class TravelOverviewCard extends StatelessWidget {
     this.routeError,
     this.weatherAreaName,
     this.hasWeatherLocation = true,
+    this.travelDate,
     this.onRetryRoute,
     this.onViewInsights,
   });
@@ -274,11 +277,21 @@ class TravelOverviewCard extends StatelessWidget {
               if (score.recommendedDeparture != null) ...[
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _InfoTile(
-                    icon: Icons.departure_board_rounded,
-                    label: 'Departure',
-                    value: score.recommendedDeparture!,
-                    color: AppColors.cyanAccent(context),
+                  child: Builder(
+                    builder: (context) {
+                      final effectiveDate = travelDate ?? DateTime.now();
+                      final now = DateTime.now();
+                      final isToday = effectiveDate.year == now.year &&
+                          effectiveDate.month == now.month &&
+                          effectiveDate.day == now.day;
+                      final datePrefix = isToday ? 'Today' : DateFormat('d MMM').format(effectiveDate);
+                      return _InfoTile(
+                        icon: Icons.departure_board_rounded,
+                        label: 'Departure',
+                        value: '$datePrefix · ${score.recommendedDeparture!}',
+                        color: AppColors.cyanAccent(context),
+                      );
+                    },
                   ),
                 ),
               ],

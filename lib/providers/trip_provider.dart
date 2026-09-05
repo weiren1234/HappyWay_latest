@@ -1,25 +1,28 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/planned_trip.dart';
 import '../models/weather_info.dart';
+import '../models/travel_route.dart';
 import '../models/travel_score.dart';
 import '../services/trip_service.dart';
 import '../services/weather_service.dart';
+import '../services/route_service.dart';
 import '../utils/travel_score_calculator.dart';
 
 /// Forecast availability state for a specific planned trip.
 enum TripForecastStatus {
-  /// Trip date is outside the official MET Malaysia 7-day window.
+  /// Trip date is outside the official forecast window.
   pending,
 
   /// Forecast is currently being fetched.
   loading,
 
-  /// Official MET forecast was retrieved successfully.
+  /// Forecast was retrieved successfully.
   available,
 
-  /// Trip is within the forecast window but MET returned no data.
+  /// Trip is within the forecast window but no data was returned.
   unavailable,
 
   /// A network or API error occurred while fetching.
@@ -30,14 +33,15 @@ enum TripForecastStatus {
 /// Cloud-persisted in Supabase `planned_trips` table with integer database IDs (bigint)
 /// and isolated via Row Level Security (RLS).
 ///
-/// Forecast loading is centralised here to:
-/// - Avoid individual card-level duplicate MET requests.
-/// - Deduplicate requests by (locationId, travelDate).
-/// - Reuse the existing WeatherService cache (1-hour TTL).
-/// - Keep PlannedTripCard purely presentational.
+/// It serves as the single source of truth for planned-trip calculations:
+/// - Weather (Open-Meteo hourly + MET Malaysia)
+/// - OSRM route details
+/// - TravelScore & suitability
+/// - Loading & forecast statuses
 class TripProvider extends ChangeNotifier {
   final TripService _tripService = TripService();
   final WeatherService _weatherService = WeatherService();
+  final RouteService _routeService = RouteService();
 
   StreamSubscription<AuthState>? _authSub;
 
@@ -46,13 +50,37 @@ class TripProvider extends ChangeNotifier {
   String? _errorMessage;
   bool _remindersEnabled = true;
 
-  // Keyed by trip.id (int). Null id trips are ignored for forecast loading.
+  // Keyed by trip.id (int).
   final Map<int, WeatherInfo?> _tripForecasts = {};
+  final Map<int, TravelRoute?> _tripRoutes = {};
+  final Map<int, TravelScore?> _tripScores = {};
   final Map<int, TripForecastStatus> _tripForecastStatuses = {};
-  final Map<int, TravelScore> _tripScores = {};
+  final Map<int, bool> _tripScoreLoading = {};
 
-  // Deduplication: track in-flight forecast requests by (locationId_dateStr)
-  final Set<String> _inFlightForecastKeys = {};
+  // Deduplication: track in-flight calculations by tripId
+  final Map<int, Future<TravelScore?>> _inFlightTripCalculations = {};
+
+  WeatherInfo? weatherForTrip(int tripId) => _tripForecasts[tripId];
+  TravelRoute? routeForTrip(int tripId) => _tripRoutes[tripId];
+  TravelScore? scoreForTrip(int tripId) => _tripScores[tripId];
+  TripForecastStatus forecastStatusForTrip(int tripId) =>
+      _tripForecastStatuses[tripId] ?? TripForecastStatus.pending;
+  bool isScoreLoadingForTrip(int tripId) => _tripScoreLoading[tripId] ?? false;
+
+  @visibleForTesting
+  void setTripScoreForTesting({
+    required int tripId,
+    TravelScore? score,
+    WeatherInfo? weather,
+    TravelRoute? route,
+    TripForecastStatus status = TripForecastStatus.available,
+  }) {
+    if (score != null) _tripScores[tripId] = score;
+    if (weather != null) _tripForecasts[tripId] = weather;
+    if (route != null) _tripRoutes[tripId] = route;
+    _tripForecastStatuses[tripId] = status;
+    notifyListeners();
+  }
 
   List<PlannedTrip> get trips => _trips;
   bool get isLoading => _isLoading;
@@ -142,20 +170,6 @@ class TripProvider extends ChangeNotifier {
     super.dispose();
   }
 
-  // ─── Forecast Accessors ────────────────────────────────────────────────────
-
-  /// Returns the forecast status for a trip by its database ID.
-  /// Defaults to [TripForecastStatus.pending] if the status is not yet set.
-  TripForecastStatus forecastStatusForTrip(int tripId) {
-    return _tripForecastStatuses[tripId] ?? TripForecastStatus.pending;
-  }
-
-  /// Returns the loaded [WeatherInfo] for a trip, or null if unavailable/pending.
-  WeatherInfo? weatherForTrip(int tripId) => _tripForecasts[tripId];
-
-  /// Returns the computed [TravelScore] for a trip, or null if forecast is pending/unavailable.
-  TravelScore? scoreForTrip(int tripId) => _tripScores[tripId];
-
   // ─── Data Loading ──────────────────────────────────────────────────────────
 
   /// Loads all saved planned trips for the current authenticated user from Supabase.
@@ -200,94 +214,214 @@ class TripProvider extends ChangeNotifier {
     }
   }
 
-  /// Loads MET Malaysia forecasts for all trips within the official forecast window.
-  ///
-  /// Rules:
-  /// 1. Only trips where [PlannedTrip.isWithinForecastRange] is true are queried.
-  /// 2. Requests are deduplicated by (locationId + travelDate) — multiple trips to
-  ///    the same destination on the same date share one MET API call.
-  /// 3. The existing [WeatherService] 1-hour cache is honoured automatically.
-  /// 4. Trips with no usable MET location ID are marked [TripForecastStatus.unavailable].
-  Future<void> _loadForecastsForEligibleTrips() async {
-    final eligible = _trips.where((t) => t.id != null).toList();
+  /// Single source of truth calculation entry point for a planned trip.
+  /// Updates and stores weather, route, travel score, forecast status, and loading state.
+  Future<TravelScore?> calculateScoreForPlannedTrip(
+    PlannedTrip trip, {
+    bool forceRefresh = false,
+    String sourceScreen = 'MyTrips',
+  }) async {
+    final tripId = trip.id;
+    if (tripId == null) return null;
 
-    // Mark non-eligible trips as pending immediately
-    for (final trip in eligible) {
-      if (!trip.isWithinForecastRange) {
-        if (_tripForecastStatuses[trip.id!] != TripForecastStatus.pending) {
-          _tripForecastStatuses[trip.id!] = TripForecastStatus.pending;
-        }
-      }
+    // 1. Past trips: never fetch current/future weather to generate a score
+    if (trip.isPast) {
+      _tripForecastStatuses[tripId] = TripForecastStatus.unavailable;
+      _tripScores.remove(tripId);
+      _tripScoreLoading[tripId] = false;
+      return null;
     }
 
-    // Gather unique (locationId, date) pairs to deduplicate
-    final Map<String, List<PlannedTrip>> byKey = {};
-    for (final trip in eligible) {
-      if (!trip.isWithinForecastRange) continue;
-
-      final locationId = _effectiveMETLocationId(trip);
-      if (locationId == null) {
-        _tripForecastStatuses[trip.id!] = TripForecastStatus.unavailable;
-        continue;
-      }
-
-      final dateStr = _dateKey(trip.travelDate);
-      final key = '${locationId}__$dateStr';
-      byKey.putIfAbsent(key, () => []).add(trip);
-      _tripForecastStatuses[trip.id!] = TripForecastStatus.loading;
+    // 2. Outside forecast availability: neutral pending status
+    if (!trip.isWithinForecastRange) {
+      _tripForecastStatuses[tripId] = TripForecastStatus.pending;
+      _tripScores.remove(tripId);
+      _tripScoreLoading[tripId] = false;
+      return null;
     }
 
+    // 3. Return existing in-flight calculation if currently running
+    if (!forceRefresh && _inFlightTripCalculations.containsKey(tripId)) {
+      return await _inFlightTripCalculations[tripId]!;
+    }
+
+    // 4. Return cached score if already available and not force-refreshing
+    if (!forceRefresh &&
+        _tripScores.containsKey(tripId) &&
+        _tripScores[tripId] != null) {
+      final cachedScore = _tripScores[tripId]!;
+      _logScoreDebug(
+        trip: trip,
+        weather: _tripForecasts[tripId],
+        route: _tripRoutes[tripId],
+        score: cachedScore,
+        sourceScreen: sourceScreen,
+      );
+      return cachedScore;
+    }
+
+    final future = _doCalculateScoreForTrip(
+      trip,
+      forceRefresh: forceRefresh,
+      sourceScreen: sourceScreen,
+    );
+    _inFlightTripCalculations[tripId] = future;
+    try {
+      return await future;
+    } finally {
+      _inFlightTripCalculations.remove(tripId);
+    }
+  }
+
+  Future<TravelScore?> _doCalculateScoreForTrip(
+    PlannedTrip trip, {
+    required bool forceRefresh,
+    required String sourceScreen,
+  }) async {
+    final tripId = trip.id!;
+    _tripScoreLoading[tripId] = true;
+    _tripForecastStatuses[tripId] = TripForecastStatus.loading;
     notifyListeners();
 
-    // One MET fetch per unique (locationId, date)
-    for (final entry in byKey.entries) {
-      final key = entry.key;
-      final tripsForKey = entry.value;
-      final parts = key.split('__');
-      if (parts.length < 2) continue;
-      final locationId = parts[0];
-      final trip = tripsForKey.first; // All share the same date
+    try {
+      // 1. Calculate OSRM Route
+      TravelRoute? route = forceRefresh ? null : _tripRoutes[tripId];
+      final origLat = trip.originLatitude;
+      final origLng = trip.originLongitude;
+      final destLat = trip.destinationLatitude;
+      final destLng = trip.destinationLongitude;
 
-      if (_inFlightForecastKeys.contains(key)) continue;
-      _inFlightForecastKeys.add(key);
-
-      try {
-        final weather = await _weatherService.fetchWeatherForLocationAndDate(
-          locationId,
-          trip.travelDate,
-        );
-
-        for (final t in tripsForKey) {
-          if (t.id == null) continue;
-          _tripForecasts[t.id!] = weather;
-          _tripForecastStatuses[t.id!] =
-              weather != null ? TripForecastStatus.available : TripForecastStatus.unavailable;
-
-          if (weather != null) {
-            _tripScores[t.id!] = TravelScoreCalculator.calculateScore(
-              weather: weather,
-              preferredPeriod: t.preferredPeriod,
-              travelDate: t.travelDate,
-            );
-          }
+      if (route == null &&
+          origLat != null && origLng != null && origLat != 0.0 && origLng != 0.0 &&
+          destLat != null && destLng != null && destLat != 0.0 && destLng != 0.0) {
+        try {
+          final routeResult = await _routeService.calculateRouteDetails(
+            originName: trip.originName,
+            originLat: origLat,
+            originLng: origLng,
+            destName: trip.destinationName,
+            destLat: destLat,
+            destLng: destLng,
+            forceRefresh: forceRefresh,
+          );
+          route = routeResult.route;
+        } catch (e) {
+          debugPrint('[TripProvider] Route calculation error for trip $tripId: $e');
         }
-      } catch (_) {
-        for (final t in tripsForKey) {
-          if (t.id == null) continue;
-          _tripForecastStatuses[t.id!] = TripForecastStatus.error;
+      }
+      _tripRoutes[tripId] = route;
+
+      // 2. Fetch Multi-day Open-Meteo Hourly + MET Forecast
+      final metId = _effectiveMETLocationId(trip) ?? '';
+      WeatherInfo? weather;
+      if (metId.isNotEmpty || (destLat != null && destLng != null && destLat != 0.0 && destLng != 0.0)) {
+        try {
+          weather = await _weatherService.fetchWeatherForLocationAndDate(
+            metId,
+            trip.travelDate,
+            latitude: destLat,
+            longitude: destLng,
+            forceRefresh: forceRefresh,
+          );
+        } catch (e) {
+          debugPrint('[TripProvider] Weather fetch error for trip $tripId: $e');
         }
-      } finally {
-        _inFlightForecastKeys.remove(key);
       }
 
+      _tripForecasts[tripId] = weather;
+      _tripForecastStatuses[tripId] = weather != null
+          ? TripForecastStatus.available
+          : TripForecastStatus.unavailable;
+
+      // 3. Centralized TravelScore Calculation
+      TravelScore? score;
+      if (weather != null) {
+        score = TravelScoreCalculator.calculateScore(
+          weather: weather,
+          route: route,
+          preferredPeriod: trip.preferredPeriod,
+          travelDate: trip.travelDate,
+        );
+        _tripScores[tripId] = score;
+      } else {
+        _tripScores.remove(tripId);
+      }
+
+      _logScoreDebug(
+        trip: trip,
+        weather: weather,
+        route: route,
+        score: score,
+        sourceScreen: sourceScreen,
+      );
+
+      return score;
+    } catch (e) {
+      debugPrint('[TripProvider] Error calculating score for trip $tripId: $e');
+      _tripForecastStatuses[tripId] = TripForecastStatus.error;
+      _tripScores.remove(tripId);
+      return null;
+    } finally {
+      _tripScoreLoading[tripId] = false;
       notifyListeners();
     }
   }
 
-  /// Refreshes forecasts for all eligible trips (e.g. on pull-to-refresh).
+  void _logScoreDebug({
+    required PlannedTrip trip,
+    required WeatherInfo? weather,
+    required TravelRoute? route,
+    required TravelScore? score,
+    required String sourceScreen,
+  }) {
+    debugPrint('[TRIP SCORE DEBUG]');
+    debugPrint('tripId = ${trip.id}');
+    debugPrint('destination = ${trip.destinationName}');
+    debugPrint('origin = ${trip.originName}');
+    debugPrint('travelDate = ${DateFormat('yyyy-MM-dd').format(trip.travelDate)}');
+    debugPrint('preferredPeriod = ${trip.preferredPeriod}');
+    debugPrint('hourlyForecastDate = ${weather?.hourlyForecast?.isNotEmpty == true ? DateFormat('yyyy-MM-dd').format(weather!.hourlyForecast!.first.time) : "none"}');
+    debugPrint('routeDuration = ${route?.durationFormatted ?? "none"}');
+    debugPrint('weatherSuitability = ${score?.weatherSubscore ?? "none"}');
+    debugPrint('journeyPracticality = ${score?.journeySubscore ?? "none"}');
+    debugPrint('finalScore = ${score?.score ?? "none"}');
+    debugPrint('sourceScreen = $sourceScreen');
+  }
+
+  /// Loads forecasts & calculates scores for eligible trips (today & upcoming within forecast window).
+  /// Past trips are strictly excluded from weather/route calculation.
+  Future<void> _loadForecastsForEligibleTrips() async {
+    final eligible = _trips.where((t) => t.id != null && !t.isPast && t.isWithinForecastRange).toList();
+
+    // Mark non-eligible trips appropriately
+    for (final trip in _trips) {
+      if (trip.id == null) continue;
+      if (trip.isPast) {
+        _tripForecastStatuses[trip.id!] = TripForecastStatus.unavailable;
+        _tripScores.remove(trip.id!);
+      } else if (!trip.isWithinForecastRange) {
+        _tripForecastStatuses[trip.id!] = TripForecastStatus.pending;
+        _tripScores.remove(trip.id!);
+      }
+    }
+
+    if (eligible.isEmpty) {
+      notifyListeners();
+      return;
+    }
+
+    // Controlled sequential processing to avoid network congestion
+    for (final trip in eligible) {
+      await calculateScoreForPlannedTrip(trip, sourceScreen: 'MyTrips');
+    }
+  }
+
+  /// Refreshes forecasts and planned-trip scores for all eligible trips.
   Future<void> refreshForecasts() async {
-    _inFlightForecastKeys.clear();
-    await _loadForecastsForEligibleTrips();
+    final eligible = _trips.where((t) => t.id != null && !t.isPast && t.isWithinForecastRange).toList();
+    for (final trip in eligible) {
+      await calculateScoreForPlannedTrip(trip, forceRefresh: true, sourceScreen: 'MyTrips');
+    }
   }
 
   // ─── Trip Mutations ────────────────────────────────────────────────────────
@@ -326,10 +460,13 @@ class TripProvider extends ChangeNotifier {
       } else {
         _trips.insert(0, trip);
       }
-      // Invalidate cached forecast/score for this trip so it re-fetches
+      // Invalidate cached forecast/route/score for this trip so it re-fetches with new inputs
       _tripForecasts.remove(trip.id);
+      _tripRoutes.remove(trip.id);
       _tripScores.remove(trip.id);
       _tripForecastStatuses.remove(trip.id);
+      _tripScoreLoading.remove(trip.id);
+      _inFlightTripCalculations.remove(trip.id);
       notifyListeners();
 
       _loadForecastsForEligibleTrips();
@@ -350,8 +487,11 @@ class TripProvider extends ChangeNotifier {
       await _tripService.deleteTrip(userId, tripId);
       _trips.removeWhere((t) => t.id == tripId);
       _tripForecasts.remove(tripId);
+      _tripRoutes.remove(tripId);
       _tripScores.remove(tripId);
       _tripForecastStatuses.remove(tripId);
+      _tripScoreLoading.remove(tripId);
+      _inFlightTripCalculations.remove(tripId);
       notifyListeners();
 
       return true;
@@ -372,9 +512,11 @@ class TripProvider extends ChangeNotifier {
   void clearUserData() {
     _trips = [];
     _tripForecasts.clear();
+    _tripRoutes.clear();
     _tripScores.clear();
     _tripForecastStatuses.clear();
-    _inFlightForecastKeys.clear();
+    _tripScoreLoading.clear();
+    _inFlightTripCalculations.clear();
     _errorMessage = null;
     notifyListeners();
   }
@@ -397,7 +539,4 @@ class TripProvider extends ChangeNotifier {
     // geo: IDs cannot be used directly with the MET API
     return null;
   }
-
-  static String _dateKey(DateTime date) =>
-      '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 }

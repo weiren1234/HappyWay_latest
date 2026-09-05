@@ -139,6 +139,25 @@ class TravelScore {
                     ? (score >= 70 ? AppColors.accentCyan : AppColors.cautionAmber)
                     : AppColors.dangerRed);
 
+  /// Consumer-friendly travel condition summary mapped directly from [levelName].
+  String get consumerSummary {
+    switch (levelName) {
+      case 'Excellent':
+      case 'Very Good':
+        return 'Great conditions expected for your trip.';
+      case 'Good':
+        return 'Good conditions expected for your trip.';
+      case 'Moderate':
+      case 'Fair':
+        return 'Conditions are generally suitable for your trip.';
+      case 'Less Ideal':
+      case 'Challenging':
+      case 'Poor':
+      default:
+        return 'Less favorable conditions expected for your trip.';
+    }
+  }
+
   factory TravelScore.initial() {
     return TravelScore(
       score: 0,

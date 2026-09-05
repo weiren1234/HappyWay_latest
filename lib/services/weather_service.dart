@@ -155,7 +155,8 @@ class WeatherService {
     final now = DateTime.now();
     final date = targetDate ?? now;
     final dateStr = _dateString(date);
-    final cacheKey = 'coord_${latitude.toStringAsFixed(3)}_${longitude.toStringAsFixed(3)}_$dateStr';
+    final nextDateStr = _dateString(date.add(const Duration(days: 1)));
+    final cacheKey = 'coord_${latitude.toStringAsFixed(3)}_${longitude.toStringAsFixed(3)}_${dateStr}_2d';
 
     // 1. Check memory cache
     if (!forceRefresh && _memoryCache.containsKey(cacheKey)) {
@@ -183,23 +184,46 @@ class WeatherService {
       } catch (_) {}
     }
 
-    // 3. Request fresh Open-Meteo data
+    // 3. Request fresh Open-Meteo data (request target date + next day for overnight arrivals)
     try {
-      final response = await _openMeteoDio.get(
-        'forecast',
-        queryParameters: {
-          'latitude': latitude,
-          'longitude': longitude,
-          'hourly': 'temperature_2m,relative_humidity_2m,precipitation_probability,weather_code,apparent_temperature,wind_speed_10m,uv_index,visibility',
-          'daily': 'weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max',
-          'timezone': 'Asia/Kuala_Lumpur',
-          'start_date': dateStr,
-          'end_date': dateStr,
-        },
-      );
+      dynamic responseData;
+      try {
+        final response = await _openMeteoDio.get(
+          'forecast',
+          queryParameters: {
+            'latitude': latitude,
+            'longitude': longitude,
+            'hourly': 'temperature_2m,relative_humidity_2m,precipitation_probability,weather_code,apparent_temperature,wind_speed_10m,uv_index,visibility',
+            'daily': 'weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max',
+            'timezone': 'Asia/Kuala_Lumpur',
+            'start_date': dateStr,
+            'end_date': nextDateStr,
+          },
+        );
+        if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
+          responseData = response.data;
+        }
+      } catch (_) {
+        // Fallback to single date if 2-day query fails
+        final fallbackResp = await _openMeteoDio.get(
+          'forecast',
+          queryParameters: {
+            'latitude': latitude,
+            'longitude': longitude,
+            'hourly': 'temperature_2m,relative_humidity_2m,precipitation_probability,weather_code,apparent_temperature,wind_speed_10m,uv_index,visibility',
+            'daily': 'weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max',
+            'timezone': 'Asia/Kuala_Lumpur',
+            'start_date': dateStr,
+            'end_date': dateStr,
+          },
+        );
+        if (fallbackResp.statusCode == 200 && fallbackResp.data is Map<String, dynamic>) {
+          responseData = fallbackResp.data;
+        }
+      }
 
-      if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
-        final weatherInfo = _parseOpenMeteoResponse(response.data as Map<String, dynamic>, date);
+      if (responseData is Map<String, dynamic>) {
+        final weatherInfo = _parseOpenMeteoResponse(responseData, date);
 
         _memoryCache[cacheKey] = _CachedForecast(weatherInfo, now);
         _persistToCache(cacheKey, weatherInfo, now);
@@ -252,7 +276,7 @@ class WeatherService {
       final uv = i < uvs.length ? uvs[i].toDouble() : null;
       final vis = i < visibilities.length ? visibilities[i].toDouble() : null;
 
-      final isCurrentHour = isToday && dt.hour == now.hour;
+      final isCurrentHour = isToday && dt.day == now.day && dt.hour == now.hour;
       final timeLabel = isCurrentHour
           ? 'Now'
           : DateFormat('h a').format(dt).replaceAll(' ', '');
@@ -273,7 +297,7 @@ class WeatherService {
       ));
     }
 
-    // Daily fields
+    // Daily fields for target date
     final maxT = (daily['temperature_2m_max'] as List<dynamic>?)?.firstOrNull as num?;
     final minT = (daily['temperature_2m_min'] as List<dynamic>?)?.firstOrNull as num?;
     final uv = (daily['uv_index_max'] as List<dynamic>?)?.firstOrNull as num?;
@@ -315,45 +339,47 @@ class WeatherService {
       }
     }
 
-    // Sort items chronologically (hourly + sunrise/sunset)
+    // Sort all multi-day items chronologically
     items.sort((a, b) => a.time.compareTo(b.time));
 
-    // Filter items to start from current hour if today, or include full day
-    List<HourlyWeatherItem> displayItems = items;
-    if (isToday) {
-      displayItems = items.where((item) {
-        if (item.time.hour < now.hour && !item.isSunset) return false;
-        return true;
-      }).toList();
-      if (displayItems.isEmpty) displayItems = items;
-    }
+    // Target date items for daily summary calculations
+    final targetDayItems = items.where((i) =>
+        i.time.year == targetDate.year &&
+        i.time.month == targetDate.month &&
+        i.time.day == targetDate.day &&
+        !i.isSunset &&
+        !i.isSunrise).toList();
 
-    // Determine period conditions
+    // Determine period conditions strictly for target date
     String? morningCond;
     String? afternoonCond;
     String? nightCond;
 
-    for (final item in items) {
-      if (item.isSunset || item.isSunrise) continue;
+    for (final item in targetDayItems) {
       final h = item.time.hour;
       if (h >= 7 && h <= 11 && morningCond == null) morningCond = item.condition;
       if (h >= 12 && h <= 17 && afternoonCond == null) afternoonCond = item.condition;
       if (h >= 18 && h <= 23 && nightCond == null) nightCond = item.condition;
     }
 
-    // Calculate averages & overall primary condition
+    // Calculate averages & overall primary condition for target date
     final dailyWCode = (daily['weather_code'] as List<dynamic>?)?.firstOrNull as num? ?? 0;
     final primaryCondition = _conditionFromWmo(dailyWCode.toInt());
     final primaryIcon = _iconFromWmo(dailyWCode.toInt());
 
-    final avgFeels = feels.isNotEmpty
-        ? (isToday && now.hour < feels.length ? feels[now.hour].toDouble() : feels.reduce((a, b) => a + b) / feels.length)
+    final targetFeels = targetDayItems.map((i) => i.apparentTemperature ?? i.temperature).whereType<double>().toList();
+    final targetHumids = targetDayItems.map((i) => i.humidity).whereType<int>().toList();
+    final targetPrecips = targetDayItems.map((i) => i.precipitationProbability).whereType<int>().toList();
+    final targetWinds = targetDayItems.map((i) => i.windSpeed).whereType<double>().toList();
+
+    final avgFeels = targetFeels.isNotEmpty
+        ? (isToday && now.hour < targetFeels.length ? targetFeels[now.hour] : targetFeels.reduce((a, b) => a + b) / targetFeels.length)
         : null;
-    final avgHumidity = humids.isNotEmpty
-        ? (isToday && now.hour < humids.length ? humids[now.hour].toInt() : (humids.reduce((a, b) => a + b) / humids.length).round())
+    final avgHumidity = targetHumids.isNotEmpty
+        ? (isToday && now.hour < targetHumids.length ? targetHumids[now.hour] : (targetHumids.reduce((a, b) => a + b) / targetHumids.length).round())
         : null;
-    final maxPrecip = precips.isNotEmpty ? precips.map((p) => p.toInt()).reduce((a, b) => a > b ? a : b) : null;
-    final maxWind = winds.isNotEmpty ? winds.map((w) => w.toDouble()).reduce((a, b) => a > b ? a : b) : null;
+    final maxPrecip = targetPrecips.isNotEmpty ? targetPrecips.reduce((a, b) => a > b ? a : b) : null;
+    final maxWind = targetWinds.isNotEmpty ? targetWinds.reduce((a, b) => a > b ? a : b) : null;
 
     return WeatherInfo(
       maxTemperature: maxT?.toDouble(),

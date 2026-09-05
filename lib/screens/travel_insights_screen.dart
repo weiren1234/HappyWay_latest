@@ -267,7 +267,7 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
               title: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Today\'s Travel Analysis', style: AppTextStyles.titleMedium.copyWith(color: AppColors.primaryText(context))),
+                  Text('Travel Analysis', style: AppTextStyles.titleMedium.copyWith(color: AppColors.primaryText(context))),
                   Text(
                     'Today · ${DateFormat('d MMM').format(DateTime.now())}',
                     style: AppTextStyles.bodySmall.copyWith(color: AppColors.cyanAccent(context), fontSize: 11, fontWeight: FontWeight.w600),
@@ -415,6 +415,7 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
                 PlanTripSheet.show(
                   context,
                   initialDestination: travelLoc,
+                  initialTravelDate: DateTime.now(), // Use today's analysis date
                 );
               },
               icon: const Icon(Icons.luggage_rounded, size: 18),
@@ -776,7 +777,43 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
 
   // ─── Departure Card ───────────────────────────────────────────────────────────
 
+  /// Formats a departure time string with its calendar date prefix.
+  /// e.g. "Around 10:30 PM" → "Today · Around 10:30 PM" (if travelDate is today)
+  ///                        → "5 Sep · Around 10:30 PM" (if travelDate is another day)
+  String _formatDepartureWithDate(String? departure, DateTime travelDate) {
+    if (departure == null || departure.isEmpty) return 'Morning or Early Afternoon';
+    final now = DateTime.now();
+    final isToday = travelDate.year == now.year &&
+        travelDate.month == now.month &&
+        travelDate.day == now.day;
+    final datePrefix = isToday ? 'Today' : DateFormat('d MMM').format(travelDate);
+    return '$datePrefix \u00b7 $departure';
+  }
+
   Widget _buildDepartureCard(TravelScore score) {
+    String? estimatedArrival;
+    final reason = score.departureReason ?? '';
+    final onMatch = RegExp(r'on (\d+ \w+) at (\d+:\d+ [AP]M)', caseSensitive: false).firstMatch(reason);
+    if (onMatch != null) {
+      estimatedArrival = '${onMatch.group(1)} · Around ${onMatch.group(2)}';
+    } else if (_route != null && score.recommendedDeparture != null) {
+      final timeMatch = RegExp(r'(\d+):(\d+)\s*([AP]M)', caseSensitive: false).firstMatch(score.recommendedDeparture!);
+      if (timeMatch != null) {
+        int hour = int.parse(timeMatch.group(1)!);
+        final min = int.parse(timeMatch.group(2)!);
+        final isPm = timeMatch.group(3)!.toUpperCase() == 'PM';
+        if (isPm && hour < 12) hour += 12;
+        if (!isPm && hour == 12) hour = 0;
+        final depDateTime = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, hour, min);
+        final arrDateTime = depDateTime.add(Duration(minutes: _route!.durationMinutes));
+        if (arrDateTime.day != depDateTime.day) {
+          final arrDatePrefix = DateFormat('d MMM').format(arrDateTime);
+          final arrTime = DateFormat('h:mm a').format(arrDateTime);
+          estimatedArrival = '$arrDatePrefix · Around $arrTime';
+        }
+      }
+    }
+
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -806,7 +843,7 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        score.recommendedDeparture ?? 'Morning or Early Afternoon',
+                        _formatDepartureWithDate(score.recommendedDeparture, DateTime.now()),
                         style: AppTextStyles.titleSmall.copyWith(color: AppColors.cyanAccent(context), fontWeight: FontWeight.w700),
                       ),
                       const SizedBox(height: 2),
@@ -820,6 +857,42 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
               ],
             ),
           ),
+          if (estimatedArrival != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.blueAccent(context).withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.blueAccent(context).withValues(alpha: 0.25)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.location_on_rounded, color: AppColors.blueAccent(context), size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Estimated Arrival',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.mutedText(context),
+                            fontSize: 10,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          estimatedArrival,
+                          style: AppTextStyles.titleSmall.copyWith(color: AppColors.blueAccent(context), fontWeight: FontWeight.w700),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );

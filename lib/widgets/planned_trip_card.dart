@@ -42,6 +42,7 @@ class PlannedTripCard extends StatelessWidget {
     }
     final WeatherInfo? weather = tripId != null ? tripProvider.weatherForTrip(tripId) : null;
     final TravelScore? score = tripId != null ? tripProvider.scoreForTrip(tripId) : null;
+    final bool isScoreLoading = tripId != null ? tripProvider.isScoreLoadingForTrip(tripId) : false;
 
     final subtitleParts = [
       if (trip.destinationState.trim().isNotEmpty) trip.destinationState.trim(),
@@ -265,7 +266,10 @@ class PlannedTripCard extends StatelessWidget {
                     ),
 
                     // Travel Score mini-badge (only when forecast available)
-                    if (score != null && forecastStatus == TripForecastStatus.available) ...[
+                    if (isScoreLoading && score == null && trip.isWithinForecastRange && !trip.isPast) ...[
+                      const SizedBox(height: 10),
+                      _buildCalculatingBadge(context),
+                    ] else if (score != null && forecastStatus == TripForecastStatus.available) ...[
                       const SizedBox(height: 10),
                       _TravelScoreBadge(score: score),
                     ],
@@ -304,7 +308,7 @@ class PlannedTripCard extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: const [
                             Text(
-                              'View Trip',
+                              'View Details',
                               style: TextStyle(
                                 color: AppColors.accentCyan,
                                 fontSize: 12,
@@ -323,6 +327,36 @@ class PlannedTripCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCalculatingBadge(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceGlass(context),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.borderGlass(context)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(
+            width: 10,
+            height: 10,
+            child: CircularProgressIndicator(strokeWidth: 1.5, color: AppColors.accentCyan),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            'Calculating...',
+            style: TextStyle(
+              color: AppColors.mutedText(context),
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -348,7 +382,7 @@ class _ForecastStatusRow extends StatelessWidget {
         if (isPast) return const SizedBox.shrink();
         return _chip(
           icon: Icons.schedule_rounded,
-          label: 'Forecast pending',
+          label: 'Forecast not available yet',
           iconColor: AppColors.mutedText(context),
           bgColor: AppColors.surfaceGlass(context),
           textColor: AppColors.mutedText(context),

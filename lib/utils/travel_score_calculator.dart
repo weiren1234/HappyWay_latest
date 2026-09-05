@@ -581,10 +581,9 @@ class TravelScoreCalculator {
       bullets.add('Direct driving route unavailable; score reflects weather suitability only.');
     }
 
-    // Preferred period bullet
-    if (preferredReason != null && preferredComparisonText != null) {
+    // Preferred period reason code
+    if (preferredReason != null) {
       reasons.add(preferredReason);
-      bullets.add(preferredComparisonText);
     }
 
     return (reasons, bullets);

@@ -323,6 +323,7 @@ class _TripsScreenState extends State<TripsScreen> {
         : TripForecastStatus.pending;
     final weather = tripId != null ? tripProvider.weatherForTrip(tripId) : null;
     final score = tripId != null ? tripProvider.scoreForTrip(tripId) : null;
+    final isScoreLoading = tripId != null ? tripProvider.isScoreLoadingForTrip(tripId) : false;
 
     final subtitleParts = [
       if (trip.destinationState.trim().isNotEmpty) trip.destinationState.trim(),
@@ -551,8 +552,11 @@ class _TripsScreenState extends State<TripsScreen> {
                       ],
                     ),
 
-                    // Travel Score Badge (if forecast available)
-                    if (score != null && forecastStatus == TripForecastStatus.available) ...[
+                    // Travel Score Badge (if calculating or available)
+                    if (isScoreLoading && score == null && trip.isWithinForecastRange && !trip.isPast) ...[
+                      const SizedBox(height: 10),
+                      _buildCalculatingBadge(),
+                    ] else if (score != null && forecastStatus == TripForecastStatus.available) ...[
                       const SizedBox(height: 10),
                       _buildTravelScoreBadge(score),
                     ],
@@ -685,7 +689,7 @@ class _TripsScreenState extends State<TripsScreen> {
               Icon(Icons.schedule_rounded, size: 12, color: AppColors.mutedText(context)),
               const SizedBox(width: 5),
               Text(
-                'Forecast pending',
+                'Forecast not available yet',
                 style: TextStyle(color: AppColors.mutedText(context), fontSize: 10),
               ),
             ],
@@ -763,6 +767,36 @@ class _TripsScreenState extends State<TripsScreen> {
               color: scoreColor,
               fontSize: 11,
               fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCalculatingBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceGlass(context),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.borderGlass(context)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(
+            width: 10,
+            height: 10,
+            child: CircularProgressIndicator(strokeWidth: 1.5, color: AppColors.accentCyan),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            'Calculating...',
+            style: TextStyle(
+              color: AppColors.mutedText(context),
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
