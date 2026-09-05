@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import '../theme/app_colors.dart';
 
-/// LoadingSkeleton creates shimmer animation placeholders during asynchronous data fetches.
 class LoadingSkeleton extends StatelessWidget {
   final double width;
   final double height;
@@ -32,7 +31,6 @@ class LoadingSkeleton extends StatelessWidget {
     );
   }
 
-  /// Preset card skeleton placeholder
   static Widget destinationCardSkeleton([BuildContext? context]) {
     final isDark = context == null || AppColors.isDark(context);
     return Container(

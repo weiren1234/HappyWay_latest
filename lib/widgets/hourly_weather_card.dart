@@ -1,13 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../models/weather_info.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import 'glass_card.dart';
 
-/// HourlyWeatherCard renders a rich weather view with:
-/// 1. Overall temperature & condition header
-/// 2. Horizontal scrolling hourly timeline with "Now", "5PM", "7:20PM Sunset", etc.
-/// 3. Spacious travel-day metrics grid (Sunrise/Sunset, Temperature/Feels-like, Rain/Humidity, UV Index)
 class HourlyWeatherCard extends StatelessWidget {
   final WeatherInfo weather;
   final String? title;
@@ -43,7 +39,7 @@ class HourlyWeatherCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header Title ──────────────────────────────────────────────────
+
           Row(
             children: [
               Icon(Icons.cloud_outlined, color: AppColors.cyanAccent(context), size: 17),
@@ -60,7 +56,6 @@ class HourlyWeatherCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
 
-          // ── Temperature & Condition Summary ───────────────────────────────
           Row(
             children: [
               Icon(_weatherIcon(weather.iconCode), size: 40, color: Colors.white),
@@ -110,7 +105,6 @@ class HourlyWeatherCard extends StatelessWidget {
           Divider(height: 1, color: AppColors.dividerColor(context)),
           const SizedBox(height: 12),
 
-          // ── Hourly Forecast Timeline (Horizontal Scroll) ───────────────────
           if (safeHourly != null && safeHourly.isNotEmpty) ...[
             SizedBox(
               height: 98,
@@ -129,7 +123,7 @@ class HourlyWeatherCard extends StatelessWidget {
             Divider(height: 1, color: AppColors.dividerColor(context)),
             const SizedBox(height: 12),
           ] else if (weather.morningCondition != null || weather.afternoonCondition != null || weather.nightCondition != null) ...[
-            // Period fallback if hourly is unavailable
+
             Row(
               children: [
                 Expanded(child: _PeriodTile(label: 'Morning', condition: weather.morningCondition ?? '—', icon: Icons.wb_twilight_rounded)),
@@ -144,7 +138,6 @@ class HourlyWeatherCard extends StatelessWidget {
             const SizedBox(height: 12),
           ],
 
-          // ── Travel-Day Spacious Metrics Grid ──────────────────────────────
           _buildMetricsGrid(context),
         ],
       ),
@@ -170,7 +163,7 @@ class HourlyWeatherCard extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Time Header (e.g. "Now", "5PM", "7:20PM")
+
           Text(
             item.timeLabel,
             style: AppTextStyles.bodySmall.copyWith(
@@ -184,7 +177,6 @@ class HourlyWeatherCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
 
-          // Weather / Sunset Icon
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 2),
             child: Icon(
@@ -194,7 +186,6 @@ class HourlyWeatherCard extends StatelessWidget {
             ),
           ),
 
-          // Temperature or "Sunset" / "Sunrise" Label
           if (isSpecial)
             Text(
               item.specialLabel ?? '',
@@ -225,7 +216,7 @@ class HourlyWeatherCard extends StatelessWidget {
       children: [
         Row(
           children: [
-            // Card 1: Sunrise & Sunset
+
             Expanded(
               child: _LargeMetricCard(
                 icon: Icons.wb_twilight_rounded,
@@ -237,7 +228,6 @@ class HourlyWeatherCard extends StatelessWidget {
             ),
             const SizedBox(width: 10),
 
-            // Card 2: Temperature Range & Feels Like
             Expanded(
               child: _LargeMetricCard(
                 icon: Icons.thermostat_rounded,
@@ -256,7 +246,7 @@ class HourlyWeatherCard extends StatelessWidget {
         const SizedBox(height: 10),
         Row(
           children: [
-            // Card 3: Rain & Humidity
+
             Expanded(
               child: _LargeMetricCard(
                 icon: Icons.water_drop_outlined,
@@ -268,7 +258,6 @@ class HourlyWeatherCard extends StatelessWidget {
             ),
             const SizedBox(width: 10),
 
-            // Card 4: UV Index
             Expanded(
               child: _LargeMetricCard(
                 icon: Icons.wb_sunny_outlined,

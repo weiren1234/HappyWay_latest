@@ -1,9 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
-/// CustomSearchBar provides a glass search input bar and category filter chips.
-/// Fully adaptive to both Dark and Light themes.
 class CustomSearchBar extends StatelessWidget {
   final String searchQuery;
   final ValueChanged<String> onSearchChanged;
@@ -28,7 +26,7 @@ class CustomSearchBar extends StatelessWidget {
 
     return Column(
       children: [
-        // Glass Search Input
+
         Container(
           height: 50,
           decoration: BoxDecoration(
@@ -64,7 +62,6 @@ class CustomSearchBar extends StatelessWidget {
         ),
         const SizedBox(height: 14),
 
-        // Horizontal Category Filter Chips
         SizedBox(
           height: 38,
           child: ListView.separated(

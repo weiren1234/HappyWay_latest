@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../main.dart' show scaffoldMessengerKey;
 import '../models/planned_trip.dart';
@@ -15,8 +15,6 @@ import '../widgets/glass_card.dart';
 import '../widgets/header_section.dart';
 import '../widgets/plan_trip_sheet.dart';
 
-/// TripsScreen displays saved travel itineraries with weather forecasts,
-/// HappyWay travel scores, proactive trip reminders, and swipe-to-delete.
 class TripsScreen extends StatefulWidget {
   const TripsScreen({super.key});
 
@@ -103,7 +101,6 @@ class _TripsScreenState extends State<TripsScreen> {
       return;
     }
 
-    // Deletion succeeded — show Undo SnackBar
     scaffoldMessengerKey.currentState
       ?..hideCurrentSnackBar()
       ..showSnackBar(
@@ -135,7 +132,6 @@ class _TripsScreenState extends State<TripsScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
     final tripProvider = Provider.of<TripProvider>(context);
 
-    // Auto-load if authenticated and empty but not loading yet
     if (authProvider.isAuthenticated &&
         tripProvider.trips.isEmpty &&
         !tripProvider.isLoading &&
@@ -163,7 +159,7 @@ class _TripsScreenState extends State<TripsScreen> {
             physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
             children: [
-              // ── Header Section ─────────────────────────────────────────────
+
               HeaderSection(
                 title: 'My Trips',
                 subtitle: totalTrips > 0
@@ -176,7 +172,6 @@ class _TripsScreenState extends State<TripsScreen> {
 
               const SizedBox(height: 16),
 
-      // ── Content State Handlers ─────────────────────────────────────────
               if (authProvider.isGuest)
                 _buildGuestWall(context)
               else if (!authProvider.isAuthenticated)
@@ -188,7 +183,7 @@ class _TripsScreenState extends State<TripsScreen> {
               else if (tripProvider.trips.isEmpty)
                 _buildEmptyState(context)
               else ...[
-                // ── Today's Trips ───────────────────────────────────────────
+
                 if (todayTrips.isNotEmpty) ...[
                   _buildSectionHeader(
                     'Today\'s Trips',
@@ -201,7 +196,6 @@ class _TripsScreenState extends State<TripsScreen> {
                   const SizedBox(height: 16),
                 ],
 
-                // ── Upcoming Trips ──────────────────────────────────────────
                 if (upcomingTrips.isNotEmpty) ...[
                   _buildSectionHeader(
                     'Upcoming Trips',
@@ -214,7 +208,6 @@ class _TripsScreenState extends State<TripsScreen> {
                   const SizedBox(height: 16),
                 ],
 
-                // ── Past Trips ──────────────────────────────────────────────
                 if (pastTrips.isNotEmpty) ...[
                   _buildSectionHeader(
                     'Past Trips',
@@ -232,8 +225,6 @@ class _TripsScreenState extends State<TripsScreen> {
       ),
     );
   }
-
-  // ─── Header Button ──────────────────────────────────────────────────────────
 
   Widget _buildPlanTripButton(BuildContext context) {
     return InkWell(
@@ -264,8 +255,6 @@ class _TripsScreenState extends State<TripsScreen> {
       ),
     );
   }
-
-  // ─── Section Header ─────────────────────────────────────────────────────────
 
   Widget _buildSectionHeader(String title, int count, Color accentColor, IconData icon) {
     return Row(
@@ -308,13 +297,9 @@ class _TripsScreenState extends State<TripsScreen> {
     );
   }
 
-  // ─── Trip Item Wrapper ──────────────────────────────────────────────────────
-
   Widget _buildTripItem(BuildContext context, PlannedTrip trip, TripProvider tripProvider) {
     return _buildPolishedTripCard(context, trip, tripProvider);
   }
-
-  // ─── Polished PlannedTripCard ───────────────────────────────────────────────
 
   Widget _buildPolishedTripCard(BuildContext context, PlannedTrip trip, TripProvider tripProvider) {
     final tripId = trip.id;
@@ -333,7 +318,6 @@ class _TripsScreenState extends State<TripsScreen> {
     ];
     final subtitleText = subtitleParts.isNotEmpty ? subtitleParts.join(' • ') : 'Malaysia';
 
-    // Status pill info
     final String statusText;
     final Color statusColor;
     if (trip.isToday) {
@@ -367,7 +351,7 @@ class _TripsScreenState extends State<TripsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // ── Destination Image Header ──────────────────────────────────
+
               SizedBox(
                 height: 120,
                 child: Stack(
@@ -403,7 +387,7 @@ class _TripsScreenState extends State<TripsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Top row: Status pill + Delete button
+
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -442,7 +426,7 @@ class _TripsScreenState extends State<TripsScreen> {
                               ),
                             ],
                           ),
-                          // Bottom: Destination Name & State
+
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -476,13 +460,12 @@ class _TripsScreenState extends State<TripsScreen> {
                 ),
               ),
 
-              // ── Card Body ─────────────────────────────────────────────────
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Date & Origin Row
+
                     Row(
                       children: [
                         const Icon(Icons.calendar_today_rounded, size: 13, color: AppColors.accentCyan),
@@ -518,16 +501,14 @@ class _TripsScreenState extends State<TripsScreen> {
 
                     const SizedBox(height: 10),
 
-                    // Chips Row (Wrap for narrow-screen safety)
                     Wrap(
                       spacing: 8,
                       runSpacing: 6,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        // Forecast chip
+
                         _buildForecastChip(context, forecastStatus, weather, trip.isPast),
 
-                        // Preferred Period chip
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
@@ -554,7 +535,6 @@ class _TripsScreenState extends State<TripsScreen> {
                       ],
                     ),
 
-                    // Travel Score Badge (if calculating or available)
                     if (isScoreLoading && score == null && trip.isWithinForecastRange && !trip.isPast) ...[
                       const SizedBox(height: 10),
                       _buildCalculatingBadge(),
@@ -563,7 +543,6 @@ class _TripsScreenState extends State<TripsScreen> {
                       _buildTravelScoreBadge(score),
                     ],
 
-                    // Optional Notes
                     if (trip.notes != null && trip.notes!.trim().isNotEmpty) ...[
                       const SizedBox(height: 8),
                       Text(
@@ -582,7 +561,6 @@ class _TripsScreenState extends State<TripsScreen> {
                     Divider(height: 1, color: AppColors.dividerColor(context)),
                     const SizedBox(height: 8),
 
-                    // Bottom Action Row
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -619,8 +597,6 @@ class _TripsScreenState extends State<TripsScreen> {
       ),
     );
   }
-
-  // ─── Forecast Chip ──────────────────────────────────────────────────────────
 
   Widget _buildForecastChip(BuildContext context, TripForecastStatus status, WeatherInfo? weather, bool isPast) {
     switch (status) {
@@ -743,8 +719,6 @@ class _TripsScreenState extends State<TripsScreen> {
     }
   }
 
-  // ─── Travel Score Badge ─────────────────────────────────────────────────────
-
   Widget _buildTravelScoreBadge(TravelScore? score) {
     if (score == null) return const SizedBox.shrink();
     final int scoreValue = score.score;
@@ -805,8 +779,6 @@ class _TripsScreenState extends State<TripsScreen> {
       ),
     );
   }
-
-  // ─── Empty & Error States ───────────────────────────────────────────────────
 
   Widget _buildEmptyState(BuildContext context) {
     return Container(

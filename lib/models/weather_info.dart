@@ -1,20 +1,20 @@
-/// Hourly weather item representing an hour's forecast or special event (e.g. Sunset / Sunrise).
+﻿
 class HourlyWeatherItem {
   final DateTime time;
-  final String timeLabel; // e.g. "Now", "5PM", "6PM", "7:20PM"
-  final double? temperature; // in °C (null for sunset/sunrise items)
-  final String condition; // e.g. "Partly Cloudy", "Thunderstorms"
-  final String iconCode; // "sunny", "partly_cloudy", "cloudy", "rain", "thunderstorm", "sunset", "sunrise"
-  final int? precipitationProbability; // 0 - 100%
-  final int? humidity; // 0 - 100%
+  final String timeLabel;
+  final double? temperature;
+  final String condition;
+  final String iconCode;
+  final int? precipitationProbability;
+  final int? humidity;
   final bool isSunset;
   final bool isSunrise;
-  final String? specialLabel; // "Sunset", "Sunrise"
-  final int? weatherCode; // WMO weather code (0 - 99)
-  final double? apparentTemperature; // in °C (feels like)
-  final double? uvIndex; // UV index
-  final double? visibility; // in meters
-  final double? windSpeed; // in km/h
+  final String? specialLabel;
+  final int? weatherCode;
+  final double? apparentTemperature;
+  final double? uvIndex;
+  final double? visibility;
+  final double? windSpeed;
 
   const HourlyWeatherItem({
     required this.time,
@@ -75,28 +75,26 @@ class HourlyWeatherItem {
   }
 }
 
-/// Weather data entity containing daily summary, period breakdowns, and hourly forecast.
 class WeatherInfo {
-  final double? maxTemperature; // Celsius
-  final double? minTemperature; // Celsius
-  final String condition; // e.g. "Thunderstorms", "Partly Cloudy"
-  final String iconCode; // "thunderstorm", "rain", "sunny", "partly_cloudy", "cloudy"
-  final String alertLevel; // "None", "Yellow Alert", etc.
+  final double? maxTemperature;
+  final double? minTemperature;
+  final String condition;
+  final String iconCode;
+  final String alertLevel;
   final String? morningCondition;
   final String? afternoonCondition;
   final String? nightCondition;
   final String? significantWeather;
   final String? significantWhen;
 
-  // Rich Travel-Day Metrics
   final List<HourlyWeatherItem>? hourlyForecast;
-  final String? sunriseTime; // e.g. "07:05 AM"
-  final String? sunsetTime; // e.g. "07:22 PM"
-  final double? uvIndex; // e.g. 7.5
-  final int? precipitationProbability; // 0 - 100%
-  final int? humidity; // 0 - 100%
-  final double? feelsLike; // in °C
-  final double? windSpeed; // in km/h
+  final String? sunriseTime;
+  final String? sunsetTime;
+  final double? uvIndex;
+  final int? precipitationProbability;
+  final int? humidity;
+  final double? feelsLike;
+  final double? windSpeed;
 
   const WeatherInfo({
     this.maxTemperature,
@@ -119,7 +117,6 @@ class WeatherInfo {
     this.windSpeed,
   });
 
-  /// Average temperature if both max and min are present, or whichever is available.
   double? get temperature {
     if (maxTemperature != null && minTemperature != null) {
       return (maxTemperature! + minTemperature!) / 2;

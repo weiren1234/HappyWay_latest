@@ -1,9 +1,8 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import '../models/weather_info.dart';
 import '../models/travel_route.dart';
 
-/// Period definition for HappyWay hourly weather analysis.
 enum TravelPeriod {
   morning,
   afternoon,
@@ -20,10 +19,6 @@ enum TravelPeriod {
     }
   }
 
-  /// HappyWay Period Hours:
-  /// Morning: 06:00 – 11:59 (hours 6, 7, 8, 9, 10, 11)
-  /// Afternoon: 12:00 – 17:59 (hours 12, 13, 14, 15, 16, 17)
-  /// Night: 18:00 – 23:59 (hours 18, 19, 20, 21, 22, 23)
   int get startHour {
     switch (this) {
       case TravelPeriod.morning:
@@ -56,16 +51,15 @@ enum TravelPeriod {
   }
 }
 
-/// Evaluation summary for an individual period.
 class PeriodEvaluation {
   final TravelPeriod period;
-  final int score; // Suitability score (0 - 100) for eligible hours
-  final int fullScore; // Full period score including past hours for statistical context
-  final int minScore; // Minimum hourly suitability (floor)
-  final double avgPrecipProb; // Average precipitation probability (0 - 100)
-  final bool hasThunderstorm; // Presence of thunderstorm WMO codes (95, 96, 99)
-  final bool hasHeavyRain; // Presence of heavy rain WMO codes (63, 65, 81, 82)
-  final bool isFeasible; // True if eligible future hours exist for this period
+  final int score;
+  final int fullScore;
+  final int minScore;
+  final double avgPrecipProb;
+  final bool hasThunderstorm;
+  final bool hasHeavyRain;
+  final bool isFeasible;
   final List<HourlyWeatherItem> eligibleItems;
 
   const PeriodEvaluation({
@@ -81,15 +75,14 @@ class PeriodEvaluation {
   });
 }
 
-/// Comprehensive, reusable hourly travel analysis result.
 class HourlyTravelAnalysisResult {
   final int morningSuitability;
   final int afternoonSuitability;
   final int nightSuitability;
-  final String recommendedPeriod; // 'Morning', 'Afternoon', 'Night', or 'Not available'
-  final String selectedPeriod; // 'Morning', 'Afternoon', 'Night', 'Auto'
-  final String? bestWeatherWindow; // e.g. '8:00 AM – 11:00 AM'
-  final String? suggestedDeparture; // e.g. 'Around 8:00 AM'
+  final String recommendedPeriod;
+  final String selectedPeriod;
+  final String? bestWeatherWindow;
+  final String? suggestedDeparture;
   final String? departureReason;
   final int hourlyWeatherSuitability;
   final String travelAdvice;
@@ -114,61 +107,46 @@ class HourlyTravelAnalysisResult {
   });
 }
 
-/// Centralized analyzer that turns real Open-Meteo hourly weather data into
-/// actionable HappyWay travel planning decisions.
 class HourlyTravelAnalyzer {
   HourlyTravelAnalyzer._();
 
-  /// Calculates suitability score (10 - 100) for an individual hour.
-  ///
-  /// Scoring model:
-  /// - Base: 100
-  /// - WMO Weather Code severity penalty: 0 to -85
-  /// - Precipitation probability penalty: 0 to -25
-  /// - Extreme apparent temperature penalty: 0 to -8
-  /// - High UV index penalty (daytime): 0 to -5
-  /// - Poor visibility penalty: 0 to -10
-  ///
-  /// Note: Relative humidity and wind speed are informative display/advisory
-  /// metrics presented in the UI, and do not directly penalize the suitability score.
   static int calculateHourSuitability(HourlyWeatherItem item) {
     int penalty = 0;
 
-    // 1. WMO Weather Code / Condition Penalty
     final wCode = item.weatherCode;
     if (wCode != null) {
       if (wCode == 0 || wCode == 1) {
-        // Clear / Mainly Clear
+
         penalty += 0;
       } else if (wCode == 2) {
-        // Partly Cloudy
+
         penalty += 5;
       } else if (wCode == 3) {
-        // Cloudy / Overcast
+
         penalty += 12;
       } else if (wCode == 45 || wCode == 48) {
-        // Foggy / Rime Fog (Open-Meteo WMO Fog; MET Haze handled separately)
+
         penalty += 15;
       } else if (wCode == 51 || wCode == 53 || wCode == 55) {
-        // Drizzle
+
         penalty += 28;
       } else if (wCode == 61 || wCode == 80) {
-        // Slight/Moderate Rain or Rain Showers
+
         penalty += 40;
       } else if (wCode == 63 || wCode == 65 || wCode == 81 || wCode == 82) {
-        // Heavy Rain or Heavy Showers
+
         penalty += 60;
       } else if (wCode == 95) {
-        // Thunderstorm
+
         penalty += 75;
       } else if (wCode == 96 || wCode == 99) {
-        // Severe Thunderstorm with Hail
+
         penalty += 85;
       } else {
         penalty += 10;
       }
     } else {
-      // Fallback condition text check if WMO code is missing
+
       final c = item.condition.toLowerCase();
       if (c.contains('thunderstorm') || c.contains('ribut')) {
         penalty += 75;
@@ -183,7 +161,6 @@ class HourlyTravelAnalyzer {
       }
     }
 
-    // 2. Precipitation Probability Penalty
     final precip = item.precipitationProbability;
     if (precip != null) {
       if (precip > 80) {
@@ -197,49 +174,45 @@ class HourlyTravelAnalyzer {
       }
     }
 
-    // 3. Apparent Temperature (Feels-like) Penalty
     final feels = item.apparentTemperature ?? item.temperature;
     if (feels != null) {
       if (feels > 35.0) {
-        penalty += 8; // Very hot
+        penalty += 8;
       } else if (feels > 32.0) {
-        penalty += 3; // Warm
+        penalty += 3;
       } else if (feels < 16.0) {
-        penalty += 5; // Unusually cold
+        penalty += 5;
       }
     }
 
-    // 4. Real UV Index Penalty (Daytime hours 08:00 - 16:00 only)
     final h = item.time.hour;
     if (h >= 8 && h <= 16 && item.uvIndex != null) {
       final uv = item.uvIndex!;
       if (uv > 10.0) {
-        penalty += 5; // Extreme UV
+        penalty += 5;
       } else if (uv >= 8.0) {
-        penalty += 3; // Very High UV
+        penalty += 3;
       }
     }
 
-    // 5. Visibility Penalty
     final vis = item.visibility;
     if (vis != null) {
       if (vis < 1000.0) {
-        penalty += 10; // Very poor visibility / dense fog
+        penalty += 10;
       } else if (vis < 3000.0) {
-        penalty += 5; // Reduced visibility
+        penalty += 5;
       }
     }
 
     return (100 - penalty).clamp(10, 100);
   }
 
-  /// Analyzes hourly weather data for the given date, route, and preference.
   static HourlyTravelAnalysisResult analyze({
     required List<HourlyWeatherItem>? hourlyForecast,
     required DateTime targetDate,
     TravelRoute? route,
     String? preferredPeriod,
-    DateTime? currentTimeOverride, // For deterministic unit testing
+    DateTime? currentTimeOverride,
   }) {
     if (hourlyForecast == null || hourlyForecast.isEmpty) {
       return const HourlyTravelAnalysisResult(
@@ -260,7 +233,6 @@ class HourlyTravelAnalyzer {
         targetDate.month == now.month &&
         targetDate.day == now.day;
 
-    // Filter out sunset and sunrise artificial items for scoring
     final validHourlyItems = hourlyForecast.where((item) => !item.isSunset && !item.isSunrise).toList();
     if (validHourlyItems.isEmpty) {
       return const HourlyTravelAnalysisResult(
@@ -276,15 +248,12 @@ class HourlyTravelAnalyzer {
       );
     }
 
-    // Evaluate each period (arrival-weather aware when route is provided)
     final morningEval = _evaluatePeriod(TravelPeriod.morning, validHourlyItems, isToday, now, targetDate, route);
     final afternoonEval = _evaluatePeriod(TravelPeriod.afternoon, validHourlyItems, isToday, now, targetDate, route);
     final nightEval = _evaluatePeriod(TravelPeriod.night, validHourlyItems, isToday, now, targetDate, route);
 
-    // Weather-Derived Dynamic Auto Recommendation (No hardcoded Morning tie breaker!)
     final recommendedPeriod = _determineRecommendedPeriod([morningEval, afternoonEval, nightEval]);
 
-    // Parse user choice: Auto vs Morning / Afternoon / Night
     final prefClean = (preferredPeriod ?? 'Auto').trim();
     final prefPeriod = TravelPeriod.fromString(prefClean);
     final isAuto = prefPeriod == null || prefClean.toLowerCase().startsWith('auto');
@@ -296,12 +265,10 @@ class HourlyTravelAnalyzer {
             ? afternoonEval
             : nightEval;
 
-    // Selected period weather suitability
     final hourlyWeatherSuitability = activeEval.score > 0
         ? activeEval.score
         : (isAuto ? [morningEval.score, afternoonEval.score, nightEval.score].reduce((a, b) => a > b ? a : b) : activeEval.fullScore);
 
-    // Departure Window & Suggested Departure calculation (Forward-projected by exact drive duration)
     final depResult = _calculateDepartureWindowAndSuggestion(
       targetDate: targetDate,
       activePeriod: activePeriod,
@@ -311,7 +278,6 @@ class HourlyTravelAnalyzer {
       now: now,
     );
 
-    // Travel Advice & Explanations (No "Indoor activities recommended" or "Plan with Caution")
     final travelAdvice = _generateTravelAdvice(hourlyWeatherSuitability, recommendedPeriod, activeEval);
     final explanationBullets = _generateExplanationBullets(activeEval, activePeriod, depResult.bestWindow, route);
 
@@ -351,7 +317,6 @@ class HourlyTravelAnalyzer {
         i.time.hour >= period.startHour &&
         i.time.hour <= period.endHour).toList();
 
-    // Fallback for mock test data where item dates might not match targetDate
     if (periodItems.isEmpty && allItems.isNotEmpty) {
       periodItems = allItems.where((i) => i.time.hour >= period.startHour && i.time.hour <= period.endHour).toList();
     }
@@ -370,11 +335,9 @@ class HourlyTravelAnalyzer {
       );
     }
 
-    // Full score for the period (destination weather)
     final fullScores = periodItems.map(calculateHourSuitability).toList();
     final fullAvg = (fullScores.reduce((a, b) => a + b) / fullScores.length).round();
 
-    // Check actionable future hours for today
     final eligibleItems = isToday
         ? periodItems.where((i) => i.time.hour >= now.hour).toList()
         : periodItems;
@@ -384,7 +347,7 @@ class HourlyTravelAnalyzer {
     if (!isFeasible) {
       return PeriodEvaluation(
         period: period,
-        score: 0, // Past period has 0 actionable score for today
+        score: 0,
         fullScore: fullAvg,
         minScore: fullScores.reduce((a, b) => a < b ? a : b),
         avgPrecipProb: _avgPrecip(periodItems),
@@ -395,7 +358,6 @@ class HourlyTravelAnalyzer {
       );
     }
 
-    // If route is present, evaluate arrival scores for candidates in this period
     if (route != null) {
       final List<int> candidateScores = [];
       final List<HourlyWeatherItem> arrivalItems = [];
@@ -438,7 +400,6 @@ class HourlyTravelAnalyzer {
       }
     }
 
-    // Destination weather scoring fallback (when route is null)
     final eligibleScores = eligibleItems.map(calculateHourSuitability).toList();
     final eligibleAvg = (eligibleScores.reduce((a, b) => a + b) / eligibleScores.length).round();
     final minScore = eligibleScores.reduce((a, b) => a < b ? a : b);
@@ -480,13 +441,6 @@ class HourlyTravelAnalyzer {
     });
   }
 
-  /// Resolves period recommendation using weather-derived criteria.
-  /// Ties are broken using:
-  /// 1. Higher minimum hourly suitability (higher floor)
-  /// 2. Lower precipitation probability
-  /// 3. Lower severe-weather risk (no thunderstorm / heavy rain)
-  /// 4. Better consecutive weather window
-  /// 5. Earliest available period (chronological) as final deterministic fallback.
   static String _determineRecommendedPeriod(List<PeriodEvaluation> periods) {
     final feasible = periods.where((p) => p.isFeasible).toList();
     if (feasible.isEmpty) {
@@ -494,41 +448,33 @@ class HourlyTravelAnalyzer {
     }
 
     feasible.sort((a, b) {
-      // 1. Higher average score
+
       if (a.score != b.score) {
         return b.score.compareTo(a.score);
       }
 
-      // 2. Higher minimum hourly suitability (higher floor)
       if (a.minScore != b.minScore) {
         return b.minScore.compareTo(a.minScore);
       }
 
-      // 3. Lower average precipitation probability
       if ((a.avgPrecipProb - b.avgPrecipProb).abs() > 2.0) {
         return a.avgPrecipProb.compareTo(b.avgPrecipProb);
       }
 
-      // 4. Severe weather risk (thunderstorm)
       if (a.hasThunderstorm != b.hasThunderstorm) {
-        return a.hasThunderstorm ? 1 : -1; // false (no thunderstorm) wins
+        return a.hasThunderstorm ? 1 : -1;
       }
 
-      // 5. Heavy rain risk
       if (a.hasHeavyRain != b.hasHeavyRain) {
         return a.hasHeavyRain ? 1 : -1;
       }
 
-      // 6. Chronological order among remaining available periods
       return a.period.startHour.compareTo(b.period.startHour);
     });
 
     return feasible.first.period.displayName;
   }
 
-  /// Calculates the best departure window and suggested departure.
-  /// Forward-projects arrival time by exact driving duration and evaluates
-  /// destination weather (supporting overnight arrivals into the following day).
   static _DepartureResult _calculateDepartureWindowAndSuggestion({
     required DateTime targetDate,
     required TravelPeriod activePeriod,
@@ -537,12 +483,12 @@ class HourlyTravelAnalyzer {
     required bool isToday,
     required DateTime now,
   }) {
-    // 1. Generate candidate departure times strictly within activePeriod on targetDate (15-minute intervals)
+
     final List<DateTime> candidateTimes = [];
     for (int h = activePeriod.startHour; h <= activePeriod.endHour; h++) {
       for (final m in [0, 15, 30, 45]) {
         final depTime = DateTime(targetDate.year, targetDate.month, targetDate.day, h, m);
-        // For today, candidate departure must be in the future (10 minute buffer)
+
         if (isToday && depTime.isBefore(now.add(const Duration(minutes: 10)))) {
           continue;
         }
@@ -558,13 +504,11 @@ class HourlyTravelAnalyzer {
       );
     }
 
-    // 2. Evaluate arrival weather for each candidate departure
     final candidates = <_DepartureCandidate>[];
     for (final depTime in candidateTimes) {
-      // Precise arrival time without premature integer rounding of route duration
+
       final arrivalTime = depTime.add(Duration(minutes: route?.durationMinutes ?? 0));
 
-      // Find closest destination hourly weather item (allowing overnight arrivals into the next day)
       HourlyWeatherItem closestItem = validHourlyItems.first;
       int minDiffMinutes = 9999999;
       for (final item in validHourlyItems) {
@@ -584,7 +528,6 @@ class HourlyTravelAnalyzer {
       ));
     }
 
-    // 3. Determine Best Departure Window (sliding 3-hour window, or 2h/1h if period has fewer hours)
     final firstHour = candidateTimes.first.hour;
     final lastHour = candidateTimes.last.hour;
     final spanHours = (lastHour - firstHour) + 1;
@@ -623,7 +566,6 @@ class HourlyTravelAnalyzer {
     final bestWindowFormatted =
         '${DateFormat('h:mm a').format(bestWStart)} – ${DateFormat('h:mm a').format(bestWEnd)}';
 
-    // 4. If driving route is unavailable, return destination window only (maintains route==null contract)
     if (route == null) {
       return _DepartureResult(
         bestWindow: bestWindowFormatted,
@@ -632,7 +574,6 @@ class HourlyTravelAnalyzer {
       );
     }
 
-    // 5. Select the best departure candidate strictly INSIDE the best window (ensures Suggested Departure is inside Best Window)
     final windowMidpoint = bestWStart.add(Duration(minutes: (windowHours * 60) ~/ 2));
     bestInWindow.sort((a, b) {
       if (b.suitabilityScore != a.suitabilityScore) {
@@ -645,7 +586,6 @@ class HourlyTravelAnalyzer {
 
     final bestCandidate = bestInWindow.first;
 
-    // 6. Explicit debug logs as requested
     debugPrint('[PLAN WEATHER DEBUG] selected departure date = ${DateFormat('yyyy-MM-dd').format(targetDate)}');
     debugPrint('[PLAN WEATHER DEBUG] candidate departure = ${DateFormat('yyyy-MM-dd h:mm a').format(bestCandidate.departureTime)}');
     debugPrint('[PLAN WEATHER DEBUG] calculated arrival = ${DateFormat('yyyy-MM-dd h:mm a').format(bestCandidate.arrivalTime)}');

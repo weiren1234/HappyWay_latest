@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+﻿import 'package:flutter_test/flutter_test.dart';
 import 'package:happyway/models/travel_location.dart';
 import 'package:happyway/models/met_location.dart';
 import 'package:happyway/models/saved_location.dart';
@@ -68,9 +68,8 @@ void main() {
         metLocationName: 'Kuala Lumpur',
       );
 
-      // Both share the same MET weather location ID
       expect(jinjang.metLocationId, equals(danauKota.metLocationId));
-      // But their destination IDs are strictly unique
+
       expect(jinjang.id, isNot(equals(danauKota.id)));
       expect(jinjang.id, equals('geo:3.209400,101.668200'));
       expect(danauKota.id, equals('geo:3.203800,101.714400'));
@@ -100,7 +99,6 @@ void main() {
       expect(supabaseMap['source_type'], equals('geocodedPlace'));
       expect(supabaseMap['formatted_address'], equals('Jalan Jinjang Utara, Kepong, 52000 Kuala Lumpur'));
 
-      // Restore from Supabase
       final restored = SavedLocation.fromSupabase(supabaseMap);
       expect(restored.id, equals('geo:3.209400,101.668200'));
       expect(restored.name, equals('Jinjang Utara, Kuala Lumpur'));

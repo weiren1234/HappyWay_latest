@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/travel_destination.dart';
 import '../models/travel_location.dart';
@@ -29,8 +29,6 @@ import 'destination_detail_screen.dart';
 import 'travel_insights_screen.dart';
 import 'trip_detail_screen.dart';
 
-/// HomeScreen — HappyWay's primary travel planning hub with real GPS location,
-/// precise destination search, smart recommendations, OSRM route estimation, and travel analysis.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -39,11 +37,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // Selected destination
+
   TravelLocation? _selectedDestination;
   TravelDestination? _matchingFeaturedDest;
 
-  // Analysis state
   bool _isAnalyzing = false;
   bool _hasAnalyzed = false;
   WeatherInfo? _analyzedWeather;
@@ -66,8 +63,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  // ─── Location Picker ─────────────────────────────────────────────────────────
-
   void _openLocationPicker(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -85,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
           setState(() {
             _selectedDestination = loc;
             _matchingFeaturedDest = match;
-            // Clear prior analysis when destination changes
+
             _hasAnalyzed = false;
             _analyzedWeather = null;
             _analyzedRoute = null;
@@ -120,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onSelectTravelLocation: (loc) {
           final locProvider = Provider.of<LocationProvider>(context, listen: false);
           locProvider.setManualLocation(loc);
-          // Clear prior analysis if origin changes
+
           setState(() {
             _hasAnalyzed = false;
             _analyzedWeather = null;
@@ -132,8 +127,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-  // ─── Analyze Trip ─────────────────────────────────────────────────────────────
 
   Future<void> _onAnalyzeTrip(
     BuildContext context, [
@@ -156,7 +149,6 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    // Update state if explicit location is passed from recommendation
     if (explicitDest != null) {
       setState(() {
         _selectedDestination = explicitDest;
@@ -164,14 +156,12 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
 
-    // Capture navigators before async gap
     final rootNavigator = Navigator.of(context, rootNavigator: true);
     final navigator = Navigator.of(context);
 
     setState(() => _isAnalyzing = true);
     _showAnalyzingDialog(context, loc);
 
-    // 1. Fetch weather forecast if not already provided
     WeatherInfo? weather = explicitWeather;
     if (weather == null && loc.hasWeatherLocation) {
       weather = await destProvider.fetchForecastForTravelLocation(loc);
@@ -179,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (!mounted) return;
     setState(() => _isAnalyzing = false);
-    rootNavigator.pop(); // Close loading dialog
+    rootNavigator.pop();
 
     if (weather == null && loc.hasWeatherLocation && loc.isMetLocation) {
       if (!context.mounted) return;
@@ -187,7 +177,6 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    // 2. Route details using destination coordinates (non-blocking if not pre-computed)
     setState(() {
       _hasAnalyzed = true;
       _analyzedWeather = weather;
@@ -235,7 +224,6 @@ class _HomeScreenState extends State<HomeScreen> {
       _analyzedScore = score;
     });
 
-    // 3. Navigate to full Travel Insights
     navigator.push(
       PageRouteBuilder(
         pageBuilder: (ctx, animation, secondaryAnimation) => TravelInsightsScreen(
@@ -296,8 +284,6 @@ class _HomeScreenState extends State<HomeScreen> {
       _analyzedScore = score;
     });
   }
-
-  // ─── Dialogs ──────────────────────────────────────────────────────────────────
 
   void _showAnalyzingDialog(BuildContext context, TravelLocation loc) {
     showDialog(
@@ -392,8 +378,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ─── Build ────────────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
     final destProvider = Provider.of<DestinationProvider>(context);
@@ -427,7 +411,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
-              // 1. App Header
+
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
@@ -497,7 +481,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              // 1b. Proactive Trip Reminder Banner (Compact)
               if (topReminderTrip != null)
                 SliverToBoxAdapter(
                   child: Padding(
@@ -515,7 +498,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
 
-              // 2. Plan Your Trip Card
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
@@ -544,7 +526,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(height: 14),
 
-                        // Current Location Row
                         _CurrentLocationTile(
                           locProvider: locProvider,
                           onTapChange: () => _openOriginPicker(context),
@@ -564,7 +545,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(height: 10),
 
-                        // Destination Selector
                         GestureDetector(
                           onTap: () => _openLocationPicker(context),
                           child: _RowContainer(
@@ -614,7 +594,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(height: 14),
 
-                        // Analyze Button
                         _AnalyzeButton(
                           enabled: hasValidDest && locProvider.hasLocation && !_isAnalyzing,
                           isLoading: _isAnalyzing,
@@ -634,7 +613,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              // 3. Travel Overview (shown after analysis)
               if (_hasAnalyzed)
                 SliverToBoxAdapter(
                   child: Padding(
@@ -670,7 +648,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
 
-              // 4. SMART RECOMMENDATIONS: "Recommended Today"
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
@@ -702,7 +679,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 12),
 
-                      // Preference Selector Chips: "For you:"
                       Row(
                         children: [
                           Text('For you:', style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600, color: AppColors.cyanAccent(context))),
@@ -748,7 +724,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              // Distance Range Slider (between preference chips and results)
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
@@ -801,7 +776,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-
 
               if (destProvider.isLoadingRecommendations)
                 SliverPadding(
@@ -857,7 +831,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 )
               else ...[
 
-                // ── Road-Accessible from Your Location ───────────────────────
                 if (destProvider.roadAccessibleRecommendations.isNotEmpty) ...[
                   SliverToBoxAdapter(
                     child: Padding(
@@ -918,7 +891,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
 
-                // ── Recommended Getaways (Cross-Region / Island) ────────────
                 if (destProvider.getawayRecommendations.isNotEmpty) ...[
                   SliverToBoxAdapter(
                     child: Padding(
@@ -980,7 +952,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ],
 
-              // 6. Featured Destinations Filter & Header
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
@@ -1006,7 +977,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              // 7. Featured Destination Cards
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 sliver: destProvider.isLoading
@@ -1083,8 +1053,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-
-// ─── Current Location Tile ────────────────────────────────────────────────────
 
 class _CurrentLocationTile extends StatelessWidget {
   final LocationProvider locProvider;
@@ -1201,8 +1169,6 @@ class _CurrentLocationTile extends StatelessWidget {
   }
 }
 
-// ─── Analyze Button ───────────────────────────────────────────────────────────
-
 class _AnalyzeButton extends StatelessWidget {
   final bool enabled;
   final bool isLoading;
@@ -1266,8 +1232,6 @@ class _AnalyzeButton extends StatelessWidget {
     );
   }
 }
-
-// ─── Helper Widgets ───────────────────────────────────────────────────────────
 
 class _RowContainer extends StatelessWidget {
   final Widget child;

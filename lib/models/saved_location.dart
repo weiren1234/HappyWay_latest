@@ -1,26 +1,19 @@
-import 'met_location.dart';
+﻿import 'met_location.dart';
 import 'travel_destination.dart';
 import 'travel_location.dart';
 import '../utils/canonical_destination_id.dart';
 
-/// SavedLocation stores persistent metadata to restore a saved travel destination
-/// (either an official MET location, a curated featured destination, or a precise geocoded place).
-///
-/// Persisted in Supabase table `saved_destinations`.
-/// Unique key in DB: `(user_id, location_id)`
-/// - For official MET locations: `met:LOCATION:317`
-/// - For geocoded places: `geo:3.209400,101.668200`
 class SavedLocation {
-  final String id; // Unique travel destination ID (e.g. "met:LOCATION:314", "geo:3.209400,101.668200")
-  final String name; // Precise destination display name
+  final String id;
+  final String name;
   final String category;
   final String state;
-  final double? latitude; // Precise destination latitude
-  final double? longitude; // Precise destination longitude
-  final String? metLocationId; // Matched official MET location ID (e.g. "LOCATION:234")
-  final String? metLocationName; // Matched official MET weather area name (e.g. "Kuala Lumpur")
-  final String? sourceType; // "metLocation" or "geocodedPlace"
-  final String? formattedAddress; // Detailed resolved address if available
+  final double? latitude;
+  final double? longitude;
+  final String? metLocationId;
+  final String? metLocationName;
+  final String? sourceType;
+  final String? formattedAddress;
   final String? imageUrl;
   final String? description;
   final bool isFeatured;
@@ -43,7 +36,6 @@ class SavedLocation {
     required this.savedAt,
   });
 
-  /// Factory for a TravelLocation.
   factory SavedLocation.fromTravelLocation(TravelLocation loc) {
     return SavedLocation(
       id: loc.id,
@@ -63,7 +55,6 @@ class SavedLocation {
     );
   }
 
-  /// Factory for any TravelDestination (curated, recommended, or candidate).
   factory SavedLocation.fromAnyDestination(TravelDestination dest) {
     final canonicalId = CanonicalDestinationId.fromDestination(dest);
     final metId = dest.metLocationId.isNotEmpty ? dest.metLocationId : (dest.id.startsWith('dest_') ? '' : dest.id);
@@ -84,12 +75,10 @@ class SavedLocation {
     );
   }
 
-  /// Factory for a curated featured destination.
   factory SavedLocation.fromFeaturedDestination(TravelDestination dest) {
     return SavedLocation.fromAnyDestination(dest);
   }
 
-  /// Factory for an official MET location.
   factory SavedLocation.fromMetLocation(MetLocation loc) {
     return SavedLocation(
       id: CanonicalDestinationId.fromMetLocation(loc),
@@ -142,7 +131,7 @@ class SavedLocation {
 
   factory SavedLocation.fromSupabase(Map<String, dynamic> json) {
     final rawId = json['location_id'] as String? ?? json['id'] as String? ?? '';
-    // Backwards compatibility for existing records stored without prefix
+
     final id = (rawId.startsWith('met:') || rawId.startsWith('geo:'))
         ? rawId
         : (rawId.startsWith('LOCATION:') ? 'met:$rawId' : rawId);
@@ -234,7 +223,6 @@ class SavedLocation {
     };
   }
 
-  /// Converts this saved location to a [TravelLocation].
   TravelLocation toTravelLocation() {
     return TravelLocation(
       id: id,

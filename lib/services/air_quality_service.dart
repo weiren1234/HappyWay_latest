@@ -1,18 +1,13 @@
-import '../models/air_quality_info.dart';
+﻿import '../models/air_quality_info.dart';
 import 'api_client.dart';
 
-/// AirQualityService fetches Air Pollutant Index (API / AQI) from data.gov.my or mock data.
 class AirQualityService {
   final ApiClient _apiClient = ApiClient();
 
-  /// Returns the configured ApiClient instance for live API calls.
   ApiClient get apiClient => _apiClient;
 
-  /// Fetches air pollutant index for a specific Malaysian state or station.
   Future<AirQualityInfo> fetchAirQuality(String state, String station) async {
     try {
-      // Endpoint contract for data.gov.my air pollution dataset
-      // final response = await _apiClient.dio.get('https://api.data.gov.my/aqi', queryParameters: {'station': station});
 
       return _getMockAirQuality(state, station);
     } catch (e) {

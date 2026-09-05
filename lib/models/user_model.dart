@@ -1,4 +1,4 @@
-/// User data model representing an authenticated traveler in HappyWay.
+﻿
 class UserModel {
   final String id;
   final String name;

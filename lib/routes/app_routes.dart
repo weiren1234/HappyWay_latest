@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../models/travel_destination.dart';
 import '../screens/splash_screen.dart';
 import '../screens/onboarding_screen.dart';
@@ -13,7 +13,6 @@ import '../screens/destination_detail_screen.dart';
 
 import '../theme/app_theme.dart';
 
-/// AppRoutes configures application routes with custom smooth page transitions.
 class AppRoutes {
   AppRoutes._();
 

@@ -1,24 +1,23 @@
-import 'weather_info.dart';
+﻿import 'weather_info.dart';
 import 'travel_score.dart';
 import 'met_location.dart';
 
-/// TravelDestination encapsulates curated data for featured Malaysian tourist destinations.
 class TravelDestination {
   final String id;
   final String name;
-  final String state; // e.g. "Pahang", "Kedah", "Sabah"
-  final String category; // e.g. "Highlands", "Island & Beach", "Nature"
+  final String state;
+  final String category;
   final String imageUrl;
   final String description;
   final TravelScore travelScore;
-  final WeatherInfo? weather; // Nullable until official MET forecast is loaded
+  final WeatherInfo? weather;
   final bool isSaved;
   final bool isTrending;
-  final String metLocationId; // Verified official MET location ID (e.g. "LOCATION:317")
-  final List<String> activityTags; // e.g. ["Highlands", "Nature", "Relaxing", "Sightseeing"]
+  final String metLocationId;
+  final List<String> activityTags;
   final double? latitude;
   final double? longitude;
-  final String? locationCategoryId; // e.g. "TOURISTDEST", "TOWN"
+  final String? locationCategoryId;
 
   const TravelDestination({
     required this.id,

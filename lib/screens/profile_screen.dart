@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -14,21 +14,8 @@ import '../routes/app_routes.dart';
 import '../utils/validators.dart';
 import 'change_password_screen.dart';
 
-/// ProfileScreen renders the authenticated user's profile, account settings,
-/// preferences, app information, and sign-out.
-///
-/// Layout:
-///  1. Profile card (avatar, display name with edit icon, email, signed-in status)
-///  2. Optional compact stats (saved count, trips count)
-///  3. ACCOUNT — email, Change Password
-///  4. PREFERENCES — Trip Reminders, Theme (read-only Dark), Notification Diagnostics
-///  5. APP — Data Sources & About, Privacy & Data
-///  6. Sign Out button
-///  7. Version footer
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
-
-  // ─── Edit Profile Dialog (Display Name + Email) ────────────────────────────
 
   void _showEditProfileDialog(BuildContext context, AuthProvider auth) {
     final formKey = GlobalKey<FormState>();
@@ -55,7 +42,7 @@ class ProfileScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. Display Name
+
                   Text('Display Name', style: TextStyle(color: AppColors.secondaryText(ctx), fontSize: 12, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
                   TextFormField(
@@ -91,7 +78,6 @@ class ProfileScreen extends StatelessWidget {
 
                   const SizedBox(height: 16),
 
-                  // 2. Email Address
                   Text('Email Address', style: TextStyle(color: AppColors.secondaryText(ctx), fontSize: 12, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
                   TextFormField(
@@ -148,8 +134,7 @@ class ProfileScreen extends StatelessWidget {
                       setState(() => isSaving = true);
 
                       final currentName = auth.user?.name ?? '';
-                      // Always read the live email from Supabase Auth — never use cached user.email
-                      // which may be stale if the user previously requested a change.
+
                       final currentEmail = Supabase.instance.client.auth.currentUser?.email
                           ?? auth.user?.email
                           ?? '';
@@ -185,7 +170,7 @@ class ProfileScreen extends StatelessWidget {
 
                       if (context.mounted) {
                         if (emailChanged) {
-                          // Display exactly the required copy when a confirmation was sent.
+
                           final displayMessage = confirmationSent
                               ? 'Confirmation email sent\nPlease check your new email address to confirm the change.'
                               : (emailMessage ?? (emailSuccess ? 'Email update requested.' : 'Failed to update email.'));
@@ -241,8 +226,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // ─── Data Sources & About Sheet ────────────────────────────────────────────
-
   void _showDataSourcesSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -252,8 +235,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // ─── Privacy & Data Sheet ──────────────────────────────────────────────────
-
   void _showPrivacySheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -262,8 +243,6 @@ class ProfileScreen extends StatelessWidget {
       builder: (ctx) => const _PrivacyDataSheet(),
     );
   }
-
-  // ─── Sign Out Confirmation ─────────────────────────────────────────────────
 
   Future<void> _handleSignOut(BuildContext context, AuthProvider auth) async {
     final confirmed = await showDialog<bool>(
@@ -298,7 +277,7 @@ class ProfileScreen extends StatelessWidget {
     );
 
     if (confirmed == true && context.mounted) {
-      // Clear in-memory user-specific state before sign-out
+
       final destProvider = Provider.of<DestinationProvider>(context, listen: false);
       final tripProvider = Provider.of<TripProvider>(context, listen: false);
       destProvider.clearUserData();
@@ -312,8 +291,6 @@ class ProfileScreen extends StatelessWidget {
     }
   }
 
-  // ─── Helper: initials ─────────────────────────────────────────────────────
-
   String _buildInitials(String? name) {
     if (name == null || name.trim().isEmpty) return 'HW';
     final parts = name.trim().split(RegExp(r'\s+'));
@@ -323,10 +300,6 @@ class ProfileScreen extends StatelessWidget {
     final n = parts[0];
     return n.length >= 2 ? n.substring(0, 2).toUpperCase() : n.toUpperCase();
   }
-
-  // ─── Build ─────────────────────────────────────────────────────────────────
-
-  // ─── Theme Selection Dialog ───────────────────────────────────────────────
 
   void _showThemeDialog(BuildContext context, ThemeProvider themeProvider, AuthProvider auth) {
     showDialog(
@@ -416,7 +389,6 @@ class ProfileScreen extends StatelessWidget {
     final user = auth.user;
     final prefs = auth.preferences;
 
-    // ── Guest Mode Wall ────────────────────────────────────────────────────────
     if (auth.isGuest) {
       return Scaffold(
         backgroundColor: Colors.transparent,
@@ -505,7 +477,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 40),
-                // About section visible for all users
+
                 _SectionLabel(label: 'APP'),
                 const SizedBox(height: 10),
                 GlassCard(
@@ -554,7 +526,6 @@ class ProfileScreen extends StatelessWidget {
       );
     }
 
-    // Profile data — from Supabase Auth UUID & profiles table only
     final bool isSessionActive = auth.isAuthenticated;
     final bool isLoading = auth.isLoading || (isSessionActive && user == null);
     final String? realName = user?.name;
@@ -562,7 +533,6 @@ class ProfileScreen extends StatelessWidget {
     final String initials = _buildInitials(realName);
     final bool tripReminders = prefs?.tripRemindersEnabled ?? true;
 
-    // Counts from actual providers (no extra Supabase queries)
     final int savedCount = dest.savedLocations.length;
     final int tripCount = trips.trips.length;
 
@@ -582,7 +552,6 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // ── 1. Profile Header Card ─────────────────────────────────────
               if (isLoading)
                 const _ProfileLoadingCard()
               else if (user == null)
@@ -590,7 +559,6 @@ class ProfileScreen extends StatelessWidget {
               else
                 _buildProfileCard(context, auth, initials, realName, realEmail),
 
-              // ── 2. Compact Stats ───────────────────────────────────────────
               if (!isLoading && user != null && (savedCount > 0 || tripCount > 0)) ...[
                 const SizedBox(height: 12),
                 _buildStatsRow(context, savedCount, tripCount),
@@ -598,14 +566,13 @@ class ProfileScreen extends StatelessWidget {
 
               const SizedBox(height: 28),
 
-              // ── 3. ACCOUNT Section ─────────────────────────────────────────
               _SectionLabel(label: 'ACCOUNT'),
               const SizedBox(height: 10),
               GlassCard(
                 padding: EdgeInsets.zero,
                 child: Column(
                   children: [
-                    // Email — read-only from Supabase Auth
+
                     _InfoRow(
                       icon: Icons.email_outlined,
                       iconColor: AppColors.accentCyan,
@@ -613,7 +580,7 @@ class ProfileScreen extends StatelessWidget {
                       value: realEmail ?? '—',
                     ),
                     const Divider(height: 1, indent: 52),
-                    // Change Password — full tappable row
+
                     _TappableRow(
                       icon: Icons.lock_outline_rounded,
                       iconColor: AppColors.weatherBlue,
@@ -629,14 +596,13 @@ class ProfileScreen extends StatelessWidget {
 
               const SizedBox(height: 28),
 
-              // ── 4. PREFERENCES Section ─────────────────────────────────────
               _SectionLabel(label: 'PREFERENCES'),
               const SizedBox(height: 10),
               GlassCard(
                 padding: EdgeInsets.zero,
                 child: Column(
                   children: [
-                    // Trip Reminders — In-app reminder banners for upcoming trips
+
                     _SwitchRow(
                       icon: Icons.notifications_active_outlined,
                       iconColor: AppColors.safeGreen,
@@ -663,7 +629,7 @@ class ProfileScreen extends StatelessWidget {
                       },
                     ),
                     const Divider(height: 1, indent: 52),
-                    // Theme selector (Dark / Light)
+
                     _TappableRow(
                       icon: themeProvider.isDarkMode ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
                       iconColor: AppColors.accentCyan,
@@ -695,7 +661,6 @@ class ProfileScreen extends StatelessWidget {
 
               const SizedBox(height: 28),
 
-              // ── 5. APP Section ─────────────────────────────────────────────
               _SectionLabel(label: 'APP'),
               const SizedBox(height: 10),
               GlassCard(
@@ -723,7 +688,6 @@ class ProfileScreen extends StatelessWidget {
 
               const SizedBox(height: 32),
 
-              // ── 6. Sign Out Button ─────────────────────────────────────────
               SizedBox(
                 width: double.infinity,
                 child: GestureDetector(
@@ -755,7 +719,6 @@ class ProfileScreen extends StatelessWidget {
 
               const SizedBox(height: 28),
 
-              // ── 7. Version Footer ─────────────────────────────────────────
               Center(
                 child: Column(
                   children: [
@@ -779,8 +742,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // ─── Profile Header Card ───────────────────────────────────────────────────
-
   Widget _buildProfileCard(
     BuildContext context,
     AuthProvider auth,
@@ -791,7 +752,7 @@ class ProfileScreen extends StatelessWidget {
     return GlassCard(
       child: Row(
         children: [
-          // Avatar circle with gradient initials
+
           Container(
             width: 58,
             height: 58,
@@ -821,7 +782,7 @@ class ProfileScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Display Name row with edit icon
+
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -834,7 +795,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    // Edit icon — compact visible, mobile-friendly touch target
+
                     GestureDetector(
                       onTap: () => _showEditProfileDialog(context, auth),
                       behavior: HitTestBehavior.opaque,
@@ -851,7 +812,6 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
 
-                // Email — from Supabase Auth
                 Text(
                   realEmail ?? '—',
                   style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
@@ -860,7 +820,6 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 7),
 
-                // Signed-in badge
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
@@ -898,12 +857,10 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // ─── Stats Row ─────────────────────────────────────────────────────────────
-
   Widget _buildStatsRow(BuildContext context, int savedCount, int tripCount) {
     return Row(
       children: [
-        // ── Saved Card (Navigates to Saved Tab = index 2) ───────────────────
+
         Expanded(
           child: GlassCard(
             padding: EdgeInsets.zero,
@@ -969,7 +926,6 @@ class ProfileScreen extends StatelessWidget {
 
         const SizedBox(width: 12),
 
-        // ── Trips Card (Navigates to Trips Tab = index 1) ───────────────────
         Expanded(
           child: GlassCard(
             padding: EdgeInsets.zero,
@@ -1036,10 +992,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Private sub-widgets
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _ProfileLoadingCard extends StatelessWidget {
   const _ProfileLoadingCard();
@@ -1144,7 +1096,6 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
-/// Read-only info row used for email and theme fields.
 class _InfoRow extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
@@ -1184,7 +1135,6 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-/// Full-row tappable setting with trailing chevron.
 class _TappableRow extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
@@ -1236,7 +1186,6 @@ class _TappableRow extends StatelessWidget {
   }
 }
 
-/// Switch row for toggle preferences.
 class _SwitchRow extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
@@ -1284,10 +1233,6 @@ class _SwitchRow extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Data Sources & About Sheet
-// ─────────────────────────────────────────────────────────────────────────────
-
 class _DataSourcesSheet extends StatelessWidget {
   const _DataSourcesSheet();
 
@@ -1307,7 +1252,7 @@ class _DataSourcesSheet extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Handle
+
             Center(
               child: Container(
                 margin: const EdgeInsets.only(top: 12),
@@ -1438,10 +1383,6 @@ class _AboutEntry extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Privacy & Data Sheet
-// ─────────────────────────────────────────────────────────────────────────────
-
 class _PrivacyDataSheet extends StatelessWidget {
   const _PrivacyDataSheet();
 
@@ -1461,7 +1402,7 @@ class _PrivacyDataSheet extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Handle
+
             Center(
               child: Container(
                 margin: const EdgeInsets.only(top: 12),

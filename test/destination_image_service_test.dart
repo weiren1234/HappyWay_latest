@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+﻿import 'package:flutter_test/flutter_test.dart';
 import 'package:happyway/models/destination_image_info.dart';
 import 'package:happyway/services/destination_image_service.dart';
 import 'package:happyway/services/destination_data_service.dart';
@@ -72,7 +72,7 @@ void main() {
     final imageService = DestinationImageService();
 
     test('Resolves pre-verified local assets for curated destinations without remote network requests', () async {
-      // 1. Cameron Highlands
+
       final cameron = await imageService.resolveImage(
         name: 'Cameron Highlands',
         state: 'Pahang',
@@ -83,7 +83,6 @@ void main() {
       expect(cameron.isVerified, isTrue);
       expect(cameron.imageUrl, 'assets/destinations/cameron_highlands.jpg');
 
-      // 2. Genting Highlands
       final genting = await imageService.resolveImage(
         name: 'Genting Highlands',
         state: 'Pahang',
@@ -93,7 +92,6 @@ void main() {
       expect(genting!.isLocalAsset, isTrue);
       expect(genting.imageUrl, 'assets/destinations/genting_highlands.jpg');
 
-      // 3. Langkawi Island
       final langkawi = await imageService.resolveImage(
         name: 'Langkawi Island',
         state: 'Kedah',
@@ -103,7 +101,6 @@ void main() {
       expect(langkawi!.isLocalAsset, isTrue);
       expect(langkawi.imageUrl, 'assets/destinations/langkawi_island.jpg');
 
-      // 4. Kundasang & Mt Kinabalu
       final kundasang = await imageService.resolveImage(
         name: 'Kundasang & Mt Kinabalu',
         state: 'Sabah',
@@ -113,7 +110,6 @@ void main() {
       expect(kundasang!.isLocalAsset, isTrue);
       expect(kundasang.imageUrl, 'assets/destinations/kundasang.jpg');
 
-      // 5. Taman Negara Rainforest
       final tamanNegara = await imageService.resolveImage(
         name: 'Taman Negara Rainforest',
         state: 'Pahang',
@@ -123,7 +119,6 @@ void main() {
       expect(tamanNegara!.isLocalAsset, isTrue);
       expect(tamanNegara.imageUrl, 'assets/destinations/taman_negara.jpg');
 
-      // 6. Melaka Historic City
       final melaka = await imageService.resolveImage(
         name: 'Melaka Historic City',
         state: 'Melaka',
@@ -167,9 +162,8 @@ void main() {
         cachedAt: DateTime.now().subtract(const Duration(days: 2)),
       );
 
-      // 2 days old is within 7-day TTL
       expect(info.isValid(ttl: const Duration(days: 7)), isTrue);
-      // 2 days old exceeds 1-day TTL
+
       expect(info.isValid(ttl: const Duration(days: 1)), isFalse);
 
       final json = info.toJson();

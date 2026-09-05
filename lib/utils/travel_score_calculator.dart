@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/weather_info.dart';
@@ -22,7 +22,6 @@ class TravelScoreCalculator {
 
     final date = travelDate ?? DateTime.now();
 
-    // ── 1. Hourly Weather Integration (Real Open-Meteo Data) ────────────────
     if (weather.hourlyForecast != null && weather.hourlyForecast!.isNotEmpty) {
       final hourlyResult = HourlyTravelAnalyzer.analyze(
         hourlyForecast: weather.hourlyForecast,
@@ -34,7 +33,6 @@ class TravelScoreCalculator {
 
       int weatherSubscore = hourlyResult.hourlyWeatherSuitability;
 
-      // Official MET Malaysia Significant Weather Warning penalty (FSIGW)
       final sig = (weather.significantWeather ?? '').toLowerCase();
       if (sig.contains('warning') || sig.contains('amaran')) {
         weatherSubscore = (weatherSubscore - 20).clamp(10, 100);
@@ -113,7 +111,6 @@ class TravelScoreCalculator {
       );
     }
 
-    // ── 2. MET Malaysia 3-Period Fallback (When Hourly Unavailable) ─────────
     final isWeatherComplete = weather.morningCondition != null && weather.afternoonCondition != null;
     final bestPeriod = _calculateBestTravelPeriod(weather, isWeatherComplete);
 
@@ -203,9 +200,6 @@ class TravelScoreCalculator {
     }
   }
 
-  // ─── Weather Suitability Algorithm ──────────────────────────────────────────
-
-  /// Calculates Weather Suitability Score (0 - 100) from official MET fields.
   static int calculateWeatherSuitability(WeatherInfo? weather, [String? preferredPeriod]) {
     if (weather == null) return 0;
     final bestPeriod = _calculateBestTravelPeriod(weather, true);
@@ -238,16 +232,16 @@ class TravelScoreCalculator {
     final pClean = (preferredPeriod ?? '').trim().toLowerCase();
     int score;
     if (pClean.startsWith('morning')) {
-      // User chose Morning: score reflects morning travel condition
+
       score = morningScore;
     } else if (pClean.startsWith('afternoon')) {
-      // User chose Afternoon: score reflects afternoon travel condition
+
       score = afternoonScore;
     } else if (pClean.startsWith('night')) {
-      // User chose Night: score reflects night travel condition
+
       score = nightScore;
     } else if (pClean.startsWith('auto')) {
-      // Auto / Auto Recommend: optimizes around best travel period while considering overall day
+
       final best = (resolvedBestPeriod ?? '').toLowerCase();
       if (best.contains('morning')) {
         score = ((morningScore * 0.7) + (baseDayScore * 0.3)).round();
@@ -259,11 +253,10 @@ class TravelScoreCalculator {
         score = baseDayScore;
       }
     } else {
-      // General destination analysis without a selected travel period
+
       score = baseDayScore;
     }
 
-    // Significant Weather / Alert evaluation
     final sig = (weather.significantWeather ?? '').toLowerCase();
     if (sig.contains('warning') || sig.contains('amaran')) {
       score -= 20;
@@ -271,7 +264,6 @@ class TravelScoreCalculator {
       score -= 20;
     }
 
-    // Extreme Temperature Penalties (relevant for daytime periods)
     if (!pClean.startsWith('night')) {
       if (weather.maxTemperature != null) {
         if (weather.maxTemperature! >= 35.0) {
@@ -285,19 +277,17 @@ class TravelScoreCalculator {
 
   static (int penalty, int subscore) _evaluatePeriod(String? condition, double weight) {
     if (condition == null || condition.trim().isEmpty) {
-      // Missing period receives a neutral uncertainty deduction (-6) so it does NOT act like 100% dry
+
       final penalty = (6 * weight).round();
       return (penalty, 70);
     }
 
     final c = condition.toLowerCase().trim();
 
-    // 1. Explicit positive dry conditions (0 penalty)
     if (_isExplicitDry(c)) {
       return (0, 100);
     }
 
-    // 2. Severe conditions
     if (c.contains('thunderstorm') || c.contains('ribut petir')) {
       final penalty = (18 * weight).round();
       return (penalty, 35);
@@ -335,7 +325,6 @@ class TravelScoreCalculator {
       return (penalty, 85);
     }
 
-    // 3. Unknown condition text -> neutral handling (do not crash, log in debug)
     if (kDebugMode) {
       debugPrint('[TravelScoreCalculator] Unknown MET condition encountered: "$condition"');
     }
@@ -343,7 +332,6 @@ class TravelScoreCalculator {
     return (penalty, 80);
   }
 
-  /// Strictly checks for explicit positive dry keywords from official MET Malaysia vocabulary.
   static bool _isExplicitDry(String conditionLower) {
     return conditionLower.contains('tiada hujan') ||
         conditionLower.contains('no rain') ||
@@ -355,7 +343,6 @@ class TravelScoreCalculator {
         conditionLower.contains('fine');
   }
 
-  /// Evaluates whether a condition is dry. Null/empty returns false (missing != dry).
   static bool _isDryCondition(String? cond) {
     if (cond == null || cond.trim().isEmpty) return false;
     final lower = cond.toLowerCase().trim();
@@ -363,9 +350,6 @@ class TravelScoreCalculator {
     return false;
   }
 
-  // ─── Journey Practicality Algorithm ──────────────────────────────────────────
-
-  /// Calculates Journey Practicality Score (0 - 100) from OSRM driving duration.
   static int? calculateJourneyPracticality(TravelRoute? route) {
     return _calculateJourneyPracticality(route);
   }
@@ -375,19 +359,17 @@ class TravelScoreCalculator {
     final minutes = route.durationMinutes;
 
     if (minutes <= 90) {
-      return 95; // <= 1.5 hours
+      return 95;
     } else if (minutes <= 180) {
-      return 88; // <= 3.0 hours
+      return 88;
     } else if (minutes <= 270) {
-      return 78; // <= 4.5 hours
+      return 78;
     } else if (minutes <= 360) {
-      return 68; // <= 6.0 hours
+      return 68;
     } else {
       return math.max(45, 68 - ((minutes - 360) ~/ 30) * 3);
     }
   }
-
-  // ─── Best Travel Period Calculation ─────────────────────────────────────────
 
   static String _calculateBestTravelPeriod(WeatherInfo weather, bool isWeatherComplete) {
     final morning = weather.morningCondition?.toLowerCase().trim() ?? '';
@@ -413,14 +395,12 @@ class TravelScoreCalculator {
     } else if (!isMorningDry && !isAfternoonDry && isNightDry) {
       return 'Night';
     } else if (!isMorningDry && !isAfternoonDry && !isNightDry) {
-      // All periods have precipitation — recommend Morning as the least-worst option
+
       return 'Morning';
     } else {
       return isMorningDry ? 'Morning' : (isAfternoonDry ? 'Afternoon' : 'Morning');
     }
   }
-
-  // ─── Recommended Departure Calculation ──────────────────────────────────────
 
   static (String, String) _calculateRecommendedDeparture(
     WeatherInfo weather,
@@ -470,15 +450,13 @@ class TravelScoreCalculator {
         'Rain is expected during the day. An evening departure encounters more favourable night conditions.',
       );
     } else {
-      // All periods have precipitation — recommend morning as conditions tend to be calmer early
+
       return (
         'Around 7:30 AM',
         'Rain is forecast throughout the day. Conditions are more suitable earlier in the day — allow extra travel time and prepare for wet conditions.',
       );
     }
   }
-
-  // ─── Preferred Period Matching ─────────────────────────────────────────────
 
   static (TravelRecommendationReason?, String?) _comparePreferredPeriod(
     String? preferredPeriod,
@@ -505,8 +483,6 @@ class TravelScoreCalculator {
     }
   }
 
-  // ─── Reason Codes & Bullet Generation ──────────────────────────────────────
-
   static (List<TravelRecommendationReason>, List<String>) _generateReasonsAndBullets({
     required WeatherInfo weather,
     required TravelRoute? route,
@@ -522,7 +498,6 @@ class TravelScoreCalculator {
     final afternoon = weather.afternoonCondition?.toLowerCase() ?? '';
     final night = weather.nightCondition?.toLowerCase() ?? '';
 
-    // Weather condition bullets
     if (_isDryCondition(morning)) {
       reasons.add(TravelRecommendationReason.favourableMorning);
       bullets.add('Morning conditions (${weather.morningCondition}) are favourable for outdoor travel.');
@@ -551,14 +526,12 @@ class TravelScoreCalculator {
       reasons.add(TravelRecommendationReason.allDayDry);
     }
 
-    // Significant Weather
     final sig = (weather.significantWeather ?? '').toLowerCase();
     if (sig.contains('warning') || sig.contains('amaran') || sig.contains('heavy rain')) {
       reasons.add(TravelRecommendationReason.significantWeatherWarning);
       bullets.add('MET advisory: ${weather.significantWeather}.');
     }
 
-    // Temperatures
     if (weather.maxTemperature != null && weather.maxTemperature! >= 35.0) {
       reasons.add(TravelRecommendationReason.hotTemperature);
       bullets.add('High afternoon temperature expected (${weather.maxTemperature!.round()}°C); stay hydrated.');
@@ -567,7 +540,6 @@ class TravelScoreCalculator {
       bullets.add('Cool climate (${weather.minTemperature?.round() ?? 16}°C – ${weather.maxTemperature!.round()}°C) suitable for sightseeing.');
     }
 
-    // Route / Journey bullets
     if (route != null) {
       if (route.durationMinutes <= 120) {
         reasons.add(TravelRecommendationReason.comfortableDrive);
@@ -581,7 +553,6 @@ class TravelScoreCalculator {
       bullets.add('Direct driving route unavailable; score reflects weather suitability only.');
     }
 
-    // Preferred period reason code
     if (preferredReason != null) {
       reasons.add(preferredReason);
     }
@@ -589,14 +560,12 @@ class TravelScoreCalculator {
     return (reasons, bullets);
   }
 
-  // ─── Weather-Informed Activity Suggestions (Curated Destinations Only) ───────
-
   static List<String> _generateActivityRecommendations({
     required List<String>? activityTags,
     required WeatherInfo weather,
     required String bestPeriod,
   }) {
-    // If destination has no curated tags (e.g. arbitrary geocoded address), return empty list (no fake tags)
+
     if (activityTags == null || activityTags.isEmpty) {
       return [];
     }
@@ -654,8 +623,6 @@ class TravelScoreCalculator {
 
     return activities.take(3).toList();
   }
-
-  // ─── Highlights & Recommendation Text ───────────────────────────────────────
 
   static List<String> _generateHighlights(
     WeatherInfo weather,

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/auth_provider.dart';
@@ -7,7 +7,6 @@ import '../theme/app_text_styles.dart';
 import '../widgets/glass_card.dart';
 import '../routes/app_routes.dart';
 
-/// OnboardingScreen guides new users through HappyWay's core capabilities across 3 interactive slides.
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -87,7 +86,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // Top Bar with Skip Button
+
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 child: Row(
@@ -117,7 +116,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
               ),
 
-              // PageView Content
               Expanded(
                 child: PageView.builder(
                   controller: _pageController,
@@ -130,7 +128,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Hero Visual Glass Container
+
                           GlassCard(
                             padding: const EdgeInsets.all(32),
                             borderRadius: 32,
@@ -163,7 +161,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                           const SizedBox(height: 36),
 
-                          // Badge Tag
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                             decoration: BoxDecoration(
@@ -183,7 +180,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                           const SizedBox(height: 16),
 
-                          // Title
                           Text(
                             item['title'] as String,
                             textAlign: TextAlign.center,
@@ -195,7 +191,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                           const SizedBox(height: 12),
 
-                          // Subtitle
                           Text(
                             item['subtitle'] as String,
                             textAlign: TextAlign.center,
@@ -212,12 +207,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
               ),
 
-              // Bottom Indicator & CTA Button
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 16, 24, 28),
                 child: Column(
                   children: [
-                    // Smooth Dots Indicator
+
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(
@@ -238,7 +232,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                     const SizedBox(height: 28),
 
-                    // Next / Get Started Button
                     SizedBox(
                       width: double.infinity,
                       child: GestureDetector(

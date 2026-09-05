@@ -1,11 +1,11 @@
-/// MetLocation represents a lightweight official Malaysian location from the MET Malaysia API
-/// (`https://api.met.gov.my/v2.1/locations`).
+﻿
+
 class MetLocation {
-  final String id; // Official MET location ID (e.g. "LOCATION:316", "LOCATION:122")
-  final String name; // Official name in MET dataset (e.g. "DESARU", "PORT DICKSON")
-  final String locationCategoryId; // e.g. "TOURISTDEST", "TOWN", "DISTRICT"
-  final String? locationRootId; // State ID (e.g. "LOCATION:1" = Johor)
-  final String state; // Resolved State Name (e.g. "Johor", "Negeri Sembilan")
+  final String id;
+  final String name;
+  final String locationCategoryId;
+  final String? locationRootId;
+  final String state;
   final double? latitude;
   final double? longitude;
 
@@ -19,7 +19,6 @@ class MetLocation {
     this.longitude,
   });
 
-  /// Formatted title case name (e.g., "DESARU" -> "Desaru", "PORT DICKSON" -> "Port Dickson").
   String get formattedName {
     if (name.isEmpty) return name;
     return name.split(' ').map((word) {
@@ -31,7 +30,6 @@ class MetLocation {
     }).join(' ');
   }
 
-  /// User-friendly label for the location category.
   String get categoryLabel {
     switch (locationCategoryId.toUpperCase()) {
       case 'TOURISTDEST':
@@ -49,7 +47,6 @@ class MetLocation {
     }
   }
 
-  /// Subtitle distinguishing duplicate/similar locations, e.g. "Town • Pahang" vs "District • Pahang".
   String get subtitle {
     if (state.isNotEmpty) {
       return '$categoryLabel • $state';

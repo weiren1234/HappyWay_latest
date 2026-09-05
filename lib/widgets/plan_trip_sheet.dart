@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/planned_trip.dart';
@@ -20,14 +20,10 @@ import '../utils/travel_score_calculator.dart';
 import '../main.dart' show navigatorKey, scaffoldMessengerKey;
 import '../routes/app_routes.dart';
 
-/// PlanTripSheet presents the modal bottom sheet form to plan a new trip or edit an existing one.
-/// Supports both pre-selected destinations (from Explore / Destination Detail / Saved)
-/// and internal destination picking (from Trips FAB) with strict coordinate & MET ID separation.
 class PlanTripSheet extends StatefulWidget {
   final TravelLocation? initialDestination;
-  final PlannedTrip? initialTrip; // If editing
+  final PlannedTrip? initialTrip;
 
-  // Backwards compatibility / convenience fields if passed directly
   final String? destinationLocationId;
   final String? destinationName;
   final String? destinationState;
@@ -36,8 +32,6 @@ class PlanTripSheet extends StatefulWidget {
   final double? destinationLongitude;
   final String? destinationImageUrl;
 
-  /// Optional: override the initial travel date (e.g. passed from Travel Analysis so
-  /// Plan This Trip opens on the same date as the analysis, rather than defaulting to tomorrow).
   final DateTime? initialTravelDate;
 
   const PlanTripSheet({
@@ -54,7 +48,6 @@ class PlanTripSheet extends StatefulWidget {
     this.initialTravelDate,
   });
 
-  /// Static helper to show the sheet easily from any screen.
   static Future<PlannedTrip?> show(
     BuildContext context, {
     TravelLocation? initialDestination,
@@ -100,7 +93,6 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
   late String _selectedPeriod;
   late TextEditingController _notesController;
 
-  // Origin Location
   String _originName = 'Current Location';
   double? _originLat;
   double? _originLng;
@@ -135,7 +127,6 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
       _originLat = trip.originLatitude;
       _originLng = trip.originLongitude;
 
-      // Construct destination from initial trip
       final hasMet = trip.destinationLocationId.startsWith('LOCATION:');
       _selectedDestination = TravelLocation(
         id: trip.destinationLocationId.isNotEmpty ? trip.destinationLocationId : 'trip:${trip.id}',
@@ -151,7 +142,7 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
       );
     } else if (widget.initialDestination != null) {
       _selectedDestination = widget.initialDestination;
-      // Use initialTravelDate if provided (e.g. from Travel Analysis), otherwise default to tomorrow
+
       _selectedDate = widget.initialTravelDate != null
           ? DateTime(widget.initialTravelDate!.year, widget.initialTravelDate!.month, widget.initialTravelDate!.day)
           : DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
@@ -171,14 +162,14 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
         metLocationName: hasMet ? widget.destinationName : null,
         imageUrl: widget.destinationImageUrl,
       );
-      // Use initialTravelDate if provided, otherwise default to tomorrow
+
       _selectedDate = widget.initialTravelDate != null
           ? DateTime(widget.initialTravelDate!.year, widget.initialTravelDate!.month, widget.initialTravelDate!.day)
           : DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
       _selectedPeriod = 'Morning';
       _notesController = TextEditingController();
     } else {
-      // Open without pre-selected destination
+
       _selectedDestination = null;
       _selectedDate = widget.initialTravelDate != null
           ? DateTime(widget.initialTravelDate!.year, widget.initialTravelDate!.month, widget.initialTravelDate!.day)
@@ -187,7 +178,6 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
       _notesController = TextEditingController();
     }
 
-    // Initialize origin from LocationProvider if not editing
     if (widget.initialTrip == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final locProvider = Provider.of<LocationProvider>(context, listen: false);
@@ -203,7 +193,6 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
       });
     }
 
-    // Schedule initial live analysis preview calculation
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _recalculatePreview();
     });
@@ -223,7 +212,7 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
       builder: (ctx) => DestinationPickerSheet(
         selectedLocationId: _selectedDestination?.id,
         onSelectTravelLocation: (loc) {
-          // Handled via Navigator.pop(context, loc)
+
         },
       ),
     );
@@ -231,7 +220,7 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
     if (selected != null && mounted) {
       setState(() {
         _selectedDestination = selected;
-        _destinationError = null; // Clear validation error immediately on selection
+        _destinationError = null;
       });
       _recalculatePreview();
     }
@@ -276,7 +265,6 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
       setState(() => _isLoadingPreview = true);
     }
 
-    // Ensure origin coordinates are populated from LocationProvider if not set
     if ((_originLat == null || _originLng == null) && mounted) {
       final locProvider = Provider.of<LocationProvider>(context, listen: false);
       if (locProvider.currentLocation != null) {
@@ -393,7 +381,7 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
   }
 
   Future<void> _saveTrip() async {
-    // Validate destination selection
+
     if (_selectedDestination == null) {
       setState(() {
         _destinationError = 'Please select a destination.';
@@ -407,7 +395,6 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
     final isEdit = widget.initialTrip != null;
     final dest = _selectedDestination!;
 
-    // Resolve official MET location ID safely (never use geo: ID as fallback)
     String effectiveMetId = '';
     if (dest.metLocationId != null && dest.metLocationId!.isNotEmpty) {
       effectiveMetId = dest.metLocationId!;
@@ -473,7 +460,7 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
       if (!mounted) return;
       setState(() => _isSaving = false);
       if (createdTrip != null) {
-        // Switch to Home tab, navigate cleanly to MainScreen, and show success SnackBar
+
         final navProvider = Provider.of<NavigationProvider>(context, listen: false);
         navProvider.setTab(0);
         navigatorKey.currentState?.pushNamedAndRemoveUntil(AppRoutes.main, (route) => false);
@@ -507,8 +494,7 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final isEdit = widget.initialTrip != null;
-    // Location is locked ONLY when editing an existing trip.
-    // For any NEW trip, both Starting Location and Destination are editable!
+
     final isLocked = isEdit;
     final formattedDate = DateFormat('EEEE, d MMMM yyyy').format(_selectedDate);
 
@@ -524,7 +510,7 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Handle bar
+
             Center(
               child: Container(
                 width: 40,
@@ -537,7 +523,6 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
             ),
             const SizedBox(height: 16),
 
-            // Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -571,7 +556,6 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
             ),
             const SizedBox(height: 16),
 
-            // ── Starting Location ───────────────────────────────────────────
             Text('Starting Location (From)', style: AppTextStyles.titleSmall.copyWith(fontSize: 13, color: AppColors.secondaryText(context))),
             const SizedBox(height: 6),
             InkWell(
@@ -605,7 +589,6 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
             ),
             const SizedBox(height: 16),
 
-            // ── Destination Selection Box ────────────────────────────────────
             Text('Destination (To)', style: AppTextStyles.titleSmall.copyWith(fontSize: 13, color: AppColors.secondaryText(context))),
             const SizedBox(height: 6),
             if (_selectedDestination != null)
@@ -709,7 +692,6 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
               ),
             const SizedBox(height: 16),
 
-            // ── Travel Date Picker ──────────────────────────────────────────
             Text('Travel Date', style: AppTextStyles.titleSmall.copyWith(fontSize: 13, color: AppColors.secondaryText(context))),
             const SizedBox(height: 6),
             InkWell(
@@ -739,7 +721,6 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
             ),
             const SizedBox(height: 16),
 
-            // ── Preferred Travel Period ─────────────────────────────────────
             Text('Preferred Travel Period', style: AppTextStyles.titleSmall.copyWith(fontSize: 13, color: AppColors.secondaryText(context))),
             const SizedBox(height: 4),
             Text(
@@ -774,11 +755,9 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
             ),
             const SizedBox(height: 16),
 
-            // ── Live Travel Analysis Preview ────────────────────────────────
             _buildLiveAnalysisPreview(context),
             const SizedBox(height: 16),
 
-            // ── Personal Notes ──────────────────────────────────────────────
             Text('Personal Trip Notes (Optional)', style: AppTextStyles.titleSmall.copyWith(fontSize: 13, color: AppColors.secondaryText(context))),
             const SizedBox(height: 6),
             TextField(
@@ -807,7 +786,6 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
             ),
             const SizedBox(height: 22),
 
-            // ── Save Button ─────────────────────────────────────────────────
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -844,9 +822,6 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
     );
   }
 
-  /// Builds a Suggested Departure tile with a clear date prefix.
-  /// e.g. "6 Sep · Around 11:30 PM"
-  /// If the journey crosses midnight, also shows an Estimated Arrival row.
   Widget _buildDepartureTile(BuildContext context, TravelScore score) {
     final now = DateTime.now();
     final isToday = _selectedDate.year == now.year &&
@@ -856,8 +831,6 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
     final departure = score.recommendedDeparture!;
     final departureWithDate = '$datePrefix · $departure';
 
-    // Attempt to detect overnight arrival from the departureReason text or route duration.
-    // The analyzer already encodes overnight info in departureReason ("on d MMM at h:mm a").
     String? estimatedArrival;
     final reason = score.departureReason ?? '';
     final onMatch = RegExp(r'on (\d+ \w+) at (\d+:\d+ [AP]M)', caseSensitive: false).firstMatch(reason);
@@ -1046,7 +1019,7 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Row 1: Header Tag
+
             Row(
               children: [
                 Icon(Icons.auto_awesome_rounded, color: AppColors.cyanAccent(context), size: 15),
@@ -1068,7 +1041,6 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
             ),
             const SizedBox(height: 3),
 
-            // Row 2: Selected Travel Date Subtitle
             Text(
               formattedDate,
               style: AppTextStyles.bodySmall.copyWith(
@@ -1079,7 +1051,6 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
             ),
             const SizedBox(height: 10),
 
-            // Row 3: Weather/Route Info (Left) + Score Badge (Right)
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -1171,7 +1142,6 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
             ),
             const SizedBox(height: 12),
 
-            // Two key metrics row: Recommended Period & Best Window
             Row(
               children: [
                 Expanded(
@@ -1270,13 +1240,11 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
               ],
             ),
 
-            // Suggested Departure (if departure calculated — shown even without route for weather-only)
             if (score.recommendedDeparture != null) ...[
               const SizedBox(height: 8),
               _buildDepartureTile(context, score),
             ],
 
-            // Advice text
             if (score.recommendation.isNotEmpty) ...[
               const SizedBox(height: 10),
               Text(
@@ -1289,7 +1257,6 @@ class _PlanTripSheetState extends State<PlanTripSheet> {
               ),
             ],
 
-            // Tip if user selected period differs from recommended period
             if (_selectedPeriod != 'Auto' &&
                 score.recommendedPeriod != null &&
                 _selectedPeriod != score.recommendedPeriod) ...[

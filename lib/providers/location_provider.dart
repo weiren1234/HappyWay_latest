@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import '../models/user_location.dart';
@@ -7,18 +7,12 @@ import '../models/met_location.dart';
 import '../services/location_service.dart';
 import '../main.dart' show navigatorKey, scaffoldMessengerKey;
 
-/// LocationProvider manages the user's travel origin:
-/// - Real device GPS positioning (strictly displayed as "Current Location")
-/// - Manual place/address selection with resolved exact coordinates
-/// - Runtime permission states and GPS refresh actions
-/// - Automatic continuation of location flow after returning from Android Location Settings
 class LocationProvider extends ChangeNotifier with WidgetsBindingObserver {
   UserLocation? _currentLocation;
   LocationPermissionState _permissionState = LocationPermissionState.granted;
   bool _isLoading = false;
   String? _errorMessage;
 
-  // Lifecycle & settings resume tracking
   bool _isResolvingLocation = false;
   bool _waitingForLocationSettings = false;
   Completer<bool>? _pendingLocationCompleter;
@@ -57,8 +51,6 @@ class LocationProvider extends ChangeNotifier with WidgetsBindingObserver {
     super.dispose();
   }
 
-  // ─── Lifecycle Observer ───────────────────────────────────────────────────────
-  // Handles automatic continuation when returning from system Location Settings.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && _waitingForLocationSettings) {
@@ -67,16 +59,14 @@ class LocationProvider extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> _handleResumeFromLocationSettings() async {
-    // Clear waiting flag immediately to prevent re-entrant triggers
+
     _waitingForLocationSettings = false;
 
-    // Small delay to allow Android LocationManager cache to refresh after Settings activity returns
     await Future.delayed(const Duration(milliseconds: 200));
 
     final serviceNow = await Geolocator.isLocationServiceEnabled();
     if (!serviceNow) {
-      // User returned without enabling location:
-      // Keep previous/manual location, do not loop or reopen dialog.
+
       _isLoading = false;
       _isResolvingLocation = false;
       notifyListeners();
@@ -87,7 +77,6 @@ class LocationProvider extends ChangeNotifier with WidgetsBindingObserver {
       return;
     }
 
-    // Location service is now ON! Automatically continue permission + GPS flow
     final success = await _continueLocationFlow();
 
     _isResolvingLocation = false;
@@ -97,8 +86,6 @@ class LocationProvider extends ChangeNotifier with WidgetsBindingObserver {
     _pendingLocationCompleter = null;
   }
 
-  /// Requests device GPS permission and fetches high-accuracy GPS coordinates.
-  /// Sets origin to "Current Location" with real device coordinates.
   Future<void> fetchCurrentLocation() async {
     _isLoading = true;
     _errorMessage = null;
@@ -118,46 +105,31 @@ class LocationProvider extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
-  /// Sets a manually selected starting place (geocoded place or MET location).
   void setManualLocation(TravelLocation location) {
     _currentLocation = UserLocation.fromTravelLocation(location);
     _errorMessage = null;
     notifyListeners();
   }
 
-  /// Sets a manually selected starting point from an official MET location.
   void setManualLocationFromMet(MetLocation location) {
     _currentLocation = UserLocation.fromMetLocation(location);
     _errorMessage = null;
     notifyListeners();
   }
 
-  /// Clears manual selection and refreshes device GPS position.
   Future<void> selectCurrentLocation() async {
     await fetchCurrentLocation();
   }
 
-  /// Retries GPS acquisition.
   Future<void> retryGpsLocation() async {
     await fetchCurrentLocation();
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Centralized user-facing "Current Location" flow with interactive dialogs.
-  // Call this from any screen instead of calling selectCurrentLocation() directly.
-  // Returns true if GPS position was successfully resolved.
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  /// Runs the full location resolution flow with user-facing dialogs for each
-  /// error state (service off, denied, denied-forever, GPS failure).
-  /// Screens should call this single method and react to the result via
-  /// [currentLocation] / [isGps] / [permissionState].
   Future<bool> requestCurrentLocation(BuildContext context) async {
-    // Guard: ignore duplicate taps while a request is already in-flight or waiting for resume
+
     if (_isResolvingLocation || _waitingForLocationSettings) return false;
     _isResolvingLocation = true;
 
-    // ── 1. Check if location service is enabled ──────────────────────────────
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       if (!context.mounted) {
@@ -170,7 +142,6 @@ class LocationProvider extends ChangeNotifier with WidgetsBindingObserver {
         return false;
       }
 
-      // User chose "Turn On Location": wait for app to resume after user toggles setting
       _waitingForLocationSettings = true;
       _pendingLocationCompleter = Completer<bool>();
 
@@ -197,7 +168,6 @@ class LocationProvider extends ChangeNotifier with WidgetsBindingObserver {
       );
     }
 
-    // ── 2. Location service is already ON: proceed directly with permission & GPS flow
     try {
       final success = await _continueLocationFlow();
       return success;
@@ -206,7 +176,6 @@ class LocationProvider extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
-  /// Sequential check for HappyWay app permission, then high-accuracy GPS position.
   Future<bool> _continueLocationFlow() async {
     _isLoading = true;
     _errorMessage = null;
@@ -241,7 +210,6 @@ class LocationProvider extends ChangeNotifier with WidgetsBindingObserver {
         }
       }
 
-      // Permission granted: acquire high-accuracy GPS position
       final result = await LocationService.getCurrentLocation();
       _permissionState = result.state;
 
@@ -266,10 +234,6 @@ class LocationProvider extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
-  // ─── Private dialog helpers ──────────────────────────────────────────────────
-
-  /// Shows "Turn on Location" dialog when device location services are OFF.
-  /// Returns true if the user chose "Turn On Location" (agreed to open settings).
   Future<bool> _showLocationServiceDialog(BuildContext context) async {
     final result = await showDialog<bool>(
       context: context,
@@ -306,7 +270,6 @@ class LocationProvider extends ChangeNotifier with WidgetsBindingObserver {
     return result ?? false;
   }
 
-  /// Shows dialog when permission is permanently denied (deniedForever).
   Future<void> _showPermissionPermanentlyDeniedDialog() async {
     final navContext = navigatorKey.currentContext;
     if (navContext == null) return;
@@ -349,7 +312,6 @@ class LocationProvider extends ChangeNotifier with WidgetsBindingObserver {
     );
   }
 
-  /// Shows a SnackBar when permission is denied (not permanently).
   void _showPermissionDeniedMessage() {
     scaffoldMessengerKey.currentState?.showSnackBar(
       SnackBar(
@@ -372,7 +334,6 @@ class LocationProvider extends ChangeNotifier with WidgetsBindingObserver {
     );
   }
 
-  /// Shows a SnackBar when GPS lookup fails.
   void _showGpsFailureMessage() {
     scaffoldMessengerKey.currentState?.showSnackBar(
       SnackBar(

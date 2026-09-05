@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:happyway/models/planned_trip.dart';
@@ -33,7 +33,6 @@ void main() {
         createdAt: DateTime(2026, 8, 21, 10, 0),
       );
 
-      // Verify tripCode formatting
       expect(trip.tripCode, 'T0007');
 
       final json = trip.toJson();
@@ -76,7 +75,6 @@ void main() {
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
 
-      // 1. Today's trip
       final todayTrip = PlannedTrip(
         id: 1,
         destinationLocationId: 'LOCATION:317',
@@ -96,7 +94,6 @@ void main() {
       expect(todayTrip.isWithinForecastRange, isTrue);
       expect(todayTrip.formattedWeekday.isNotEmpty, isTrue);
 
-      // 2. Upcoming trip in 3 days (within 7-day MET forecast range)
       final nearTrip = PlannedTrip(
         id: 2,
         destinationLocationId: 'LOCATION:323',
@@ -115,7 +112,6 @@ void main() {
       expect(nearTrip.tripCode, 'T0002');
       expect(nearTrip.isWithinForecastRange, isTrue);
 
-      // 3. Far-future trip (2 months away - outside MET forecast horizon)
       final farTrip = PlannedTrip(
         id: 3,
         destinationLocationId: 'LOCATION:829',
@@ -132,10 +128,9 @@ void main() {
       expect(farTrip.daysUntil, 60);
       expect(farTrip.relativeDateLabel, 'In 60 days');
       expect(farTrip.tripCode, 'T0003');
-      // Must NOT be within 7-day forecast range (protects data integrity against fake weather)
+
       expect(farTrip.isWithinForecastRange, isFalse);
 
-      // 4. Past trip
       final pastTrip = PlannedTrip(
         id: 4,
         destinationLocationId: 'LOCATION:174',
@@ -160,7 +155,6 @@ void main() {
       final weatherService = WeatherService();
       final farFutureDate = DateTime.now().add(const Duration(days: 30));
 
-      // Querying a date 30 days away must return null (zero mock/fake weather)
       final result = await weatherService.fetchWeatherForLocationAndDate(
         'LOCATION:314',
         farFutureDate,
@@ -194,7 +188,7 @@ void main() {
 
       final score = TravelScoreCalculator.calculateScore(weather: weather);
       expect(score.score, greaterThanOrEqualTo(80));
-      // 5-tier bands: Excellent (90-100), Very Good (80-89), Good (70-79), Moderate (60-69), Less Ideal (<60)
+
       expect(['Excellent', 'Very Good', 'Good', 'Moderate', 'Less Ideal'], contains(score.levelName));
     });
   });
@@ -236,7 +230,6 @@ void main() {
       expect(geoLoc.metLocationId, 'LOCATION:234');
       expect(geoLoc.isMetLocation, isFalse);
 
-      // Verify that geo: ID is NEVER used as destinationLocationId when saving
       final String effectiveMetId = geoLoc.metLocationId ?? '';
       expect(effectiveMetId, 'LOCATION:234');
       expect(effectiveMetId.startsWith('geo:'), isFalse);
@@ -495,7 +488,7 @@ void main() {
     testWidgets('Renders on Samsung A52s dimensions (411x915) without RenderFlex overflow (Light & Dark)', (tester) async {
       for (final brightness in [Brightness.light, Brightness.dark]) {
         tester.view.physicalSize = const Size(1080, 2400);
-        tester.view.devicePixelRatio = 2.625; // 411.4 x 914.3 dp logical size (Samsung A52s)
+        tester.view.devicePixelRatio = 2.625;
         addTearDown(tester.view.resetPhysicalSize);
         addTearDown(tester.view.resetDevicePixelRatio);
 
@@ -578,7 +571,7 @@ void main() {
 
     testWidgets('Renders long Best Departure Window on narrow screen (360x800) without RenderFlex overflow', (tester) async {
       tester.view.physicalSize = const Size(360, 800);
-      tester.view.devicePixelRatio = 1.0; // 360 x 800 dp logical size
+      tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 

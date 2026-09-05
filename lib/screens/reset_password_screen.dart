@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
@@ -7,7 +7,6 @@ import '../widgets/glass_card.dart';
 import '../routes/app_routes.dart';
 import '../utils/validators.dart';
 
-/// ResetPasswordScreen allows a user recovering their account to enter and submit a new password.
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
 
@@ -60,7 +59,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         ),
       );
 
-      // Route to Main
       Navigator.pushNamedAndRemoveUntil(context, AppRoutes.main, (route) => false);
     } else {
       final error = auth.errorMessage ?? 'Failed to update password. Please try again.';
@@ -83,7 +81,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       backgroundColor: AppColors.backgroundDark,
       body: Stack(
         children: [
-          // Ambient Glow
+
           Positioned(
             top: -40,
             left: -40,

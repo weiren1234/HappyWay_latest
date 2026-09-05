@@ -1,18 +1,13 @@
-import '../models/flood_status.dart';
+﻿import '../models/flood_status.dart';
 import 'api_client.dart';
 
-/// FloodService communicates with data.gov.my flood monitoring dataset or fallback mock data.
 class FloodService {
   final ApiClient _apiClient = ApiClient();
 
-  /// Returns the configured ApiClient instance for live API calls.
   ApiClient get apiClient => _apiClient;
 
-  /// Fetches flood risk status for a destination state or district.
   Future<FloodStatus> fetchFloodStatus(String state, String district) async {
     try {
-      // Endpoint contract for data.gov.my flood portal
-      // final response = await _apiClient.dio.get('https://api.data.gov.my/flood-monitoring', queryParameters: {'state': state});
 
       return _getMockFloodStatus(state, district);
     } catch (e) {

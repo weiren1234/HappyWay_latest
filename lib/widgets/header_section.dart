@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
-/// HeaderSection builds standard section headers with titles, subtitles, and optional trailing buttons.
 class HeaderSection extends StatelessWidget {
   final String title;
   final String? subtitle;

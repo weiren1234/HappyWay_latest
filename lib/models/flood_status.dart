@@ -1,7 +1,7 @@
-/// Flood status entity based on data.gov.my river & flood monitoring dataset.
+﻿
 class FloodStatus {
-  final String statusText; // "Normal", "Alert", "Warning", "Danger"
-  final String riverLevelStatus; // "Normal", "Rising", "Overflowing"
+  final String statusText;
+  final String riverLevelStatus;
   final bool isFloodWarningActive;
   final int affectedEvacuationCenters;
   final String details;

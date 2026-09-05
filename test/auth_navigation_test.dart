@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -52,7 +52,6 @@ void main() {
       expect(uri.scheme, 'io.happyway.app');
       expect(uri.host == 'email-confirmed' || uri.path.contains('email-confirmed'), isTrue);
 
-      // Verify it does NOT match reset-password
       expect(uri.host == 'reset-password' || uri.path.contains('reset-password'), isFalse);
     });
 
@@ -61,7 +60,6 @@ void main() {
       expect(uri.scheme, 'io.happyway.app');
       expect(uri.host == 'reset-password' || uri.path.contains('reset-password'), isTrue);
 
-      // Verify it does NOT match email-confirmed
       expect(uri.host == 'email-confirmed' || uri.path.contains('email-confirmed'), isFalse);
     });
 
@@ -113,7 +111,7 @@ void main() {
 
     testWidgets('AppRoutes.splash renders SplashScreen', (tester) async {
       await tester.pumpWidget(buildTestApp(initialRoute: AppRoutes.splash));
-      await tester.pump(); // Splash animation frame
+      await tester.pump();
 
       expect(find.byType(SplashScreen), findsOneWidget);
       expect(find.text('HappyWay'), findsOneWidget);

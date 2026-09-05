@@ -1,10 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../routes/app_routes.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
-/// AuthPromptDialog displays a clean, friendly modal prompt when a Guest user
-/// attempts an action that requires authentication (Save Destination, Plan Trip, etc.).
 class AuthPromptDialog {
   static Future<bool> show(
     BuildContext context, {

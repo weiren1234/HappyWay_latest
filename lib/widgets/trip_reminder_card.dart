@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/planned_trip.dart';
 import '../models/travel_score.dart';
@@ -7,7 +7,6 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import 'glass_card.dart';
 
-/// Reminder type category indicating priority level.
 enum TripReminderType {
   today,
   tomorrow,
@@ -15,12 +14,6 @@ enum TripReminderType {
   upcoming,
 }
 
-/// TripReminderCard presents an in-app proactive reminder banner for upcoming itineraries.
-/// Priority Order:
-/// 1. Trip Today
-/// 2. Trip Tomorrow
-/// 3. Forecast Available (eligible trips with official MET weather ready)
-/// 4. Next Upcoming Trip
 class TripReminderCard extends StatelessWidget {
   final PlannedTrip trip;
   final VoidCallback onTap;
@@ -33,28 +26,24 @@ class TripReminderCard extends StatelessWidget {
     this.isCompact = false,
   });
 
-  /// Evaluates and returns the single highest priority trip for reminders, or null if none.
   static PlannedTrip? resolveTopReminder(List<PlannedTrip> trips, [TripProvider? tripProvider]) {
     if (trips.isEmpty) return null;
 
     final upcoming = trips.where((t) => t.isUpcoming).toList();
     if (upcoming.isEmpty) return null;
 
-    // 1. Trip Today
     final todayTrips = upcoming.where((t) => t.isToday).toList();
     if (todayTrips.isNotEmpty) {
       todayTrips.sort((a, b) => a.travelDate.compareTo(b.travelDate));
       return todayTrips.first;
     }
 
-    // 2. Trip Tomorrow
     final tomorrowTrips = upcoming.where((t) => t.daysUntil == 1).toList();
     if (tomorrowTrips.isNotEmpty) {
       tomorrowTrips.sort((a, b) => a.travelDate.compareTo(b.travelDate));
       return tomorrowTrips.first;
     }
 
-    // 3. Forecast Available (trips in forecast window with MET weather loaded)
     if (tripProvider != null) {
       final forecastAvailableTrips = upcoming.where((t) {
         if (t.id == null) return false;
@@ -66,7 +55,6 @@ class TripReminderCard extends StatelessWidget {
       }
     }
 
-    // 4. Next Upcoming Trip
     upcoming.sort((a, b) => a.travelDate.compareTo(b.travelDate));
     return upcoming.first;
   }
@@ -155,7 +143,7 @@ class TripReminderCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Row: Tag + Countdown badge + Trailing CTA
+
             Row(
               children: [
                 Container(
@@ -201,7 +189,6 @@ class TripReminderCard extends StatelessWidget {
             ),
             const SizedBox(height: 10),
 
-            // Title & Destination Subtitle
             Text(
               title,
               style: AppTextStyles.titleMedium.copyWith(
@@ -221,7 +208,6 @@ class TripReminderCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
 
-            // Score & Period Chip when forecast is available
             if (forecastStatus == TripForecastStatus.available && score != null) ...[
               const SizedBox(height: 10),
               Container(

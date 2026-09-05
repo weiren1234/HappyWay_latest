@@ -1,12 +1,10 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../models/destination_recommendation.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import 'glass_card.dart';
 import 'destination_image_view.dart';
 
-/// RecommendationCard displays a smart destination recommendation with
-/// activity match, official MET weather periods, Destination Match score, reachability status, and explanation.
 class RecommendationCard extends StatelessWidget {
   final DestinationRecommendation recommendation;
   final VoidCallback? onTap;
@@ -33,7 +31,7 @@ class RecommendationCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Image & Top Badges ──────────────────────────────────────────
+
             Stack(
               children: [
                 DestinationImageView(
@@ -47,7 +45,6 @@ class RecommendationCard extends StatelessWidget {
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                 ),
 
-                // Gradient overlay
                 Positioned.fill(
                   child: Container(
                     decoration: BoxDecoration(
@@ -64,7 +61,6 @@ class RecommendationCard extends StatelessWidget {
                   ),
                 ),
 
-                // Top Badges
                 Positioned(
                   top: 12,
                   left: 12,
@@ -93,7 +89,6 @@ class RecommendationCard extends StatelessWidget {
                   ),
                 ),
 
-                // Bottom Title & Reachability Pill on Image
                 Positioned(
                   bottom: 10,
                   left: 14,
@@ -117,13 +112,12 @@ class RecommendationCard extends StatelessWidget {
               ],
             ),
 
-            // ── Card Body ────────────────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.all(14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Reachability Indicator Row
+
                   Wrap(
                     spacing: 6,
                     runSpacing: 6,
@@ -196,7 +190,6 @@ class RecommendationCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
 
-                  // MET Weather Forecast Badges (if available)
                   if (weather != null &&
                       (weather.morningCondition != null || weather.afternoonCondition != null)) ...[
                     Row(
@@ -224,7 +217,6 @@ class RecommendationCard extends StatelessWidget {
                     const SizedBox(height: 10),
                   ],
 
-                  // Best Travel Period
                   Row(
                     children: [
                       Icon(Icons.schedule_rounded, size: 13, color: AppColors.cyanAccent(context)),
@@ -241,7 +233,6 @@ class RecommendationCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
 
-                  // Rule-Based Explanation
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                     decoration: BoxDecoration(
@@ -269,7 +260,6 @@ class RecommendationCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
 
-                  // Actions row
                   Row(
                     children: [
                       Expanded(

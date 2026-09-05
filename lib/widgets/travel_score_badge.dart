@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../models/travel_score.dart';
 import '../theme/app_text_styles.dart';
 
-/// TravelScoreBadge renders a visual travel suitability score indicator.
 class TravelScoreBadge extends StatelessWidget {
   final TravelScore travelScore;
   final bool isCompact;

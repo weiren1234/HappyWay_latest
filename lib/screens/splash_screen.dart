@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -6,11 +6,6 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../routes/app_routes.dart';
 
-/// SplashScreen displays the animated HappyWay brand logo, travel badge,
-/// and functions as the initial Auth Gate:
-/// - Active Supabase session -> Main (Authenticated)
-/// - First launch -> Onboarding -> Guest Home
-/// - Subsequent launch without session -> Login
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -43,7 +38,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     _controller.forward();
 
-    // Check first-launch flag and Supabase session to route correctly
     _navTimer = Timer(const Duration(milliseconds: 2000), () async {
       if (!mounted) return;
       final session = Supabase.instance.client.auth.currentSession;
@@ -89,7 +83,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         child: SafeArea(
           child: Stack(
             children: [
-              // Ambient Glow Circles
+
               Positioned(
                 top: 180,
                 left: MediaQuery.of(context).size.width / 2 - 100,
@@ -118,7 +112,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Icon in Glass Circle
+
                         Container(
                           width: 100,
                           height: 100,
@@ -154,7 +148,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         ),
                         const SizedBox(height: 24),
 
-                        // Title
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -187,7 +180,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         ),
                         const SizedBox(height: 8),
 
-                        // Tagline
                         Text(
                           'Smart Travel Assistant',
                           style: AppTextStyles.bodyLarge.copyWith(
@@ -197,7 +189,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         ),
                         const SizedBox(height: 48),
 
-                        // Subtle Loader
                         SizedBox(
                           width: 28,
                           height: 28,
@@ -214,7 +205,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 ),
               ),
 
-              // Bottom Footer
               Positioned(
                 bottom: 24,
                 left: 0,

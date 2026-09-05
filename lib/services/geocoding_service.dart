@@ -1,9 +1,8 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 import 'package:geocoding/geocoding.dart';
 import '../models/travel_location.dart';
 import 'met_location_service.dart';
 
-/// GeocodingResult contains the list of resolved TravelLocations or a user-friendly error message.
 class GeocodingResult {
   final List<TravelLocation> locations;
   final String? errorMessage;
@@ -16,11 +15,8 @@ class GeocodingResult {
   bool get isSuccess => errorMessage == null && locations.isNotEmpty;
 }
 
-/// GeocodingService resolves user-entered places/addresses into exact coordinates
-/// and matches each location to the nearest appropriate official MET Malaysia weather location.
 class GeocodingService {
-  /// Geocodes a place/address string into one or more [TravelLocation] items.
-  /// Does NOT use Google Maps or paid APIs; uses device/platform geocoder.
+
   static Future<GeocodingResult> searchPlaces(String query) async {
     final cleanQuery = query.trim();
     if (cleanQuery.isEmpty) {
@@ -30,7 +26,7 @@ class GeocodingService {
     }
 
     try {
-      // Append country context if not present to prioritize Malaysian places
+
       String searchQuery = cleanQuery;
       final lower = cleanQuery.toLowerCase();
       if (!lower.contains('malaysia') &&
@@ -61,7 +57,6 @@ class GeocodingService {
 
       final results = <TravelLocation>[];
 
-      // Process unique locations up to max 5 to prevent overload
       final seenCoords = <String>{};
 
       for (final loc in locations.take(5)) {
@@ -90,7 +85,6 @@ class GeocodingService {
 
             state = admin ?? locality ?? 'Malaysia';
 
-            // Construct clean display name (e.g. "Jinjang Utara, Kuala Lumpur", "Jalan Genting Klang, Setapak")
             if (street != null && street.toLowerCase() != subLocality?.toLowerCase() && subLocality != null) {
               displayName = '$street, $subLocality';
             } else if (subLocality != null && locality != null && subLocality != locality) {
@@ -105,7 +99,6 @@ class GeocodingService {
               displayName = cleanQuery;
             }
 
-            // Full address string for detail view
             final addressParts = [
               street,
               subLocality,
@@ -121,7 +114,6 @@ class GeocodingService {
           debugPrint('Reverse geocoding error: $e');
         }
 
-        // Independently match the nearest official MET weather location
         final matchedMet = await MetLocationService.findNearestWeatherLocation(
           loc.latitude,
           loc.longitude,

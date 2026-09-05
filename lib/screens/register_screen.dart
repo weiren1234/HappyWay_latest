@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
@@ -6,8 +6,6 @@ import '../theme/app_text_styles.dart';
 import '../widgets/glass_card.dart';
 import '../utils/validators.dart';
 
-/// RegisterScreen handles new user registration with display_name metadata
-/// and presents email confirmation instructions upon success.
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -83,7 +81,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       backgroundColor: AppColors.backgroundDark,
       body: Stack(
         children: [
-          // Background ambient glow
+
           Positioned(
             top: -40,
             right: -60,
@@ -192,7 +190,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Top Navigation
+
           Row(
             children: [
               IconButton(
@@ -232,7 +230,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Full Name / Display Name
+
                 Text(
                   'Display Name',
                   style: AppTextStyles.bodyMedium.copyWith(
@@ -254,7 +252,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Email
                 Text(
                   'Email Address',
                   style: AppTextStyles.bodyMedium.copyWith(
@@ -276,7 +273,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Password
                 Text(
                   'Password (Min 6 Characters)',
                   style: AppTextStyles.bodyMedium.copyWith(
@@ -306,7 +302,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Confirm Password
                 Text(
                   'Confirm Password',
                   style: AppTextStyles.bodyMedium.copyWith(
@@ -336,7 +331,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Sign Up Button
                 SizedBox(
                   width: double.infinity,
                   height: 50,
@@ -378,7 +372,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
           const SizedBox(height: 24),
 
-          // Already have account?
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

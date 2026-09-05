@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../models/met_location.dart';
 import '../models/travel_destination.dart';
 import '../models/travel_location.dart';
@@ -7,15 +7,11 @@ import '../services/geocoding_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
-/// DestinationPickerSheet provides a multi-mode destination search modal:
-/// 1. Instant local autocomplete across ~448 official MET Malaysia locations
-/// 2. Explicit forward geocoding to resolve detailed places/addresses (e.g. "Jinjang Utara", "Taman Danau Kota")
 class DestinationPickerSheet extends StatefulWidget {
   final String? selectedLocationId;
   final ValueChanged<TravelLocation> onSelectTravelLocation;
-  final ValueChanged<MetLocation>? onSelectLocation; // Backwards compatibility
+  final ValueChanged<MetLocation>? onSelectLocation;
 
-  // Backward compatibility constructors
   final TravelDestination? selectedDestination;
   final ValueChanged<TravelDestination>? onSelect;
 
@@ -150,10 +146,10 @@ class _DestinationPickerSheetState extends State<DestinationPickerSheet> {
         return AppColors.weatherBlue;
       case 'DETAILED PLACE':
       case 'DETAILEDPLACE':
-        return const Color(0xFF00E676); // Emerald Green
+        return const Color(0xFF00E676);
       case 'DISTRICT':
       default:
-        return const Color(0xFFB388FF); // Purple
+        return const Color(0xFFB388FF);
     }
   }
 
@@ -179,7 +175,7 @@ class _DestinationPickerSheetState extends State<DestinationPickerSheet> {
       ),
       child: Column(
         children: [
-          // Drag indicator
+
           Container(
             margin: const EdgeInsets.only(top: 12, bottom: 8),
             width: 44,
@@ -190,7 +186,6 @@ class _DestinationPickerSheetState extends State<DestinationPickerSheet> {
             ),
           ),
 
-          // Header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: Row(
@@ -223,7 +218,6 @@ class _DestinationPickerSheetState extends State<DestinationPickerSheet> {
             ),
           ),
 
-          // Search Input Field
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
             child: Container(
@@ -265,7 +259,6 @@ class _DestinationPickerSheetState extends State<DestinationPickerSheet> {
             ),
           ),
 
-          // Action tile for detailed place search (shown when user is typing)
           if (hasSearchQuery)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
@@ -323,7 +316,6 @@ class _DestinationPickerSheetState extends State<DestinationPickerSheet> {
               ),
             ),
 
-          // Geocoding error notice
           if (_geocodingError != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
@@ -351,14 +343,13 @@ class _DestinationPickerSheetState extends State<DestinationPickerSheet> {
 
           const SizedBox(height: 6),
 
-          // Results List (Detailed Places + Official MET Locations)
           Expanded(
             child: _isLoadingCatalogue
                 ? const Center(child: CircularProgressIndicator(color: AppColors.accentCyan))
                 : ListView(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                     children: [
-                      // ── Geocoded Detailed Places Section ──
+
                       if (_geocodedResults.isNotEmpty) ...[
                         Padding(
                           padding: const EdgeInsets.only(left: 4, bottom: 8, top: 4),
@@ -386,7 +377,6 @@ class _DestinationPickerSheetState extends State<DestinationPickerSheet> {
                         const SizedBox(height: 10),
                       ],
 
-                      // ── Official MET Locations Section ──
                       if (_filteredLocations.isNotEmpty) ...[
                         Padding(
                           padding: const EdgeInsets.only(left: 4, bottom: 8, top: 4),

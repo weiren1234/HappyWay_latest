@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/travel_destination.dart';
@@ -22,11 +22,6 @@ import '../widgets/hourly_weather_card.dart';
 import '../utils/travel_score_calculator.dart';
 import '../utils/canonical_destination_id.dart';
 
-/// TravelInsightsScreen displays the full travel analysis for any travel destination:
-/// - Trip Summary (From → To, Distance, Estimated Drive Time)
-/// - Official MET Malaysia Forecast (Morning / Afternoon / Night / Temperature)
-/// - Recommended Travel Period & Departure (HappyWay rule-based advice)
-/// - Travel Score Breakdown (Weather Suitability + Journey Practicality)
 class TravelInsightsScreen extends StatefulWidget {
   final TravelLocation? travelLocation;
   final TravelDestination? destination;
@@ -120,7 +115,7 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
     if (_weather == null) {
       _loadOfficialForecast();
     }
-    // Load route if not already provided
+
     if (_route == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _loadRoute();
@@ -223,8 +218,6 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     final destProvider = Provider.of<DestinationProvider>(context);
@@ -247,7 +240,7 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            // ── App Bar ────────────────────────────────────────────────────
+
             SliverAppBar(
               pinned: true,
               backgroundColor: AppColors.scaffoldBg(context),
@@ -334,14 +327,13 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
               ],
             ),
 
-            // ── Body ───────────────────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 1. Destination Header
+
                     if (_isFeatured && _imageUrl != null)
                       _buildFeaturedHeader()
                     else if (widget.travelLocation?.source == TravelLocationSource.geocodedPlace)
@@ -350,11 +342,9 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
                       _buildSearchedHeader(),
                     const SizedBox(height: 18),
 
-                    // 2. Trip Summary (From → To, Distance, Duration)
                     _buildTripSummaryCard(),
                     const SizedBox(height: 14),
 
-                    // 3. Travel Score & Best Period
                     if (_isLoadingWeather)
                       _buildLoadingCard()
                     else if (_weatherError != null)
@@ -363,23 +353,18 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
                       _buildTravelScoreCard(travelScore),
                       const SizedBox(height: 14),
 
-                      // 4. Official MET Forecast
                       _buildForecastCard(),
                       const SizedBox(height: 14),
 
-                      // 5. Recommended Departure
                       _buildDepartureCard(travelScore),
                       const SizedBox(height: 14),
 
-                      // 6. Travel Score Breakdown
                       _buildScoreBreakdownCard(travelScore),
                       const SizedBox(height: 14),
 
-                      // 7. Recommendations
                       _buildRecommendationsCard(travelScore),
                       const SizedBox(height: 14),
 
-                      // 8. Disclaimer
                       _buildDisclaimer(),
                     ],
                   ],
@@ -415,7 +400,7 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
                 PlanTripSheet.show(
                   context,
                   initialDestination: travelLoc,
-                  initialTravelDate: DateTime.now(), // Use today's analysis date
+                  initialTravelDate: DateTime.now(),
                 );
               },
               icon: const Icon(Icons.luggage_rounded, size: 18),
@@ -436,8 +421,6 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
       ),
     );
   }
-
-  // ─── Header Builders ─────────────────────────────────────────────────────────
 
   Widget _buildFeaturedHeader() {
     return ClipRRect(
@@ -581,8 +564,6 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
     );
   }
 
-  // ─── Trip Summary Card ────────────────────────────────────────────────────────
-
   Widget _buildTripSummaryCard() {
     return GlassCard(
       padding: const EdgeInsets.all(16),
@@ -598,7 +579,6 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
           ),
           const SizedBox(height: 14),
 
-          // Origin → Destination visual
           Row(
             children: [
               Column(
@@ -638,7 +618,6 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
           Divider(height: 1, color: AppColors.dividerColor(context)),
           const SizedBox(height: 12),
 
-          // Distance & Duration
           if (_isLoadingRoute)
             Center(
               child: Padding(
@@ -695,8 +674,6 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
     );
   }
 
-  // ─── Travel Score Card ────────────────────────────────────────────────────────
-
   Widget _buildTravelScoreCard(TravelScore score) {
     return GlassCard(
       padding: const EdgeInsets.all(16),
@@ -748,8 +725,6 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
     );
   }
 
-  // ─── Forecast Card ─────────────────────────────────────────────────────────────
-
   Widget _buildForecastCard() {
     if (_weather == null) {
       return GlassCard(
@@ -775,11 +750,6 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
     );
   }
 
-  // ─── Departure Card ───────────────────────────────────────────────────────────
-
-  /// Formats a departure time string with its calendar date prefix.
-  /// e.g. "Around 10:30 PM" → "Today · Around 10:30 PM" (if travelDate is today)
-  ///                        → "5 Sep · Around 10:30 PM" (if travelDate is another day)
   String _formatDepartureWithDate(String? departure, DateTime travelDate) {
     if (departure == null || departure.isEmpty) return 'Morning or Early Afternoon';
     final now = DateTime.now();
@@ -898,8 +868,6 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
     );
   }
 
-  // ─── Score Breakdown Card ─────────────────────────────────────────────────────
-
   Widget _buildScoreBreakdownCard(TravelScore score) {
     return GlassCard(
       padding: const EdgeInsets.all(16),
@@ -931,7 +899,6 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
           ),
           const SizedBox(height: 14),
 
-          // Weather Component (100 pts max)
           _ScoreBar(
             label: 'Weather Suitability',
             points: score.weatherSubscore,
@@ -941,7 +908,6 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
           ),
           const SizedBox(height: 12),
 
-          // Route Practicality (100 pts max, or unavailable note)
           if (score.journeySubscore != null) ...[
             _ScoreBar(
               label: 'Journey Practicality',
@@ -977,15 +943,13 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
     );
   }
 
-  // ─── Recommendations Card ─────────────────────────────────────────────────────
-
   Widget _buildRecommendationsCard(TravelScore score) {
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Why this score? ───────────────────────────────────────────────
+
           Row(
             children: [
               const Icon(Icons.lightbulb_outline_rounded, color: Color(0xFFFBBF24), size: 17),
@@ -1014,7 +978,6 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
                 ),
               )),
 
-          // ── Curated Activity Suggestions ──────────────────────────────────
           if (score.recommendedActivities.isNotEmpty) ...[
             const SizedBox(height: 14),
             Divider(height: 1, color: AppColors.dividerColor(context)),
@@ -1044,7 +1007,6 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
                 )),
           ],
 
-          // ── General Highlights / Tips ─────────────────────────────────────
           if (score.highlights.isNotEmpty) ...[
             const SizedBox(height: 14),
             Divider(height: 1, color: AppColors.dividerColor(context)),
@@ -1081,8 +1043,6 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
       ),
     );
   }
-
-  // ─── Loading / Error Placeholders ─────────────────────────────────────────────
 
   Widget _buildLoadingCard() {
     return GlassCard(
@@ -1135,8 +1095,6 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
     );
   }
 }
-
-
 
 class _SummaryTile extends StatelessWidget {
   final IconData icon;

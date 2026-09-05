@@ -1,57 +1,37 @@
-import 'met_location.dart';
+﻿import 'met_location.dart';
 import 'travel_destination.dart';
 
-/// Source type for a travel location.
 enum TravelLocationSource {
-  /// Official location from the MET Malaysia catalogue (TOURISTDEST, TOWN, DISTRICT).
+
   metLocation,
 
-  /// Detailed place or address resolved via platform forward geocoding.
   geocodedPlace,
 }
 
-/// TravelLocation is HappyWay's primary destination model.
-/// It strictly separates the **Actual Travel Destination** (exact coordinates for routing,
-/// trip planning, and saved bookmarks) from the **Official MET Weather Location**
-/// (official MET location ID and forecast area for weather analysis).
 class TravelLocation {
-  /// Unique identifier:
-  /// - For official MET locations: `met:LOCATION:317`
-  /// - For geocoded places: `geo:3.209400,101.668200`
+
   final String id;
 
-  /// User-friendly display name (e.g. "Jinjang Utara, Kuala Lumpur", "Cameron Highlands").
   final String name;
 
-  /// Detailed resolved address if returned by geocoder.
   final String? formattedAddress;
 
-  /// Exact destination latitude (used for OSRM route & navigation).
   final double latitude;
 
-  /// Exact destination longitude (used for OSRM route & navigation).
   final double longitude;
 
-  /// State / administrative area (e.g. "Kuala Lumpur", "Pahang", "Penang").
   final String state;
 
-  /// Destination category (e.g. "Tourist Destination", "Town", "Detailed Place").
   final String category;
 
-  /// Origin source of this location.
   final TravelLocationSource source;
 
-  /// Matched official MET Malaysia location ID for weather lookup (e.g. "LOCATION:234").
-  /// Null if no suitable official MET location is within the valid coverage range.
   final String? metLocationId;
 
-  /// Matched official MET Malaysia location name (e.g. "Kuala Lumpur").
   final String? metLocationName;
 
-  /// Optional image URL (available for featured/curated destinations).
   final String? imageUrl;
 
-  /// Optional description (available for featured destinations).
   final String? description;
 
   const TravelLocation({
@@ -69,13 +49,10 @@ class TravelLocation {
     this.description,
   });
 
-  /// True if this location was directly selected from the official MET catalogue.
   bool get isMetLocation => source == TravelLocationSource.metLocation;
 
-  /// True if an official MET location has been matched for weather forecasting.
   bool get hasWeatherLocation => metLocationId != null && metLocationId!.isNotEmpty;
 
-  /// Creates a TravelLocation from an official MetLocation.
   factory TravelLocation.fromMetLocation(MetLocation loc) {
     return TravelLocation(
       id: 'met:${loc.id}',
@@ -90,7 +67,6 @@ class TravelLocation {
     );
   }
 
-  /// Creates a TravelLocation from a curated TravelDestination.
   factory TravelLocation.fromFeaturedDestination(TravelDestination dest) {
     return TravelLocation(
       id: 'met:${dest.metLocationId.isNotEmpty ? dest.metLocationId : dest.id}',
@@ -107,7 +83,6 @@ class TravelLocation {
     );
   }
 
-  /// Creates a TravelLocation for a geocoded detailed place.
   factory TravelLocation.fromGeocodedPlace({
     required String name,
     String? formattedAddress,
@@ -134,7 +109,6 @@ class TravelLocation {
     );
   }
 
-  /// Converts to MetLocation for backwards compatibility.
   MetLocation toMetLocation() {
     return MetLocation(
       id: metLocationId ?? id,

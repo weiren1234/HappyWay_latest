@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+﻿import 'package:flutter_test/flutter_test.dart';
 import 'package:happyway/models/travel_destination.dart';
 import 'package:happyway/models/destination_recommendation.dart';
 import 'package:happyway/models/weather_info.dart';
@@ -24,7 +24,7 @@ void main() {
         expect(dest.latitude, isNotNull);
         expect(dest.longitude, isNotNull);
         expect(dest.description, isNotEmpty);
-        // Weather must be null on static build (zero mock weather)
+
         expect(dest.weather, isNull);
       }
     });
@@ -70,7 +70,7 @@ void main() {
 
   group('ReachabilityService Classification Tests', () {
     test('Correctly identifies Peninsular road-accessible destinations from Kuala Lumpur', () {
-      // Genting Highlands (Pahang)
+
       expect(
         ReachabilityService.isDirectRoadFeasible(
           originState: 'Kuala Lumpur',
@@ -80,7 +80,6 @@ void main() {
         isTrue,
       );
 
-      // Cameron Highlands (Pahang)
       expect(
         ReachabilityService.isDirectRoadFeasible(
           originState: 'Kuala Lumpur',
@@ -90,7 +89,6 @@ void main() {
         isTrue,
       );
 
-      // Melaka
       expect(
         ReachabilityService.isDirectRoadFeasible(
           originState: 'Kuala Lumpur',
@@ -100,7 +98,6 @@ void main() {
         isTrue,
       );
 
-      // Penang (Connected by bridges)
       expect(
         ReachabilityService.isDirectRoadFeasible(
           originState: 'Kuala Lumpur',
@@ -112,7 +109,7 @@ void main() {
     });
 
     test('Correctly identifies East Malaysia destinations as not road-accessible from Peninsular Malaysia', () {
-      // Kundasang, Sabah from Kuala Lumpur
+
       final isRoadFeasible = ReachabilityService.isDirectRoadFeasible(
         originState: 'Kuala Lumpur',
         destinationName: 'Kundasang & Mt Kinabalu',
@@ -128,7 +125,7 @@ void main() {
     });
 
     test('Correctly identifies offshore islands as requiring water/air transport from Peninsular', () {
-      // Langkawi Island
+
       expect(
         ReachabilityService.isDirectRoadFeasible(
           originState: 'Kuala Lumpur',
@@ -138,7 +135,6 @@ void main() {
         isFalse,
       );
 
-      // Pulau Redang
       expect(
         ReachabilityService.isDirectRoadFeasible(
           originState: 'Kuala Lumpur',
@@ -148,7 +144,6 @@ void main() {
         isFalse,
       );
 
-      // Pulau Tioman
       expect(
         ReachabilityService.isDirectRoadFeasible(
           originState: 'Kuala Lumpur',
@@ -187,7 +182,6 @@ void main() {
         weather: weather,
       );
 
-      // (100 * 0.40) + (85 * 0.60) = 40 + 51 = 91
       expect(rec.recommendationScore, 91);
       expect(rec.matchLevel, 'Great Match');
       expect(rec.selectedPreference, 'Highlands');
@@ -243,14 +237,12 @@ void main() {
 
       expect(recs, isNotEmpty);
 
-      // Peninsular highlands (Genting, Cameron) should be marked road-accessible
       final gentingRec = recs.where((r) => r.destination.name.contains('Genting')).firstOrNull;
       if (gentingRec != null) {
         expect(gentingRec.isRoadAccessible, isTrue);
         expect(gentingRec.reachabilityNote, 'Direct road route available');
       }
 
-      // Sabah highlands (Kundasang) should be marked as direct driving route unavailable
       final kundasangRec = recs.where((r) => r.destination.name.contains('Kundasang')).firstOrNull;
       if (kundasangRec != null) {
         expect(kundasangRec.isRoadAccessible, isFalse);

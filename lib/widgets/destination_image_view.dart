@@ -1,11 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/destination_image_info.dart';
 import '../services/destination_image_service.dart';
 import '../theme/app_colors.dart';
 
-/// DestinationImageView is HappyWay's canonical image widget.
-/// Resolves verified local assets, automatic Pexels photos, or clean neutral placeholders.
 class DestinationImageView extends StatefulWidget {
   final String? name;
   final String? state;

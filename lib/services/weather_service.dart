@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -6,8 +6,6 @@ import '../config/app_config.dart';
 import '../models/weather_info.dart';
 import 'api_client.dart';
 
-/// WeatherService fetches high-resolution hourly forecasts, daily summaries,
-/// sunrise/sunset times, UV, humidity, and MET alerts.
 class WeatherService {
   static const Duration _cacheTtl = Duration(hours: 1);
   static final Map<String, _CachedForecast> _memoryCache = {};
@@ -20,7 +18,6 @@ class WeatherService {
     ),
   );
 
-  /// Mapping of destination keyword -> MET Malaysia location ID.
   static const Map<String, String> _locationIds = {
     'genting': 'LOCATION:317',
     'cameron': 'LOCATION:314',
@@ -43,37 +40,35 @@ class WeatherService {
     'kl': 'LOCATION:237',
   };
 
-  /// Known coordinates fallback map for MET location IDs.
   static const Map<String, (double, double)> _locationCoords = {
-    'LOCATION:317': (3.424, 101.794), // Genting Highlands
-    'LOCATION:314': (4.471, 101.380), // Cameron Highlands
-    'LOCATION:323': (6.350, 99.800), // Langkawi
-    'LOCATION:331': (4.383, 102.400), // Taman Negara
-    'LOCATION:829': (5.980, 116.580), // Kundasang
-    'LOCATION:316': (1.560, 104.267), // Desaru
-    'LOCATION:310': (5.474, 100.250), // Batu Ferringhi
-    'LOCATION:326': (5.770, 103.007), // Redang
-    'LOCATION:324': (4.222, 100.558), // Pangkor
-    'LOCATION:329': (2.815, 104.162), // Tioman
-    'LOCATION:325': (5.908, 102.738), // Perhentian
-    'LOCATION:186': (2.522, 101.795), // Port Dickson
-    'LOCATION:313': (3.712, 101.741), // Fraser's Hill
-    'LOCATION:174': (2.189, 102.250), // Melaka
-    'LOCATION:337': (5.000, 102.800), // Kenyir
-    'LOCATION:315': (4.125, 103.392), // Cherating
-    'LOCATION:237': (3.139, 101.686), // Kuala Lumpur
-    'LOCATION:241': (3.073, 101.518), // Shah Alam
-    'LOCATION:244': (2.926, 101.696), // Putrajaya
-    'LOCATION:240': (2.993, 101.790), // Kajang
-    'LOCATION:242': (3.125, 101.593), // Petaling Jaya
-    'LOCATION:239': (3.308, 101.272), // Kuala Selangor
-    'LOCATION:243': (2.813, 101.696), // Sepang
-    'LOCATION:238': (3.044, 101.445), // Klang
-    'LOCATION:245': (3.033, 101.717), // Seri Kembangan
-    'LOCATION:334': (3.195, 101.710), // Setapak
+    'LOCATION:317': (3.424, 101.794),
+    'LOCATION:314': (4.471, 101.380),
+    'LOCATION:323': (6.350, 99.800),
+    'LOCATION:331': (4.383, 102.400),
+    'LOCATION:829': (5.980, 116.580),
+    'LOCATION:316': (1.560, 104.267),
+    'LOCATION:310': (5.474, 100.250),
+    'LOCATION:326': (5.770, 103.007),
+    'LOCATION:324': (4.222, 100.558),
+    'LOCATION:329': (2.815, 104.162),
+    'LOCATION:325': (5.908, 102.738),
+    'LOCATION:186': (2.522, 101.795),
+    'LOCATION:313': (3.712, 101.741),
+    'LOCATION:174': (2.189, 102.250),
+    'LOCATION:337': (5.000, 102.800),
+    'LOCATION:315': (4.125, 103.392),
+    'LOCATION:237': (3.139, 101.686),
+    'LOCATION:241': (3.073, 101.518),
+    'LOCATION:244': (2.926, 101.696),
+    'LOCATION:240': (2.993, 101.790),
+    'LOCATION:242': (3.125, 101.593),
+    'LOCATION:239': (3.308, 101.272),
+    'LOCATION:243': (2.813, 101.696),
+    'LOCATION:238': (3.044, 101.445),
+    'LOCATION:245': (3.033, 101.717),
+    'LOCATION:334': (3.195, 101.710),
   };
 
-  /// Fetches weather for [locationName] and [state].
   Future<WeatherInfo?> fetchWeatherForLocation(
     String locationName,
     String state, {
@@ -96,7 +91,6 @@ class WeatherService {
     return null;
   }
 
-  /// Fetches weather by exact MET [locationId].
   Future<WeatherInfo?> fetchWeatherForLocationId(
     String locationId, {
     double? latitude,
@@ -120,7 +114,6 @@ class WeatherService {
     return _fetchMetForecastDirect(locationId, DateTime.now(), forceRefresh: forceRefresh);
   }
 
-  /// Fetches weather forecast for a specific [targetDate] and location.
   Future<WeatherInfo?> fetchWeatherForLocationAndDate(
     String locationId,
     DateTime targetDate, {
@@ -144,7 +137,6 @@ class WeatherService {
     return _fetchMetForecastDirect(locationId, targetDate, forceRefresh: forceRefresh);
   }
 
-  /// Fetches hourly and daily weather from Open-Meteo with local caching.
   Future<WeatherInfo?> fetchWeatherForCoordinates({
     required double latitude,
     required double longitude,
@@ -158,7 +150,6 @@ class WeatherService {
     final nextDateStr = _dateString(date.add(const Duration(days: 1)));
     final cacheKey = 'coord_${latitude.toStringAsFixed(3)}_${longitude.toStringAsFixed(3)}_${dateStr}_2d';
 
-    // 1. Check memory cache
     if (!forceRefresh && _memoryCache.containsKey(cacheKey)) {
       final cached = _memoryCache[cacheKey]!;
       if (now.difference(cached.fetchedAt) < _cacheTtl) {
@@ -166,7 +157,6 @@ class WeatherService {
       }
     }
 
-    // 2. Check persistent SharedPreferences cache
     if (!forceRefresh) {
       try {
         final prefs = await SharedPreferences.getInstance();
@@ -184,7 +174,6 @@ class WeatherService {
       } catch (_) {}
     }
 
-    // 3. Request fresh Open-Meteo data (request target date + next day for overnight arrivals)
     try {
       dynamic responseData;
       try {
@@ -204,7 +193,7 @@ class WeatherService {
           responseData = response.data;
         }
       } catch (_) {
-        // Fallback to single date if 2-day query fails
+
         final fallbackResp = await _openMeteoDio.get(
           'forecast',
           queryParameters: {
@@ -230,20 +219,18 @@ class WeatherService {
         return weatherInfo;
       }
     } catch (_) {
-      // If Open-Meteo request fails, attempt MET Malaysia fallback
+
       if (locationId != null && locationId.isNotEmpty) {
         return _fetchMetForecastDirect(locationId, date, forceRefresh: forceRefresh);
       }
     }
 
-    // Return cached if available
     if (_memoryCache.containsKey(cacheKey)) {
       return _memoryCache[cacheKey]!.weatherInfo;
     }
     return null;
   }
 
-  /// Parses Open-Meteo response into [WeatherInfo] with chronologically sorted hourly timeline.
   WeatherInfo _parseOpenMeteoResponse(Map<String, dynamic> data, DateTime targetDate) {
     final hourly = data['hourly'] as Map<String, dynamic>? ?? {};
     final daily = data['daily'] as Map<String, dynamic>? ?? {};
@@ -297,7 +284,6 @@ class WeatherService {
       ));
     }
 
-    // Daily fields for target date
     final maxT = (daily['temperature_2m_max'] as List<dynamic>?)?.firstOrNull as num?;
     final minT = (daily['temperature_2m_min'] as List<dynamic>?)?.firstOrNull as num?;
     final uv = (daily['uv_index_max'] as List<dynamic>?)?.firstOrNull as num?;
@@ -339,10 +325,8 @@ class WeatherService {
       }
     }
 
-    // Sort all multi-day items chronologically
     items.sort((a, b) => a.time.compareTo(b.time));
 
-    // Target date items for daily summary calculations
     final targetDayItems = items.where((i) =>
         i.time.year == targetDate.year &&
         i.time.month == targetDate.month &&
@@ -350,7 +334,6 @@ class WeatherService {
         !i.isSunset &&
         !i.isSunrise).toList();
 
-    // Determine period conditions strictly for target date
     String? morningCond;
     String? afternoonCond;
     String? nightCond;
@@ -362,7 +345,6 @@ class WeatherService {
       if (h >= 18 && h <= 23 && nightCond == null) nightCond = item.condition;
     }
 
-    // Calculate averages & overall primary condition for target date
     final dailyWCode = (daily['weather_code'] as List<dynamic>?)?.firstOrNull as num? ?? 0;
     final primaryCondition = _conditionFromWmo(dailyWCode.toInt());
     final primaryIcon = _iconFromWmo(dailyWCode.toInt());
@@ -401,7 +383,6 @@ class WeatherService {
     );
   }
 
-  /// Maps WMO Weather Code to standard condition title.
   static String _conditionFromWmo(int code) {
     switch (code) {
       case 0: return 'Sunny';
@@ -426,7 +407,6 @@ class WeatherService {
     }
   }
 
-  /// Maps WMO Weather Code to granular icon code.
   static String _iconFromWmo(int code) {
     switch (code) {
       case 0: return 'sunny';
@@ -451,7 +431,6 @@ class WeatherService {
     }
   }
 
-  /// Direct MET Malaysia fallback request
   Future<WeatherInfo?> _fetchMetForecastDirect(String locationId, DateTime targetDate, {bool forceRefresh = false}) async {
     final now = DateTime.now();
     final dateStr = _dateString(targetDate);

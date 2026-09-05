@@ -1,12 +1,7 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/planned_trip.dart';
 
-/// TripService manages cloud persistence of user planned trips using Supabase table `planned_trips`.
-/// Adheres strictly to Row Level Security (RLS) policies for authenticated users.
-///
-/// NOTE: Weather, score, and live route duration are NOT stored permanently in Supabase;
-/// they are queried dynamically to guarantee official data integrity.
 class TripService {
   static final TripService _instance = TripService._internal();
   factory TripService() => _instance;
@@ -14,7 +9,6 @@ class TripService {
 
   SupabaseClient get _client => Supabase.instance.client;
 
-  /// Retrieves all saved planned trips for the given authenticated user from Supabase.
   Future<List<PlannedTrip>> getTrips(String userId) async {
     debugPrint('[TripService] ========================================');
     debugPrint('[TripService] AUTH USER ID: $userId');
@@ -47,7 +41,6 @@ class TripService {
     return trips;
   }
 
-  /// Inserts a new planned trip into Supabase and returns the trip with its generated database integer ID.
   Future<PlannedTrip> saveTrip(String userId, PlannedTrip trip) async {
     final payload = trip.toSupabase(userId: userId);
     final response = await _client
@@ -59,7 +52,6 @@ class TripService {
     return PlannedTrip.fromJson(response);
   }
 
-  /// Updates an existing planned trip in Supabase.
   Future<void> updateTrip(String userId, PlannedTrip trip) async {
     if (trip.id == null) return;
     final payload = trip.toSupabase(userId: userId);
@@ -72,7 +64,6 @@ class TripService {
         .eq('user_id', userId);
   }
 
-  /// Deletes a planned trip by its integer database ID.
   Future<void> deleteTrip(String userId, int tripId) async {
     await _client
         .from('planned_trips')
@@ -81,7 +72,6 @@ class TripService {
         .eq('user_id', userId);
   }
 
-  /// Finds a specific trip by its integer database ID.
   Future<PlannedTrip?> getTripById(String userId, int tripId) async {
     try {
       final response = await _client

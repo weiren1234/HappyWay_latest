@@ -1,26 +1,23 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import 'travel_destination.dart';
 import 'travel_route.dart';
 import 'weather_info.dart';
 
-/// DestinationRecommendation represents a smart, rule-based recommendation
-/// for a curated destination based on user activity preference, official MET Malaysia forecast,
-/// and reachability / journey practicality from user origin.
 class DestinationRecommendation {
   final TravelDestination destination;
   final String selectedPreference;
-  final int recommendationScore; // Destination Match Score (0 - 100)
-  final int activityMatchScore; // Activity Match score
-  final int weatherSuitabilityScore; // Weather Suitability score
-  final int? journeyPracticalityScore; // Journey Practicality score (road-accessible only)
+  final int recommendationScore;
+  final int activityMatchScore;
+  final int weatherSuitabilityScore;
+  final int? journeyPracticalityScore;
   final TravelRoute? route;
-  final String matchLevel; // "Great Match", "Good Match", "Moderate Match", "Less Recommended"
+  final String matchLevel;
   final Color matchColor;
-  final String bestTravelPeriod; // e.g. "Morning", "Afternoon", "All Day"
-  final String reason; // Rule-based explanation derived from official MET forecast fields + route
-  final bool isRoadAccessible; // True if direct road driving is feasible from user's location
-  final String reachabilityNote; // e.g. "Direct road route available" or "Direct driving route unavailable"
+  final String bestTravelPeriod;
+  final String reason;
+  final bool isRoadAccessible;
+  final String reachabilityNote;
   final WeatherInfo? weather;
 
   const DestinationRecommendation({
@@ -40,11 +37,6 @@ class DestinationRecommendation {
     this.weather,
   });
 
-  /// Factory helper to build recommendation with score calculation:
-  /// - For road-accessible with route/journey score:
-  ///   30% Activity Match + 45% Weather Suitability + 25% Journey Practicality
-  /// - For getaways or when journey score is unavailable:
-  ///   40% Activity Match + 60% Weather Suitability
   factory DestinationRecommendation.build({
     required TravelDestination destination,
     required String selectedPreference,

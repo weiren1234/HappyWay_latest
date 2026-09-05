@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../main.dart' show scaffoldMessengerKey;
 import '../models/saved_location.dart';
@@ -17,13 +17,6 @@ import 'destination_detail_screen.dart';
 import 'travel_insights_screen.dart';
 import '../utils/canonical_destination_id.dart';
 
-/// SavedScreen shows bookmarked travel destinations and MET locations.
-///
-/// Interaction model:
-///   • Tap card body  → Destination Detail (MET or geocoded)
-///   • Tap Analysis   → TravelInsightsScreen
-///   • Tap Plan Trip  → PlanTripSheet with pre-selected destination
-///   • Swipe left     → Immediate remove + Undo SnackBar (Supabase-backed)
 class SavedScreen extends StatefulWidget {
   const SavedScreen({super.key});
 
@@ -32,8 +25,6 @@ class SavedScreen extends StatefulWidget {
 }
 
 class _SavedScreenState extends State<SavedScreen> {
-
-  // ─── Navigation helpers ───────────────────────────────────────────────────
 
   void _openDetail(BuildContext ctx, SavedLocation item, TravelDestination? featuredMatch) {
     if (featuredMatch != null) {
@@ -44,9 +35,7 @@ class _SavedScreenState extends State<SavedScreen> {
         ),
       );
     } else {
-      // Geocoded / MET-only saved location — navigate to TravelInsightsScreen
-      // using the precise destination coordinates while MET weather uses the
-      // matched MET location ID.
+
       final locProvider = Provider.of<LocationProvider>(ctx, listen: false);
       Navigator.push(
         ctx,
@@ -81,8 +70,6 @@ class _SavedScreenState extends State<SavedScreen> {
       initialDestination: item.toTravelLocation(),
     );
   }
-
-  // ─── Delete with Undo ───────────────────────────────────────────────────────
 
   Future<void> _handleDelete(BuildContext ctx, SavedLocation item) async {
     final confirmed = await showDialog<bool>(
@@ -130,7 +117,7 @@ class _SavedScreenState extends State<SavedScreen> {
     if (!ctx.mounted) return;
 
     if (error != null) {
-      // DELETE failed — UI was already restored by the provider. Show error.
+
       scaffoldMessengerKey.currentState
         ?..hideCurrentSnackBar()
         ..showSnackBar(
@@ -145,7 +132,6 @@ class _SavedScreenState extends State<SavedScreen> {
       return;
     }
 
-    // DELETE succeeded — show Undo SnackBar.
     scaffoldMessengerKey.currentState
       ?..hideCurrentSnackBar()
       ..showSnackBar(
@@ -191,15 +177,12 @@ class _SavedScreenState extends State<SavedScreen> {
     }
   }
 
-  // ─── Build ────────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
     final destProvider = Provider.of<DestinationProvider>(context);
     final savedList = destProvider.savedLocations;
 
-    // Guest wall — Saved requires authentication
     if (auth.isGuest) {
       return Scaffold(
         backgroundColor: Colors.transparent,
@@ -344,8 +327,6 @@ class _SavedScreenState extends State<SavedScreen> {
   }
 }
 
-// ─── Saved Card ─────────────────────────────────────────────────────────────
-
 class _SavedCard extends StatelessWidget {
   final SavedLocation item;
   final TravelDestination? featuredMatch;
@@ -371,9 +352,7 @@ class _SavedCard extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
-      // Wrap the entire card in Material + InkWell for a full-card ripple tap
-      // that opens Destination Detail, while the action buttons inside use
-      // GestureDetector (which stops tap propagation to the InkWell parent).
+
       child: Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(24),
@@ -384,13 +363,12 @@ class _SavedCard extends StatelessWidget {
           highlightColor: AppColors.accentCyan.withValues(alpha: 0.04),
           child: GlassCard(
             padding: EdgeInsets.zero,
-            // GlassCard already has a borderRadius of 24 — wrap with ClipRRect
-            // so the InkWell ripple is clipped to the card boundary.
+
             child: ClipRRect(
               borderRadius: BorderRadius.circular(24),
               child: Row(
                 children: [
-                  // ── Thumbnail ─────────────────────────────────────────────
+
                   DestinationImageView(
                     name: item.name,
                     state: item.state,
@@ -402,14 +380,13 @@ class _SavedCard extends StatelessWidget {
                     borderRadius: const BorderRadius.horizontal(left: Radius.circular(24)),
                   ),
 
-                  // ── Info ──────────────────────────────────────────────────
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Name + category badge + delete button row
+
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -465,7 +442,7 @@ class _SavedCard extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 3),
-                          // State / weather area subtitle
+
                           Row(
                             children: [
                               Icon(
@@ -490,9 +467,6 @@ class _SavedCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 10),
 
-                          // ── Action row ──────────────────────────────────
-                          // GestureDetector on each button absorbs the tap so
-                          // it does NOT bubble up to the parent InkWell/onTapCard.
                           Row(
                             children: [
                               _ActionButton(
@@ -523,8 +497,6 @@ class _SavedCard extends StatelessWidget {
   }
 }
 
-// ─── Action Button (absorbs taps — does not bubble to card InkWell) ──────────
-
 class _ActionButton extends StatelessWidget {
   final String label;
   final IconData icon;
@@ -541,9 +513,9 @@ class _ActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      // onTap is consumed here — no event reaches the parent InkWell.
+
       onTap: onTap,
-      // Prevent the tap event from reaching ancestors (e.g. the card InkWell).
+
       behavior: HitTestBehavior.opaque,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -578,8 +550,6 @@ class _ActionButton extends StatelessWidget {
     );
   }
 }
-
-// ─── Empty state ──────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState();

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
@@ -6,9 +6,6 @@ import '../theme/app_text_styles.dart';
 import '../widgets/glass_card.dart';
 import '../routes/app_routes.dart';
 
-/// EmailConfirmedScreen is shown when the user taps the Supabase email
-/// confirmation link (io.happyway.app://email-confirmed).
-/// It confirms the account is verified and prompts the user to continue into the app.
 class EmailConfirmedScreen extends StatelessWidget {
   const EmailConfirmedScreen({super.key});
 
@@ -18,7 +15,7 @@ class EmailConfirmedScreen extends StatelessWidget {
       backgroundColor: AppColors.backgroundDark,
       body: Stack(
         children: [
-          // Background ambient glows
+
           Positioned(
             top: -40,
             right: -60,
@@ -53,7 +50,7 @@ class EmailConfirmedScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Success icon
+
                     Center(
                       child: Container(
                         width: 90,
@@ -82,7 +79,6 @@ class EmailConfirmedScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
 
-                    // Title
                     Text(
                       'Email Confirmed',
                       style: AppTextStyles.titleHero.copyWith(fontSize: 28),
@@ -90,7 +86,6 @@ class EmailConfirmedScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
 
-                    // Info card
                     GlassCard(
                       padding: const EdgeInsets.all(22),
                       borderColor: AppColors.safeGreen.withValues(alpha: 0.25),
@@ -122,7 +117,6 @@ class EmailConfirmedScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 32),
 
-                    // Continue to HappyWay Button
                     SizedBox(
                       height: 52,
                       child: ElevatedButton.icon(
@@ -160,7 +154,6 @@ class EmailConfirmedScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
 
-                    // App branding
                     Center(
                       child: Text(
                         'HappyWay · Smart Travel Planning',

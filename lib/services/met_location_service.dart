@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -6,11 +6,6 @@ import '../config/app_config.dart';
 import '../models/met_location.dart';
 import 'api_client.dart';
 
-/// MetLocationService manages the dynamic catalogue of ~448 official MET Malaysia locations
-/// across TOURISTDEST, TOWN, and DISTRICT categories.
-///
-/// Implements local persistence via SharedPreferences, nearest MET weather location matching
-/// via Haversine distance with state/category priority, and fallback asset bundling.
 class MetLocationService {
   static const String _cacheKey = 'met_locations_cache_v1';
   static const String _cacheTimeKey = 'met_locations_cache_timestamp_v1';
@@ -19,8 +14,6 @@ class MetLocationService {
 
   static List<MetLocation>? _cachedLocations;
 
-  /// Loads and returns all official MET locations.
-  /// Uses memory cache -> SharedPreferences -> bundled JSON asset in order.
   static Future<List<MetLocation>> getLocations() async {
     if (_cachedLocations != null && _cachedLocations!.isNotEmpty) {
       return _cachedLocations!;
@@ -35,7 +28,7 @@ class MetLocationService {
         final List<dynamic> list = jsonDecode(cachedJson) as List<dynamic>;
         _cachedLocations = list.map((item) => MetLocation.fromJson(item as Map<String, dynamic>)).toList();
         
-        // Background refresh if cache is older than TTL
+
         if (cacheTimestamp == null ||
             DateTime.now().millisecondsSinceEpoch - cacheTimestamp > _cacheTtl.inMilliseconds) {
           _refreshLocationsFromApiInBackground();
@@ -43,16 +36,15 @@ class MetLocationService {
         return _cachedLocations!;
       }
     } catch (_) {
-      // SharedPreferences read failure; fallback to bundled asset
+
     }
 
-    // Load from bundled asset
     try {
       final raw = await rootBundle.loadString('assets/data/met_locations.json');
       final List<dynamic> list = jsonDecode(raw) as List<dynamic>;
       _cachedLocations = list.map((item) => MetLocation.fromJson(item as Map<String, dynamic>)).toList();
       
-      // Save to SharedPreferences for future fast access
+
       _saveToCache(_cachedLocations!);
     } catch (_) {
       _cachedLocations = [];
@@ -61,7 +53,6 @@ class MetLocationService {
     return _cachedLocations ?? [];
   }
 
-  /// Calculates the Haversine great-circle distance between two geographic coordinates in kilometers.
   static double calculateHaversineDistanceKm(
     double lat1,
     double lon1,
@@ -81,13 +72,6 @@ class MetLocationService {
     return _earthRadiusKm * c;
   }
 
-  /// Finds the most appropriate official MET land location for a given coordinate.
-  /// Strictly excludes marine/waters locations.
-  /// Applies tiered scoring with category weighting (TOWN/TOURISTDEST prioritized over broad DISTRICT)
-  /// and state alignment bonus.
-  ///
-  /// The [maxDistanceKm] is a HappyWay safeguard (default 100.0 km).
-  /// If no land MET location is within this threshold, returns null.
   static Future<MetLocation?> findNearestWeatherLocation(
     double latitude,
     double longitude, {
@@ -96,7 +80,6 @@ class MetLocationService {
   }) async {
     final all = await getLocations();
 
-    // Filter exclusively to valid land categories (strictly exclude WATERS/marine)
     final landLocations = all.where((loc) {
       if (loc.latitude == null || loc.longitude == null) return false;
       final cat = loc.locationCategoryId.toUpperCase();
@@ -121,14 +104,12 @@ class MetLocationService {
 
       if (actualDistance > maxDistanceKm) continue;
 
-      // Category weighting: Town and Tourist Destination are more localized than broad District
       double categoryMultiplier = 1.0;
       final cat = loc.locationCategoryId.toUpperCase();
       if (cat == 'TOURISTDEST' || cat == 'TOWN') {
         categoryMultiplier = 0.88;
       }
 
-      // State alignment bonus
       double stateMultiplier = 1.0;
       if (cleanPreferredState != null &&
           cleanPreferredState.isNotEmpty &&
@@ -152,7 +133,6 @@ class MetLocationService {
     return null;
   }
 
-  /// Searches the official MET location catalogue with state and category disambiguation.
   static Future<List<MetLocation>> searchLocations(String query) async {
     final all = await getLocations();
     final q = query.trim().toLowerCase();
@@ -177,7 +157,6 @@ class MetLocationService {
     return [...startsWith, ...contains];
   }
 
-  /// Finds a specific MET location by its official ID (e.g. "LOCATION:317").
   static Future<MetLocation?> getLocationById(String id) async {
     final all = await getLocations();
     for (final loc in all) {
@@ -195,7 +174,6 @@ class MetLocationService {
     } catch (_) {}
   }
 
-  /// Background task to refresh the official MET locations catalogue from the API.
   static Future<void> _refreshLocationsFromApiInBackground() async {
     try {
       final token = await AppConfig.getMetToken();
@@ -203,7 +181,6 @@ class MetLocationService {
 
       final dio = ApiClient.createMetDio(token);
 
-      // Fetch state names first for root id mapping
       final states = <String, String>{};
       final stateRes = await dio.get('locations', queryParameters: {'locationcategoryid': 'STATE'});
       final stateResults = stateRes.data['results'] as List<dynamic>? ?? [];
@@ -262,7 +239,7 @@ class MetLocationService {
         await _saveToCache(freshLocations);
       }
     } catch (_) {
-      // Silent failure for background refresh
+
     }
   }
 }

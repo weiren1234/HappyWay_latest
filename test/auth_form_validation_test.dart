@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -39,33 +39,26 @@ void main() {
       await tester.pumpWidget(buildTestableWidget(const LoginScreen()));
       await tester.pumpAndSettle();
 
-      // Tap Sign In button without entering any details
       final signInBtn = find.widgetWithText(ElevatedButton, 'Sign In');
       await tester.tap(signInBtn);
       await tester.pumpAndSettle();
 
-      // Errors must appear
       expect(find.text('Please enter your email.'), findsOneWidget);
       expect(find.text('Please enter your password.'), findsOneWidget);
 
-      // Now enter valid institutional email
       final emailField = find.byType(TextFormField).first;
       await tester.enterText(emailField, 'tanwr-wm23@student.tarc.edu.my');
       await tester.pumpAndSettle();
 
-      // Email error must be removed immediately without requiring another submit
       expect(find.text('Please enter your email.'), findsNothing);
       expect(find.text('Please enter a valid email address.'), findsNothing);
 
-      // Password error remains until corrected
       expect(find.text('Please enter your password.'), findsOneWidget);
 
-      // Now enter password
       final passwordField = find.byType(TextFormField).last;
       await tester.enterText(passwordField, '123456');
       await tester.pumpAndSettle();
 
-      // Password error must be removed immediately
       expect(find.text('Please enter your password.'), findsNothing);
     });
   });
@@ -75,7 +68,6 @@ void main() {
       await tester.pumpWidget(buildTestableWidget(const RegisterScreen()));
       await tester.pumpAndSettle();
 
-      // Tap Create Account
       final createAccountBtn = find.widgetWithText(ElevatedButton, 'Create Account');
       await tester.tap(createAccountBtn);
       await tester.pumpAndSettle();
@@ -84,32 +76,26 @@ void main() {
       expect(find.text('Please enter your email.'), findsOneWidget);
       expect(find.text('Please enter your password.'), findsOneWidget);
 
-      // Fill name
       await tester.enterText(find.byType(TextFormField).at(0), 'Wei Ren');
       await tester.pumpAndSettle();
       expect(find.text('Please enter your display name.'), findsNothing);
 
-      // Fill valid email
       await tester.enterText(find.byType(TextFormField).at(1), 'tanwr-wm23@student.tarc.edu.my');
       await tester.pumpAndSettle();
       expect(find.text('Please enter your email.'), findsNothing);
 
-      // Fill short password
       await tester.enterText(find.byType(TextFormField).at(2), '123');
       await tester.pumpAndSettle();
       expect(find.text('Password must be at least 6 characters.'), findsOneWidget);
 
-      // Fix password
       await tester.enterText(find.byType(TextFormField).at(2), '123456');
       await tester.pumpAndSettle();
       expect(find.text('Password must be at least 6 characters.'), findsNothing);
 
-      // Mismatched confirm password
       await tester.enterText(find.byType(TextFormField).at(3), '654321');
       await tester.pumpAndSettle();
       expect(find.text('Passwords do not match.'), findsOneWidget);
 
-      // Match confirm password
       await tester.enterText(find.byType(TextFormField).at(3), '123456');
       await tester.pumpAndSettle();
       expect(find.text('Passwords do not match.'), findsNothing);

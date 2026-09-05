@@ -1,25 +1,20 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/travel_route.dart';
 
-/// Categories of route calculation failure.
 enum RouteFailureReason {
-  /// Invalid or missing coordinates (0.0, NaN, or out of range).
+
   invalidCoordinates,
 
-  /// OSRM returned NoRoute, NoSegment, or destination is not road-accessible.
   noDirectRoute,
 
-  /// Network error, timeout, DNS resolution failure, or server unreachable.
   networkError,
 
-  /// OSRM server error (HTTP 5xx).
   serverError,
 }
 
-/// Detailed result of a route calculation.
 class RouteCalculationResult {
   final TravelRoute? route;
   final RouteFailureReason? failureReason;
@@ -43,11 +38,6 @@ class RouteCalculationResult {
   bool get isSuccess => route != null;
 }
 
-/// RouteService queries the Open Source Routing Machine (OSRM) driving API
-/// to calculate real road distance and estimated driving duration.
-///
-/// NOTE: The duration returned represents normal estimated driving duration,
-/// NOT live traffic data.
 class RouteService {
   static final RouteService _instance = RouteService._internal();
   factory RouteService() => _instance;
@@ -56,7 +46,7 @@ class RouteService {
     BaseOptions(
       connectTimeout: const Duration(seconds: 12),
       receiveTimeout: const Duration(seconds: 12),
-      validateStatus: (status) => status != null && status < 500, // Handle 2xx, 3xx, 4xx without throwing
+      validateStatus: (status) => status != null && status < 500,
       headers: {
         'User-Agent': 'HappyWay-App/1.0 (Malaysia Travel Planning)',
         'Accept': 'application/json',
@@ -71,8 +61,6 @@ class RouteService {
 
   RouteService._internal();
 
-  /// Calculates driving route distance and duration between origin and destination.
-  /// Returns a detailed [RouteCalculationResult] with typed failure reasons and messages.
   Future<RouteCalculationResult> calculateRouteDetails({
     required String originName,
     required double originLat,
@@ -82,7 +70,7 @@ class RouteService {
     required double destLng,
     bool forceRefresh = false,
   }) async {
-    // 1. Validate coordinates
+
     if (originLat == 0.0 ||
         originLng == 0.0 ||
         destLat == 0.0 ||
@@ -100,7 +88,6 @@ class RouteService {
 
     final cacheKey = _generateCacheKey(originLat, originLng, destLat, destLng);
 
-    // 2. In-memory cache check
     if (!forceRefresh && _memoryCache.containsKey(cacheKey)) {
       final (cachedRoute, timestamp) = _memoryCache[cacheKey]!;
       if (DateTime.now().difference(timestamp) < _cacheTtl) {
@@ -109,7 +96,6 @@ class RouteService {
       }
     }
 
-    // 3. SharedPreferences cache check
     if (!forceRefresh) {
       final diskRoute = await _readDiskCache(cacheKey);
       if (diskRoute != null) {
@@ -119,8 +105,6 @@ class RouteService {
       }
     }
 
-    // 4. Live OSRM REST Request
-    // OSRM requires: /route/v1/driving/{longitude},{latitude};{longitude},{latitude}?overview=false
     final url =
         'https://router.project-osrm.org/route/v1/driving/$originLng,$originLat;$destLng,$destLat?overview=false';
 
@@ -174,7 +158,6 @@ class RouteService {
 
           debugPrint('[RouteService] Route calculated successfully: ${route.distanceFormatted}, ${route.durationFormatted}');
 
-          // Save to memory and disk cache
           _memoryCache[cacheKey] = (route, DateTime.now());
           await _writeDiskCache(cacheKey, route);
 
@@ -182,7 +165,6 @@ class RouteService {
         }
       }
 
-      // Handle specific OSRM NoRoute / NoSegment responses
       if (osrmCode == 'NoRoute' || osrmCode == 'NoSegment') {
         return RouteCalculationResult.failure(
           failureReason: RouteFailureReason.noDirectRoute,
@@ -222,8 +204,6 @@ class RouteService {
     }
   }
 
-  /// Calculates driving route distance and duration between origin and destination.
-  /// Returns `null` if the route calculation fails (no fake fallback data).
   Future<TravelRoute?> calculateDrivingRoute({
     required String originName,
     required double originLat,

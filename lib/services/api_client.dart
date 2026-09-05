@@ -1,11 +1,9 @@
-import 'package:dio/dio.dart';
+﻿import 'package:dio/dio.dart';
 
-/// ApiClient configures Dio HTTP clients for fetching Malaysian open data.
 class ApiClient {
   static final ApiClient _instance = ApiClient._internal();
   factory ApiClient() => _instance;
 
-  /// General-purpose Dio for unauthenticated APIs (e.g. data.gov.my).
   late final Dio dio;
 
   ApiClient._internal() {
@@ -22,8 +20,6 @@ class ApiClient {
     _attachLogger(dio);
   }
 
-  /// Creates a new Dio instance pre-configured for the MET Malaysia API.
-  /// The caller must supply the Bearer token loaded from AppConfig.
   static Dio createMetDio(String token) {
     final metDio = Dio(
       BaseOptions(

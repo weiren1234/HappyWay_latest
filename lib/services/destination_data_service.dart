@@ -1,36 +1,31 @@
-import '../models/travel_destination.dart';
+﻿import '../models/travel_destination.dart';
 import '../models/travel_score.dart';
 
-/// DestinationDataService provides a curated directory of 16 top Malaysian tourist destinations,
-/// each linked to a verified official MET Malaysia weather forecast location ID.
-///
-/// NOTE: Weather data is populated exclusively on-demand from the official MET API.
 class DestinationDataService {
-  /// Confirmed MET Malaysia location IDs for each curated destination.
+
   static const Map<String, String> metLocationIds = {
-    'dest_cameron': 'LOCATION:314', // Cameron Highlands
-    'dest_langkawi': 'LOCATION:323', // Langkawi Island
-    'dest_genting': 'LOCATION:317', // Genting Highlands
-    'dest_kundasang': 'LOCATION:829', // Kundasang & Mt Kinabalu
-    'dest_taman_negara': 'LOCATION:331', // Taman Negara
-    'dest_desaru': 'LOCATION:316', // Desaru
-    'dest_batu_ferringhi': 'LOCATION:310', // Batu Ferringhi
-    'dest_redang': 'LOCATION:326', // Pulau Redang
-    'dest_pangkor': 'LOCATION:324', // Pulau Pangkor
-    'dest_tioman': 'LOCATION:329', // Pulau Tioman
-    'dest_perhentian': 'LOCATION:325', // Pulau Perhentian
-    'dest_port_dickson': 'LOCATION:186', // Port Dickson
-    'dest_fraser': 'LOCATION:313', // Fraser's Hill
-    'dest_melaka': 'LOCATION:174', // Melaka Historic City
-    'dest_kenyir': 'LOCATION:337', // Tasik Kenyir
-    'dest_cherating': 'LOCATION:315', // Cherating
-    'dest_danau_kota': 'LOCATION:172', // Taman Danau Kota (Setapak)
-    'dest_titiwangsa': 'LOCATION:172', // Taman Tasik Titiwangsa
-    'dest_batu_caves': 'LOCATION:172', // Batu Caves
-    'dest_perdana_botanical': 'LOCATION:172', // Perdana Botanical Garden
+    'dest_cameron': 'LOCATION:314',
+    'dest_langkawi': 'LOCATION:323',
+    'dest_genting': 'LOCATION:317',
+    'dest_kundasang': 'LOCATION:829',
+    'dest_taman_negara': 'LOCATION:331',
+    'dest_desaru': 'LOCATION:316',
+    'dest_batu_ferringhi': 'LOCATION:310',
+    'dest_redang': 'LOCATION:326',
+    'dest_pangkor': 'LOCATION:324',
+    'dest_tioman': 'LOCATION:329',
+    'dest_perhentian': 'LOCATION:325',
+    'dest_port_dickson': 'LOCATION:186',
+    'dest_fraser': 'LOCATION:313',
+    'dest_melaka': 'LOCATION:174',
+    'dest_kenyir': 'LOCATION:337',
+    'dest_cherating': 'LOCATION:315',
+    'dest_danau_kota': 'LOCATION:172',
+    'dest_titiwangsa': 'LOCATION:172',
+    'dest_batu_caves': 'LOCATION:172',
+    'dest_perdana_botanical': 'LOCATION:172',
   };
 
-  /// Supported recommendation preference categories.
   static const List<String> preferenceCategories = [
     'Nature',
     'Highlands',
@@ -42,7 +37,6 @@ class DestinationDataService {
     'Family Trip',
   ];
 
-  /// Returns the 16 curated featured tourist destinations with static metadata.
   static List<TravelDestination> getDestinations() {
     return [
       _build(
@@ -346,7 +340,7 @@ class DestinationDataService {
       imageUrl: imageUrl,
       description: description,
       travelScore: TravelScore.initial(),
-      weather: null, // Populated on-demand by official MET Malaysia API
+      weather: null,
       isSaved: isSaved,
       isTrending: isTrending,
     );

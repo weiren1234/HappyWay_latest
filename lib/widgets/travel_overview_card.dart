@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/travel_route.dart';
 import '../models/travel_score.dart';
@@ -7,8 +7,6 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import 'glass_card.dart';
 
-/// TravelOverviewCard shows a compact trip summary with route info, weather,
-/// key reasons, recommended departure, and travel score on the Home screen.
 class TravelOverviewCard extends StatelessWidget {
   final String fromName;
   final String toName;
@@ -52,7 +50,7 @@ class TravelOverviewCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header ────────────────────────────────────────────────────────
+
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -96,13 +94,11 @@ class TravelOverviewCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
 
-          // ── Route Origin → Destination ─────────────────────────────────────
           _RouteRow(fromName: fromName, toName: toName),
           const SizedBox(height: 12),
           Divider(height: 1, color: AppColors.dividerColor(context)),
           const SizedBox(height: 12),
 
-          // ── Distance & Duration ────────────────────────────────────────────
           if (isLoadingRoute)
             Center(
               child: Padding(
@@ -183,7 +179,6 @@ class TravelOverviewCard extends StatelessWidget {
             ),
           ],
 
-          // ── MET Weather Summary ────────────────────────────────────────────
           if (weather != null) ...[
             const SizedBox(height: 12),
             Divider(height: 1, color: AppColors.dividerColor(context)),
@@ -233,7 +228,6 @@ class TravelOverviewCard extends StatelessWidget {
             ),
           ],
 
-          // ── Key Insights / Reasons Preview ─────────────────────────────────
           if (score.explanationBullets.isNotEmpty) ...[
             const SizedBox(height: 12),
             Divider(height: 1, color: AppColors.dividerColor(context)),
@@ -263,7 +257,6 @@ class TravelOverviewCard extends StatelessWidget {
           Divider(height: 1, color: AppColors.dividerColor(context)),
           const SizedBox(height: 10),
 
-          // ── Recommended Travel Period & Departure ──────────────────────────
           Row(
             children: [
               Expanded(
@@ -322,7 +315,6 @@ class TravelOverviewCard extends StatelessWidget {
             ),
           ],
 
-          // ── View Full Insights CTA ─────────────────────────────────────────
           if (onViewInsights != null) ...[
             const SizedBox(height: 14),
             SizedBox(
@@ -359,7 +351,6 @@ class TravelOverviewCard extends StatelessWidget {
             ),
           ],
 
-          // HappyWay disclaimer
           const SizedBox(height: 10),
           Text(
             'Travel Score and departure suggestions are personalized recommendations based on current weather and route estimates.\nSource: MET Malaysia',
@@ -371,8 +362,6 @@ class TravelOverviewCard extends StatelessWidget {
     );
   }
 }
-
-// ── Route Row ──────────────────────────────────────────────────────────────────
 
 class _RouteRow extends StatelessWidget {
   final String fromName;
@@ -454,8 +443,6 @@ class _RouteRow extends StatelessWidget {
   }
 }
 
-// ── Info Tile ──────────────────────────────────────────────────────────────────
-
 class _InfoTile extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -500,8 +487,6 @@ class _InfoTile extends StatelessWidget {
     );
   }
 }
-
-// ── Weather Row ────────────────────────────────────────────────────────────────
 
 class _WeatherRow extends StatelessWidget {
   final WeatherInfo weather;
@@ -555,8 +540,6 @@ class _WeatherPeriod extends StatelessWidget {
     );
   }
 }
-
-// ── Route Error Banner ─────────────────────────────────────────────────────────
 
 class _RouteErrorBanner extends StatelessWidget {
   final String error;

@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
@@ -32,7 +32,6 @@ Future<void> main() async {
   runApp(const HappyWayApp());
 }
 
-/// HappyWayApp is the root widget for the Smart Travel Assistant application.
 class HappyWayApp extends StatefulWidget {
   const HappyWayApp({super.key});
 
@@ -50,7 +49,6 @@ class _HappyWayAppState extends State<HappyWayApp> {
     super.initState();
     _initDeepLinks();
 
-    // Supabase auth state listener for password recovery event
     _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       final AuthChangeEvent event = data.event;
       if (event == AuthChangeEvent.passwordRecovery) {
@@ -62,14 +60,12 @@ class _HappyWayAppState extends State<HappyWayApp> {
   void _initDeepLinks() {
     _appLinks = AppLinks();
 
-    // Check if initial deep link opened the app
     _appLinks.getInitialLink().then((uri) {
       if (uri != null) {
         _handleDeepLink(uri);
       }
     }).catchError((_) {});
 
-    // Listen to incoming deep links while app is running
     _linkSubscription = _appLinks.uriLinkStream.listen(
       (uri) {
         _handleDeepLink(uri);
@@ -85,9 +81,7 @@ class _HappyWayAppState extends State<HappyWayApp> {
     if (uri.scheme != 'io.happyway.app') return;
 
     if (uri.host == 'email-change-confirmed' || uri.path.contains('email-change-confirmed')) {
-      // Email-change confirmation deep link (single-confirmation flow, Secure Email Change OFF).
-      // Explicitly refresh the authenticated Supabase user/session and AuthProvider state
-      // so Profile immediately shows the new email without requiring logout/restart.
+
       debugPrint('[DeepLink] email-change-confirmed received — refreshing user and navigating to main, '
           'currentUser.email = ${Supabase.instance.client.auth.currentUser?.email}');
       final navContext = navigatorKey.currentContext;
@@ -104,13 +98,13 @@ class _HappyWayAppState extends State<HappyWayApp> {
         (route) => false,
       );
     } else if (uri.host == 'email-confirmed' || uri.path.contains('email-confirmed')) {
-      // Signup email verification deep link (new account, user not yet authenticated).
+
       navigatorKey.currentState?.pushNamedAndRemoveUntil(
         AppRoutes.emailConfirmed,
         (route) => false,
       );
     } else if (uri.host == 'reset-password' || uri.path.contains('reset-password')) {
-      // Password recovery deep link.
+
       navigatorKey.currentState?.pushNamed(AppRoutes.resetPassword);
     }
   }

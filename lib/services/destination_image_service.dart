@@ -1,22 +1,10 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
 import '../models/destination_image_info.dart';
 
-/// DestinationImageService provides automatic destination image resolution,
-/// backed by pre-verified local assets and automatic Pexels API photo search with caching.
-///
-/// Features:
-/// - Single source of truth across Home, Explore, Details, Saved, and Trips.
-/// - Tourism-oriented alias query normalization (e.g. "Pulau Redang" -> "Redang Island").
-/// - Multi-step fallback query cascade (Specific -> National -> Base term -> Curated state fallback).
-/// - Lazy loading on demand (never mass-fetches the entire 448 MET catalogue at startup).
-/// - Multi-tier caching: In-memory cache + persistent SharedPreferences cache (7-day TTL).
-/// - Request deduplication for simultaneous in-flight queries.
-/// - Graceful rate-limit (HTTP 429) & network error fallback to neutral placeholders.
-/// - Zero generic category photo fallbacks (never shows a wrong real-world location).
 class DestinationImageService {
   static final DestinationImageService _instance = DestinationImageService._internal();
   factory DestinationImageService() => _instance;
@@ -32,7 +20,6 @@ class DestinationImageService {
   final Map<String, DestinationImageInfo?> _memoryCache = {};
   final Map<String, Future<DestinationImageInfo?>> _inFlightRequests = {};
 
-  /// Pre-verified, authentic bundled local assets for core curated Malaysian destinations.
   static const Map<String, String> _verifiedLocalAssets = {
     'cameron highlands': 'assets/destinations/cameron_highlands.jpg',
     'cameron': 'assets/destinations/cameron_highlands.jpg',
@@ -69,9 +56,8 @@ class DestinationImageService {
     'dest_melaka': 'assets/destinations/melaka_city.jpg',
   };
 
-  /// Tourism-oriented alias normalization map for curated & popular Malaysian destinations.
   static const Map<String, String> _curatedSearchAliases = {
-    // Islands & Beaches
+
     'pulau redang': 'Redang Island',
     'redang island': 'Redang Island',
     'redang': 'Redang Island',
@@ -108,7 +94,6 @@ class DestinationImageService {
     'port dickson': 'Port Dickson',
     'teluk cempedak': 'Teluk Cempedak Kuantan',
 
-    // Highlands & Rainforests
     'cameron highlands': 'Cameron Highlands',
     'genting highlands': 'Genting Highlands',
     'genting': 'Genting Highlands',
@@ -122,7 +107,6 @@ class DestinationImageService {
     'tasik kenyir': 'Lake Kenyir',
     'bukit tinggi': 'Bukit Tinggi Pahang',
 
-    // Cities & Heritage
     'melaka historic city': 'Melaka City',
     'melaka city': 'Melaka City',
     'bandar melaka': 'Melaka City',
@@ -144,18 +128,17 @@ class DestinationImageService {
     'taiping': 'Taiping Perak',
   };
 
-  /// Normalizes a destination name to a clean, well-indexed search term for Pexels.
   static String normalizeSearchTerm(String name) {
     final clean = name.trim().toLowerCase();
     if (_curatedSearchAliases.containsKey(clean)) {
       return _curatedSearchAliases[clean]!;
     }
-    // Convert "Pulau XYZ" -> "XYZ Island" preserving title casing
+
     if (clean.startsWith('pulau ') && name.trim().length > 6) {
       final islandName = name.trim().substring(6).trim();
       return '$islandName Island';
     }
-    // Convert "Tasik XYZ" -> "Lake XYZ" preserving title casing
+
     if (clean.startsWith('tasik ') && name.trim().length > 6) {
       final lakeName = name.trim().substring(6).trim();
       return 'Lake $lakeName';
@@ -163,11 +146,6 @@ class DestinationImageService {
     return name.trim();
   }
 
-  /// Builds a multi-step fallback query cascade for Pexels image search:
-  /// 1. `"{normalizedName} {state} Malaysia"`
-  /// 2. `"{normalizedName} Malaysia"`
-  /// 3. `"{normalizedName}"`
-  /// 4. `"{state} Malaysia"` (Only for curated destinations as an absolute final fallback)
   static List<String> buildFallbackQueries({
     required String name,
     String? state,
@@ -184,20 +162,16 @@ class DestinationImageService {
       }
     }
 
-    // Step 1: "{normalized} {state} Malaysia"
     if (cleanState.isNotEmpty && !normalized.toLowerCase().contains(cleanState.toLowerCase())) {
       addQuery('$normalized $cleanState Malaysia');
     }
 
-    // Step 2: "{normalized} Malaysia"
     if (!normalized.toLowerCase().contains('malaysia')) {
       addQuery('$normalized Malaysia');
     }
 
-    // Step 3: "{normalized}"
     addQuery(normalized);
 
-    // Step 4: State fallback ONLY if curated destination
     if (isCurated && cleanState.isNotEmpty && !cleanState.toLowerCase().contains('malaysia')) {
       addQuery('$cleanState Malaysia');
     }
@@ -205,7 +179,6 @@ class DestinationImageService {
     return queries;
   }
 
-  /// Checks if a location qualifies as a curated/featured destination.
   static bool isCuratedLocation(String name, String? locationId) {
     final cleanName = name.trim().toLowerCase();
     final cleanId = (locationId ?? '').trim().toLowerCase();
@@ -218,21 +191,19 @@ class DestinationImageService {
     return false;
   }
 
-  /// Generates a deterministic cache key from location metadata (keyed by name + state).
   static String _cacheKey({String? locationId, required String name, String? state}) {
     final sanitizedName = name.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_');
     final sanitizedState = (state ?? '').trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_');
     return 'img_${sanitizedName}_$sanitizedState';
   }
 
-  /// Resolves an image for a destination lazily on demand.
   Future<DestinationImageInfo?> resolveImage({
     required String name,
     String? state,
     String? locationId,
     String? explicitImageUrl,
   }) async {
-    // 1. Explicit asset path passed directly
+
     if (explicitImageUrl != null && explicitImageUrl.startsWith('assets/')) {
       return DestinationImageInfo(
         imageUrl: explicitImageUrl,
@@ -242,7 +213,6 @@ class DestinationImageService {
       );
     }
 
-    // 2. Check verified local asset map (instant resolution without network)
     final keyName = name.trim().toLowerCase();
     final keyId = (locationId ?? '').trim().toLowerCase();
     if (_verifiedLocalAssets.containsKey(keyName)) {
@@ -266,7 +236,6 @@ class DestinationImageService {
 
     final key = _cacheKey(locationId: locationId, name: name, state: state);
 
-    // 3. In-memory cache check
     if (_memoryCache.containsKey(key)) {
       final mem = _memoryCache[key];
       if (mem != null && mem.isValid()) {
@@ -274,7 +243,6 @@ class DestinationImageService {
       }
     }
 
-    // 4. Request deduplication (prevent simultaneous duplicate Pexels requests)
     if (_inFlightRequests.containsKey(key)) {
       return await _inFlightRequests[key]!;
     }
@@ -301,7 +269,7 @@ class DestinationImageService {
     String? state,
     String? locationId,
   }) async {
-    // 1. Check persistent SharedPreferences cache
+
     try {
       final prefs = await SharedPreferences.getInstance();
       final raw = prefs.getString('dest_img_v1_$key');
@@ -315,7 +283,6 @@ class DestinationImageService {
       }
     } catch (_) {}
 
-    // 2. Read Pexels API Key
     final apiKey = await AppConfig.getPexelsApiKey();
     if (apiKey == null || apiKey.isEmpty) {
       debugPrint('[DestinationImageService] Diagnostic: Pexels API key is not configured. Falling back to neutral placeholder for "$name".');
@@ -334,7 +301,6 @@ class DestinationImageService {
     debugPrint('[DestinationImageService]   Location ID: ${locationId ?? 'none'} | State: ${state ?? 'none'} | Curated: $isCurated');
     debugPrint('[DestinationImageService]   Fallback Query Cascade (${fallbackQueries.length}): $fallbackQueries');
 
-    // 3. Multi-step query cascade
     for (int i = 0; i < fallbackQueries.length; i++) {
       final query = fallbackQueries[i];
 
@@ -384,7 +350,6 @@ class DestinationImageService {
             debugPrint('[DestinationImageService]     Photographer: ${info.photographer}');
             debugPrint('[DestinationImageService] ────────────────────────────────────────────────────────');
 
-            // Save to memory and persistent cache
             _memoryCache[key] = info;
             try {
               final prefs = await SharedPreferences.getInstance();
@@ -409,18 +374,15 @@ class DestinationImageService {
       }
     }
 
-    // 4. All fallback queries exhausted with 0 results
     debugPrint('[DestinationImageService]   ✗ All ${fallbackQueries.length} fallback queries returned zero results for "$name".');
     debugPrint('[DestinationImageService]   Reason: No suitable photos found on Pexels.');
     debugPrint('[DestinationImageService]   Result: Displaying clean neutral placeholder (no wrong images).');
     debugPrint('[DestinationImageService] ────────────────────────────────────────────────────────');
 
-    // Cache negative result in memory to prevent rapid duplicate network requests
     _memoryCache[key] = null;
     return null;
   }
 
-  /// Clears in-memory and persistent cache (useful for testing or manual refresh).
   Future<void> clearCache() async {
     _memoryCache.clear();
     _inFlightRequests.clear();

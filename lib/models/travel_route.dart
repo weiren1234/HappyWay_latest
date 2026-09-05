@@ -1,5 +1,5 @@
-/// TravelRoute stores calculated road distance and estimated driving duration
-/// retrieved from the OSRM routing engine.
+﻿
+
 class TravelRoute {
   final String originName;
   final double originLatitude;
@@ -25,7 +25,6 @@ class TravelRoute {
     required this.fetchedAt,
   });
 
-  /// Formatted road distance (e.g., "206 km" or "15.4 km").
   String get distanceFormatted {
     if (distanceKm >= 100) {
       return '${distanceKm.round()} km';
@@ -34,8 +33,6 @@ class TravelRoute {
     }
   }
 
-  /// Formatted estimated driving duration (e.g., "3 hr 18 min", "45 min").
-  /// NOTE: This is normal estimated driving time, not real-time live traffic data.
   String get durationFormatted {
     final totalMinutes = (durationSeconds / 60).round();
     final hours = totalMinutes ~/ 60;

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/met_location.dart';
 import '../models/travel_location.dart';
@@ -8,9 +8,6 @@ import '../services/geocoding_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
-/// OriginPickerSheet provides an origin selection modal supporting two clear choices:
-/// 1. 📍 Current Location (real device GPS position)
-/// 2. 🔎 Search another place or address (manual starting point)
 class OriginPickerSheet extends StatefulWidget {
   final ValueChanged<TravelLocation>? onSelectTravelLocation;
   final Future<bool> Function()? onSelectCurrentLocation;
@@ -173,7 +170,7 @@ class _OriginPickerSheetState extends State<OriginPickerSheet> {
       ),
       child: Column(
         children: [
-          // ── Handle Bar ──
+
           Center(
             child: Container(
               margin: const EdgeInsets.only(top: 12, bottom: 8),
@@ -186,7 +183,6 @@ class _OriginPickerSheetState extends State<OriginPickerSheet> {
             ),
           ),
 
-          // ── Title Row ──
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             child: Row(
@@ -205,7 +201,6 @@ class _OriginPickerSheetState extends State<OriginPickerSheet> {
             ),
           ),
 
-          // ── Search Input ──
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
             child: TextField(
@@ -242,7 +237,6 @@ class _OriginPickerSheetState extends State<OriginPickerSheet> {
             ),
           ),
 
-          // ── Option 1: 📍 Current Location Tile ──
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
             child: Material(
@@ -362,7 +356,6 @@ class _OriginPickerSheetState extends State<OriginPickerSheet> {
           ),
           const SizedBox(height: 8),
 
-          // ── Option 2: Search Input Field ──
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
             child: Container(
@@ -404,7 +397,6 @@ class _OriginPickerSheetState extends State<OriginPickerSheet> {
             ),
           ),
 
-          // Action tile for detailed geocoding search
           if (hasSearchQuery)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
@@ -489,14 +481,13 @@ class _OriginPickerSheetState extends State<OriginPickerSheet> {
 
           const SizedBox(height: 6),
 
-          // ── Search Results List ──
           Expanded(
             child: _isLoadingCatalogue
                 ? const Center(child: CircularProgressIndicator(color: AppColors.accentCyan))
                 : ListView(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                     children: [
-                      // Geocoded Places
+
                       if (_geocodedResults.isNotEmpty) ...[
                         Padding(
                           padding: const EdgeInsets.only(left: 4, bottom: 8, top: 4),
@@ -515,7 +506,6 @@ class _OriginPickerSheetState extends State<OriginPickerSheet> {
                         const SizedBox(height: 10),
                       ],
 
-                      // Official Locations
                       if (_filteredLocations.isNotEmpty) ...[
                         Padding(
                           padding: const EdgeInsets.only(left: 4, bottom: 8, top: 4),

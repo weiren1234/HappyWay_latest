@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
@@ -6,8 +6,6 @@ import '../theme/app_text_styles.dart';
 import '../widgets/glass_card.dart';
 import '../utils/validators.dart';
 
-/// ChangePasswordScreen allows an already-authenticated user to set a new password
-/// without signing out. Uses Supabase Auth updateUser() under the hood.
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
 
@@ -79,7 +77,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       ),
       body: Stack(
         children: [
-          // Ambient glow
+
           Positioned(
             top: -40,
             right: -60,
@@ -152,7 +150,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Info banner
+
           GlassCard(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -170,7 +168,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           ),
           const SizedBox(height: 28),
 
-          // New Password
           Text(
             'New Password',
             style: AppTextStyles.bodyMedium.copyWith(color: AppColors.secondaryText(context), fontSize: 13),
@@ -195,7 +192,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           ),
           const SizedBox(height: 20),
 
-          // Confirm Password
           Text(
             'Confirm New Password',
             style: AppTextStyles.bodyMedium.copyWith(color: AppColors.secondaryText(context), fontSize: 13),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../models/travel_destination.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -6,8 +6,6 @@ import 'glass_card.dart';
 import 'travel_score_badge.dart';
 import 'destination_image_view.dart';
 
-/// DestinationCard renders an Apple Weather inspired destination card with Hero transition support.
-/// Fully compatible with both Dark and Light themes.
 class DestinationCard extends StatelessWidget {
   final TravelDestination destination;
   final VoidCallback onTap;
@@ -51,7 +49,7 @@ class DestinationCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image Header with Dark Gradient Overlay (Image text is always white over photo)
+
             Stack(
               children: [
                 DestinationImageView(
@@ -65,7 +63,7 @@ class DestinationCard extends StatelessWidget {
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                   heroTag: 'dest_img_${destination.id}',
                 ),
-                // Gradient Overlay
+
                 Positioned.fill(
                   child: Container(
                     decoration: BoxDecoration(
@@ -81,7 +79,7 @@ class DestinationCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Top Action Bar: Category Tag & Save Bookmark Button
+
                 Positioned(
                   top: 14,
                   left: 14,
@@ -120,7 +118,7 @@ class DestinationCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Bottom Overlay: Destination Name & State (Over photo: always crisp white)
+
                 Positioned(
                   bottom: 14,
                   left: 16,
@@ -149,13 +147,12 @@ class DestinationCard extends StatelessWidget {
               ],
             ),
 
-            // Card Body: Weather & Travel Score Details
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Weather Snippet (Live official MET Malaysia forecast)
+
                   Row(
                     children: [
                       Icon(
@@ -192,7 +189,6 @@ class DestinationCard extends StatelessWidget {
                     ],
                   ),
 
-                  // Travel Score Badge
                   TravelScoreBadge(travelScore: destination.travelScore, isCompact: true),
                 ],
               ),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
@@ -6,8 +6,6 @@ import '../theme/app_text_styles.dart';
 import '../widgets/glass_card.dart';
 import '../utils/validators.dart';
 
-/// ForgotPasswordScreen provides email entry to request a Supabase password recovery link.
-/// Sends deep link redirect `io.happyway.app://reset-password` and displays a generic confirmation.
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
@@ -38,7 +36,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     if (!mounted) return;
 
-    // Always show generic confirmation to preserve email privacy
     setState(() => _isSent = true);
   }
 
@@ -50,7 +47,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       backgroundColor: AppColors.backgroundDark,
       body: Stack(
         children: [
-          // Ambient Glow
+
           Positioned(
             top: -40,
             left: -40,

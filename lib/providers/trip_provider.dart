@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -11,33 +11,19 @@ import '../services/weather_service.dart';
 import '../services/route_service.dart';
 import '../utils/travel_score_calculator.dart';
 
-/// Forecast availability state for a specific planned trip.
 enum TripForecastStatus {
-  /// Trip date is outside the official forecast window.
+
   pending,
 
-  /// Forecast is currently being fetched.
   loading,
 
-  /// Forecast was retrieved successfully.
   available,
 
-  /// Trip is within the forecast window but no data was returned.
   unavailable,
 
-  /// A network or API error occurred while fetching.
   error,
 }
 
-/// TripProvider manages state for trips the user has explicitly planned.
-/// Cloud-persisted in Supabase `planned_trips` table with integer database IDs (bigint)
-/// and isolated via Row Level Security (RLS).
-///
-/// It serves as the single source of truth for planned-trip calculations:
-/// - Weather (Open-Meteo hourly + MET Malaysia)
-/// - OSRM route details
-/// - TravelScore & suitability
-/// - Loading & forecast statuses
 class TripProvider extends ChangeNotifier {
   final TripService _tripService = TripService();
   final WeatherService _weatherService = WeatherService();
@@ -50,14 +36,12 @@ class TripProvider extends ChangeNotifier {
   String? _errorMessage;
   bool _remindersEnabled = true;
 
-  // Keyed by trip.id (int).
   final Map<int, WeatherInfo?> _tripForecasts = {};
   final Map<int, TravelRoute?> _tripRoutes = {};
   final Map<int, TravelScore?> _tripScores = {};
   final Map<int, TripForecastStatus> _tripForecastStatuses = {};
   final Map<int, bool> _tripScoreLoading = {};
 
-  // Deduplication: track in-flight calculations by tripId
   final Map<int, Future<TravelScore?>> _inFlightTripCalculations = {};
 
   WeatherInfo? weatherForTrip(int tripId) => _tripForecasts[tripId];
@@ -87,34 +71,29 @@ class TripProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get remindersEnabled => _remindersEnabled;
 
-  /// Sets whether in-app trip reminders are enabled.
   void setRemindersEnabled(bool enabled) {
     _remindersEnabled = enabled;
     notifyListeners();
   }
 
-  /// Today's trips.
   List<PlannedTrip> get todayTrips {
     final list = _trips.where((t) => t.isToday).toList();
     list.sort((a, b) => a.travelDate.compareTo(b.travelDate));
     return list;
   }
 
-  /// Tomorrow's trips.
   List<PlannedTrip> get tomorrowTrips {
     final list = _trips.where((t) => t.isTomorrow).toList();
     list.sort((a, b) => a.travelDate.compareTo(b.travelDate));
     return list;
   }
 
-  /// Future upcoming trips (excluding today), sorted with nearest travel date first.
   List<PlannedTrip> get upcomingTrips {
     final list = _trips.where((t) => t.isUpcoming && !t.isToday).toList();
     list.sort((a, b) => a.travelDate.compareTo(b.travelDate));
     return list;
   }
 
-  /// Next upcoming trip (including today), sorted nearest first.
   PlannedTrip? get nextUpcomingTrip {
     final upcoming = _trips.where((t) => t.isUpcoming).toList();
     if (upcoming.isEmpty) return null;
@@ -122,13 +101,10 @@ class TripProvider extends ChangeNotifier {
     return upcoming.first;
   }
 
-  /// True if user has any trip today.
   bool get hasTodayTrip => todayTrips.isNotEmpty;
 
-  /// True if user has any trip tomorrow.
   bool get hasTomorrowTrip => tomorrowTrips.isNotEmpty;
 
-  /// Past / Completed trips, sorted with most recent first.
   List<PlannedTrip> get pastTrips {
     final list = _trips.where((t) => t.isPast).toList();
     list.sort((a, b) => b.travelDate.compareTo(a.travelDate));
@@ -144,7 +120,6 @@ class TripProvider extends ChangeNotifier {
     }
   }
 
-  /// Listens to Supabase auth events to reload or clear trips automatically.
   void _initAuthListener() {
     try {
       _authSub = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
@@ -153,14 +128,14 @@ class TripProvider extends ChangeNotifier {
             event == AuthChangeEvent.initialSession ||
             event == AuthChangeEvent.tokenRefreshed ||
             event == AuthChangeEvent.userUpdated) {
-          // Reload trips when a real authenticated session becomes available.
+
           loadTrips();
         } else if (event == AuthChangeEvent.signedOut) {
           clearUserData();
         }
       });
     } catch (_) {
-      // Supabase instance may not be initialized in unit/widget test environments
+
     }
   }
 
@@ -170,9 +145,6 @@ class TripProvider extends ChangeNotifier {
     super.dispose();
   }
 
-  // ─── Data Loading ──────────────────────────────────────────────────────────
-
-  /// Loads all saved planned trips for the current authenticated user from Supabase.
   Future<void> loadTrips() async {
     String? userId;
     try {
@@ -202,7 +174,6 @@ class TripProvider extends ChangeNotifier {
       debugPrint('[TripProvider] PAST COUNT: ${pastTrips.length}');
       debugPrint('[TripProvider] ========================================');
 
-      // Load forecasts after trips are available (non-blocking)
       _loadForecastsForEligibleTrips();
     } catch (e, stack) {
       debugPrint('[TripProvider] Error loading trips: $e\n$stack');
@@ -214,8 +185,6 @@ class TripProvider extends ChangeNotifier {
     }
   }
 
-  /// Single source of truth calculation entry point for a planned trip.
-  /// Updates and stores weather, route, travel score, forecast status, and loading state.
   Future<TravelScore?> calculateScoreForPlannedTrip(
     PlannedTrip trip, {
     bool forceRefresh = false,
@@ -224,7 +193,6 @@ class TripProvider extends ChangeNotifier {
     final tripId = trip.id;
     if (tripId == null) return null;
 
-    // 1. Past trips: never fetch current/future weather to generate a score
     if (trip.isPast) {
       _tripForecastStatuses[tripId] = TripForecastStatus.unavailable;
       _tripScores.remove(tripId);
@@ -232,7 +200,6 @@ class TripProvider extends ChangeNotifier {
       return null;
     }
 
-    // 2. Outside forecast availability: neutral pending status
     if (!trip.isWithinForecastRange) {
       _tripForecastStatuses[tripId] = TripForecastStatus.pending;
       _tripScores.remove(tripId);
@@ -240,12 +207,10 @@ class TripProvider extends ChangeNotifier {
       return null;
     }
 
-    // 3. Return existing in-flight calculation if currently running
     if (!forceRefresh && _inFlightTripCalculations.containsKey(tripId)) {
       return await _inFlightTripCalculations[tripId]!;
     }
 
-    // 4. Return cached score if already available and not force-refreshing
     if (!forceRefresh &&
         _tripScores.containsKey(tripId) &&
         _tripScores[tripId] != null) {
@@ -284,7 +249,7 @@ class TripProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // 1. Calculate OSRM Route
+
       TravelRoute? route = forceRefresh ? null : _tripRoutes[tripId];
       final origLat = trip.originLatitude;
       final origLng = trip.originLongitude;
@@ -311,7 +276,6 @@ class TripProvider extends ChangeNotifier {
       }
       _tripRoutes[tripId] = route;
 
-      // 2. Fetch Multi-day Open-Meteo Hourly + MET Forecast
       final metId = _effectiveMETLocationId(trip) ?? '';
       WeatherInfo? weather;
       if (metId.isNotEmpty || (destLat != null && destLng != null && destLat != 0.0 && destLng != 0.0)) {
@@ -333,7 +297,6 @@ class TripProvider extends ChangeNotifier {
           ? TripForecastStatus.available
           : TripForecastStatus.unavailable;
 
-      // 3. Centralized TravelScore Calculation
       TravelScore? score;
       if (weather != null) {
         score = TravelScoreCalculator.calculateScore(
@@ -388,12 +351,9 @@ class TripProvider extends ChangeNotifier {
     debugPrint('sourceScreen = $sourceScreen');
   }
 
-  /// Loads forecasts & calculates scores for eligible trips (today & upcoming within forecast window).
-  /// Past trips are strictly excluded from weather/route calculation.
   Future<void> _loadForecastsForEligibleTrips() async {
     final eligible = _trips.where((t) => t.id != null && !t.isPast && t.isWithinForecastRange).toList();
 
-    // Mark non-eligible trips appropriately
     for (final trip in _trips) {
       if (trip.id == null) continue;
       if (trip.isPast) {
@@ -410,13 +370,11 @@ class TripProvider extends ChangeNotifier {
       return;
     }
 
-    // Controlled sequential processing to avoid network congestion
     for (final trip in eligible) {
       await calculateScoreForPlannedTrip(trip, sourceScreen: 'MyTrips');
     }
   }
 
-  /// Refreshes forecasts and planned-trip scores for all eligible trips.
   Future<void> refreshForecasts() async {
     final eligible = _trips.where((t) => t.id != null && !t.isPast && t.isWithinForecastRange).toList();
     for (final trip in eligible) {
@@ -424,9 +382,6 @@ class TripProvider extends ChangeNotifier {
     }
   }
 
-  // ─── Trip Mutations ────────────────────────────────────────────────────────
-
-  /// Adds a new planned trip to Supabase and updates in-memory list.
   Future<PlannedTrip?> addTrip(PlannedTrip trip) async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return null;
@@ -437,7 +392,6 @@ class TripProvider extends ChangeNotifier {
       _trips.insert(0, createdTrip);
       notifyListeners();
 
-      // Load forecast for this new trip immediately
       _loadForecastsForEligibleTrips();
       return createdTrip;
     } catch (_) {
@@ -447,7 +401,6 @@ class TripProvider extends ChangeNotifier {
     }
   }
 
-  /// Updates an existing planned trip in Supabase.
   Future<bool> updateTrip(PlannedTrip trip) async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null || trip.id == null) return false;
@@ -460,7 +413,7 @@ class TripProvider extends ChangeNotifier {
       } else {
         _trips.insert(0, trip);
       }
-      // Invalidate cached forecast/route/score for this trip so it re-fetches with new inputs
+
       _tripForecasts.remove(trip.id);
       _tripRoutes.remove(trip.id);
       _tripScores.remove(trip.id);
@@ -478,7 +431,6 @@ class TripProvider extends ChangeNotifier {
     }
   }
 
-  /// Deletes a planned trip by its integer database ID.
   Future<bool> deleteTrip(int tripId) async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return false;
@@ -500,7 +452,6 @@ class TripProvider extends ChangeNotifier {
     }
   }
 
-  /// Finds a specific trip by its integer database ID.
   PlannedTrip? getTripById(int tripId) {
     for (final t in _trips) {
       if (t.id == tripId) return t;
@@ -508,7 +459,6 @@ class TripProvider extends ChangeNotifier {
     return null;
   }
 
-  /// Clears in-memory trip data on logout.
   void clearUserData() {
     _trips = [];
     _tripForecasts.clear();
@@ -521,22 +471,12 @@ class TripProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ─── Helpers ───────────────────────────────────────────────────────────────
-
-  /// Resolves the effective MET Malaysia location ID for weather fetching.
-  ///
-  /// - If [PlannedTrip.destinationLocationId] starts with `LOCATION:`, use it directly.
-  /// - If it starts with `geo:`, we cannot infer the MET location from the stored model
-  ///   alone (the matched MET location should have been stored as the ID at planning time
-  ///   via TravelInsightsScreen). In this case return null so the trip shows "unavailable".
-  /// - Any other unexpected format returns null.
   static String? _effectiveMETLocationId(PlannedTrip trip) {
     final id = trip.destinationLocationId;
     if (id.startsWith('LOCATION:')) return id;
-    // met: prefix is used internally in TravelLocation but should not appear in stored trips
-    // (TravelInsightsScreen passes _metLocationId ?? _locationId which resolves to LOCATION:xxx)
-    if (id.startsWith('met:')) return id.substring(4); // strip internal prefix if ever stored
-    // geo: IDs cannot be used directly with the MET API
+
+    if (id.startsWith('met:')) return id.substring(4);
+
     return null;
   }
 }

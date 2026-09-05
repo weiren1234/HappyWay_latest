@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../main.dart' show scaffoldMessengerKey;
@@ -14,11 +14,6 @@ import '../widgets/plan_trip_sheet.dart';
 import '../widgets/destination_image_view.dart';
 import '../widgets/hourly_weather_card.dart';
 
-/// TripDetailScreen provides the complete breakdown of an explicitly planned trip:
-/// - Route information (OSRM distance & driving duration)
-/// - Weather forecast (if within forecast window)
-/// - HappyWay Travel Suitability Score & departure advice (if forecast available)
-/// - Personal trip notes & management actions (Edit, Delete, Refresh)
 class TripDetailScreen extends StatefulWidget {
   final PlannedTrip trip;
 
@@ -219,7 +214,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // ── App Bar ────────────────────────────────────────────────────────
+
           SliverAppBar(
             pinned: true,
             backgroundColor: AppColors.scaffoldBg(context),
@@ -295,33 +290,28 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
             ],
           ),
 
-          // ── Body ───────────────────────────────────────────────────────────
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. Destination Header Banner
+
                   if (hasImage)
                     _buildImageHeader()
                   else
                     _buildGradientHeader(),
                   const SizedBox(height: 16),
 
-                  // 2. Trip Overview Box (Date, Days Until, Origin, Preferred Period)
                   _buildOverviewCard(),
                   const SizedBox(height: 14),
 
-                  // 3. Route Section (Distance & Estimated Driving Time via OSRM)
                   _buildRouteCard(route, isScoreLoading),
                   const SizedBox(height: 14),
 
-                  // 4. Forecast Section
                   _buildForecastSection(weather, isScoreLoading, forecastStatus),
                   const SizedBox(height: 14),
 
-                  // 5. HappyWay Recommendation & Score (only when forecast available)
                   if (isScoreLoading && travelScore == null && _trip.isWithinForecastRange && !_trip.isPast) ...[
                     _buildScoreLoadingCard(),
                     const SizedBox(height: 14),
@@ -330,11 +320,9 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                     const SizedBox(height: 14),
                   ],
 
-                  // 6. Personal Notes Section
                   _buildNotesCard(),
                   const SizedBox(height: 14),
 
-                  // 7. Disclaimer
                   _buildDisclaimer(),
                 ],
               ),
@@ -344,8 +332,6 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       ),
     );
   }
-
-  // ─── Header Builders ─────────────────────────────────────────────────────────
 
   Widget _buildImageHeader() {
     return ClipRRect(
@@ -428,8 +414,6 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
     );
   }
 
-  // ─── Overview Card ───────────────────────────────────────────────────────────
-
   Widget _buildOverviewCard() {
     return GlassCard(
       padding: const EdgeInsets.all(16),
@@ -502,7 +486,6 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
           ),
           const SizedBox(height: 14),
 
-          // Date & Weekday Row
           IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -533,7 +516,6 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
           ),
           const SizedBox(height: 10),
 
-          // Origin Row
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
@@ -561,8 +543,6 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       ),
     );
   }
-
-  // ─── Route Card ──────────────────────────────────────────────────────────────
 
   Widget _buildRouteCard(TravelRoute? route, bool isScoreLoading) {
     final hasCoordinates = _trip.originLatitude != null && _trip.destinationLatitude != null;
@@ -641,8 +621,6 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       ),
     );
   }
-
-  // ─── Forecast Section ────────────────────────────────────────────────────────
 
   Widget _buildForecastSection(WeatherInfo? weather, bool isScoreLoading, TripForecastStatus forecastStatus) {
     if (_trip.isPast) {
@@ -733,8 +711,6 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
     );
   }
 
-  // ─── Score Loading Card ──────────────────────────────────────────────────────
-
   Widget _buildScoreLoadingCard() {
     return GlassCard(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
@@ -755,8 +731,6 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       ),
     );
   }
-
-  // ─── Travel Score Card ────────────────────────────────────────────────────────
 
   Widget _buildTravelScoreCard(TravelScore score, TravelRoute? route) {
     final filteredBullets = score.explanationBullets.where((b) {
@@ -956,8 +930,6 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
     );
   }
 
-  // ─── Notes Card ───────────────────────────────────────────────────────────────
-
   Widget _buildNotesCard() {
     return GlassCard(
       padding: const EdgeInsets.all(16),
@@ -1022,8 +994,6 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
     );
   }
 }
-
-// ─── Helper Widgets ───────────────────────────────────────────────────────────
 
 class _InfoTile extends StatelessWidget {
   final IconData icon;

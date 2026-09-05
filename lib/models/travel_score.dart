@@ -1,13 +1,12 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
 enum TravelSuitability {
-  ideal,      // 80 - 100
-  moderate,   // 50 - 79
-  challenging // 0 - 49
+  ideal,
+  moderate,
+  challenging
 }
 
-/// Reason codes explaining why a particular Travel Score or recommendation was generated.
 enum TravelRecommendationReason {
   allDayDry,
   favourableMorning,
@@ -27,13 +26,12 @@ enum TravelRecommendationReason {
   insufficientWeatherData,
 }
 
-/// Breakdown of individual scoring components contributing to the overall Travel Score.
 class TravelScoreBreakdown {
-  final int weatherScore; // 0 - 100
-  final int? journeyScore; // 0 - 100 (null if route is unavailable)
-  final int? morningScore; // 0 - 100
-  final int? afternoonScore; // 0 - 100
-  final int? nightScore; // 0 - 100
+  final int weatherScore;
+  final int? journeyScore;
+  final int? morningScore;
+  final int? afternoonScore;
+  final int? nightScore;
   final bool isWeatherComplete;
 
   const TravelScoreBreakdown({
@@ -65,33 +63,29 @@ class TravelScoreBreakdown {
       );
 }
 
-/// TravelScore represents HappyWay's rule-based travel suitability index.
-///
-/// NOTE: This is NOT an official MET Malaysia metric. It is HappyWay's own rule-based
-/// assessment calculated strictly from official MET forecasts and optional driving route duration.
 class TravelScore {
-  final int score;                     // Overall Score (0 - 100)
-  final int weatherSubscore;           // Weather Suitability (0 - 100)
-  final int? journeySubscore;          // Journey Practicality (0 - 100, null if no route)
+  final int score;
+  final int weatherSubscore;
+  final int? journeySubscore;
   final TravelSuitability suitability;
-  final String levelName;              // "Excellent", "Very Good", "Good", "Moderate", "Less Ideal"
-  final String bestTravelPeriod;       // "Morning", "Afternoon", "Night", "Not available"
-  final String? recommendedDeparture;  // e.g. "Around 8:00 AM" (deterministic planning advice)
-  final String? departureReason;       // e.g. "Arrive before afternoon weather changes."
-  final String? bestWeatherWindow;     // e.g. "8:00 AM – 11:00 AM"
-  final String? selectedPeriod;        // e.g. "Morning", "Afternoon", "Night", "Auto"
-  final String? recommendedPeriod;     // e.g. "Morning", "Afternoon", "Night", "Not available"
-  final String recommendation;         // Detailed travel advice summary
-  final List<String> highlights;       // Bullet points explaining the conditions
-  final List<String> explanationBullets; // "Why this score?" bullets
-  final List<TravelRecommendationReason> reasons; // Typed reason codes
-  final List<String> recommendedActivities; // Curated destination activities (empty for arbitrary geocoded places)
-  final String? preferredPeriodComparison; // Matching status with user preference
-  final bool isRouteAvailable;         // True if a valid driving route was factored in
-  final String? analysisLimitation;    // Note if analysis is weather-only due to missing route
+  final String levelName;
+  final String bestTravelPeriod;
+  final String? recommendedDeparture;
+  final String? departureReason;
+  final String? bestWeatherWindow;
+  final String? selectedPeriod;
+  final String? recommendedPeriod;
+  final String recommendation;
+  final List<String> highlights;
+  final List<String> explanationBullets;
+  final List<TravelRecommendationReason> reasons;
+  final List<String> recommendedActivities;
+  final String? preferredPeriodComparison;
+  final bool isRouteAvailable;
+  final String? analysisLimitation;
   final TravelScoreBreakdown breakdown;
   final Color color;
-  final bool isInitial;                // True only when awaiting calculation
+  final bool isInitial;
 
   TravelScore({
     required this.score,
@@ -139,7 +133,6 @@ class TravelScore {
                     ? (score >= 70 ? AppColors.accentCyan : AppColors.cautionAmber)
                     : AppColors.dangerRed);
 
-  /// Consumer-friendly travel condition summary mapped directly from [levelName].
   String get consumerSummary {
     switch (levelName) {
       case 'Excellent':

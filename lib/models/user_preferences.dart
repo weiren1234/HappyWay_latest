@@ -1,4 +1,4 @@
-/// UserPreferences represents personalized travel settings stored in Supabase `user_preferences`.
+﻿
 class UserPreferences {
   final String userId;
   final bool tripRemindersEnabled;

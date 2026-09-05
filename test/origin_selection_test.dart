@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:happyway/models/user_location.dart';
 import 'package:happyway/models/travel_location.dart';
@@ -20,22 +20,18 @@ void main() {
         reverseGeocodedAddress: 'Taman Danau Kota, Kuala Lumpur',
       );
 
-      // 1. UI display name must strictly remain "Current Location"
       expect(origin.name, equals('Current Location'));
       expect(origin.name, isNot(equals('Taman Danau Kota')));
       expect(origin.name, isNot(equals('Kuala Lumpur')));
 
-      // 2. Type & flags
       expect(origin.type, equals(UserLocationType.currentLocation));
       expect(origin.isGps, isTrue);
 
-      // 3. Exact GPS coordinates are retained directly for OSRM routing
       expect(origin.latitude, equals(realGpsLat));
       expect(origin.longitude, equals(realGpsLng));
       expect(origin.accuracy, equals(8.3));
       expect(origin.subtitle, contains('±8m'));
 
-      // 4. Destination is independently defined
       final destination = TravelLocation.fromGeocodedPlace(
         name: 'Jinjang Utara, Kuala Lumpur',
         latitude: 3.209400,
@@ -63,17 +59,14 @@ void main() {
 
       final origin = UserLocation.fromTravelLocation(manualTravelLoc);
 
-      // 1. UI display name is the resolved place name
       expect(origin.name, equals('Taman Danau Kota, Kuala Lumpur'));
       expect(origin.type, equals(UserLocationType.selectedPlace));
       expect(origin.isGps, isFalse);
 
-      // 2. Coordinates used for routing are exact place coordinates
       expect(origin.latitude, equals(3.203800));
       expect(origin.longitude, equals(101.714400));
       expect(origin.accuracy, isNull);
 
-      // 3. Destination is independently defined
       final destination = TravelLocation.fromGeocodedPlace(
         name: 'Kepong, Kuala Lumpur',
         latitude: 3.218000,
@@ -89,7 +82,7 @@ void main() {
     });
 
     test('Test C: Transition between Manual Origin and Current Location', () {
-      // Step 1: User chooses manual origin
+
       final manualOrigin = UserLocation.fromTravelLocation(
         TravelLocation.fromGeocodedPlace(
           name: 'Setapak, Kuala Lumpur',
@@ -102,7 +95,6 @@ void main() {
       expect(manualOrigin.isGps, isFalse);
       expect(manualOrigin.name, equals('Setapak, Kuala Lumpur'));
 
-      // Step 2: User re-selects Current Location
       const refreshedGpsLat = 3.160123;
       const refreshedGpsLng = 101.712345;
       final gpsOrigin = UserLocation.fromGps(
@@ -168,14 +160,12 @@ void main() {
       expect(locProvider.currentLocation?.latitude, equals(5.4141));
       expect(locProvider.currentLocation?.longitude, equals(100.3288));
 
-      // Disposing provider unregisters lifecycle observer cleanly
       locProvider.dispose();
     });
 
     test('Test E: Lifecycle observer responds to AppLifecycleState without crashing', () {
       final locProvider = LocationProvider();
 
-      // Inactive or paused when not waiting for settings does nothing
       locProvider.didChangeAppLifecycleState(AppLifecycleState.inactive);
       locProvider.didChangeAppLifecycleState(AppLifecycleState.paused);
       locProvider.didChangeAppLifecycleState(AppLifecycleState.resumed);

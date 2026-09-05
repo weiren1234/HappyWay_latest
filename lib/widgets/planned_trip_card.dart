@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/planned_trip.dart';
 import '../models/weather_info.dart';
@@ -9,8 +9,6 @@ import '../theme/app_text_styles.dart';
 import 'destination_image_view.dart';
 import 'glass_card.dart';
 
-/// PlannedTripCard is a presentational widget displaying a planned trip card
-/// with destination image, gradient overlay, weather chips, HappyWay score, and swipe-to-delete.
 class PlannedTripCard extends StatelessWidget {
   final PlannedTrip trip;
   final VoidCallback onTap;
@@ -50,7 +48,6 @@ class PlannedTripCard extends StatelessWidget {
     ];
     final subtitleText = subtitleParts.isNotEmpty ? subtitleParts.join(' • ') : 'Malaysia';
 
-    // Status pill info
     final String statusText;
     final Color statusColor;
     if (trip.isToday) {
@@ -78,7 +75,7 @@ class PlannedTripCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // ── Destination Image Header ──────────────────────────────────
+
               SizedBox(
                 height: 120,
                 child: Stack(
@@ -114,7 +111,7 @@ class PlannedTripCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Top row: Status pill + Trip code pill
+
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -152,7 +149,7 @@ class PlannedTripCard extends StatelessWidget {
                               ),
                             ],
                           ),
-                          // Bottom: Destination Name & State
+
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -186,13 +183,12 @@ class PlannedTripCard extends StatelessWidget {
                 ),
               ),
 
-              // ── Card Body ─────────────────────────────────────────────────
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Date & Origin Row
+
                     Row(
                       children: [
                         const Icon(Icons.calendar_today_rounded, size: 13, color: AppColors.accentCyan),
@@ -228,7 +224,6 @@ class PlannedTripCard extends StatelessWidget {
 
                     const SizedBox(height: 10),
 
-                    // Chips Row (Wrap for narrow-screen safety)
                     Wrap(
                       spacing: 8,
                       runSpacing: 6,
@@ -265,7 +260,6 @@ class PlannedTripCard extends StatelessWidget {
                       ],
                     ),
 
-                    // Travel Score mini-badge (only when forecast available)
                     if (isScoreLoading && score == null && trip.isWithinForecastRange && !trip.isPast) ...[
                       const SizedBox(height: 10),
                       _buildCalculatingBadge(context),
@@ -274,7 +268,6 @@ class PlannedTripCard extends StatelessWidget {
                       _TravelScoreBadge(score: score),
                     ],
 
-                    // Notes
                     if (trip.notes != null && trip.notes!.trim().isNotEmpty) ...[
                       const SizedBox(height: 8),
                       Text(
@@ -293,7 +286,6 @@ class PlannedTripCard extends StatelessWidget {
                     Divider(height: 1, color: AppColors.dividerColor(context)),
                     const SizedBox(height: 8),
 
-                    // Bottom Row
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -361,8 +353,6 @@ class PlannedTripCard extends StatelessWidget {
     );
   }
 }
-
-// ─── Forecast Status Row ──────────────────────────────────────────────────────
 
 class _ForecastStatusRow extends StatelessWidget {
   final TripForecastStatus forecastStatus;
@@ -481,8 +471,6 @@ class _ForecastStatusRow extends StatelessWidget {
   }
 }
 
-// ─── Travel Score Badge ────────────────────────────────────────────────────────
-
 class _TravelScoreBadge extends StatelessWidget {
   final TravelScore? score;
 
@@ -520,8 +508,6 @@ class _TravelScoreBadge extends StatelessWidget {
     );
   }
 }
-
-// ─── Swipe-to-Delete Wrapper ──────────────────────────────────────────────────
 
 class _SwipeToDeleteWrapper extends StatefulWidget {
   final PlannedTrip trip;

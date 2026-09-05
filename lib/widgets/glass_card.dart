@@ -1,10 +1,7 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
-/// GlassCard builds an Apple Weather inspired glassmorphism container featuring
-/// backdrop blur, translucent fill, light reflection border, and rounded corners.
-/// Adapts seamlessly to both Dark and Light themes.
 class GlassCard extends StatelessWidget {
   final Widget child;
   final double borderRadius;

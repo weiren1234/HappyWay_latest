@@ -1,16 +1,8 @@
-import 'package:intl/intl.dart';
+﻿import 'package:intl/intl.dart';
 
-/// PlannedTrip represents a trip that the user has planned to take.
-///
-/// NOTE: Weather data is NOT permanently stored within the trip object.
-/// Weather changes over time and is queried dynamically from official MET Malaysia
-/// when viewing the trip, provided the travel date falls within the official forecast window.
-///
-/// Database ID is an auto-incrementing bigint (`int? id` in Dart).
-/// The UI displays `tripCode` (e.g., "T0001", "T0002") derived from this integer ID.
 class PlannedTrip {
-  final int? id; // Supabase bigint primary key (null before insert)
-  final String destinationLocationId; // Official MET location ID (e.g. "LOCATION:314")
+  final int? id;
+  final String destinationLocationId;
   final String destinationName;
   final String destinationState;
   final String destinationCategory;
@@ -21,7 +13,7 @@ class PlannedTrip {
   final String originName;
   final double? originLatitude;
   final double? originLongitude;
-  final String preferredPeriod; // "Morning", "Afternoon", "Night", or "Auto"
+  final String preferredPeriod;
   final String? notes;
   final DateTime createdAt;
   final DateTime? updatedAt;
@@ -45,13 +37,11 @@ class PlannedTrip {
     this.updatedAt,
   });
 
-  /// User-friendly trip code for display (e.g. "T0001", "T0042").
   String get tripCode {
     if (id == null) return 'New Trip';
     return 'T${id.toString().padLeft(4, '0')}';
   }
 
-  /// Check if the trip is scheduled for today.
   bool get isToday {
     final now = DateTime.now();
     return travelDate.year == now.year &&
@@ -59,10 +49,8 @@ class PlannedTrip {
         travelDate.day == now.day;
   }
 
-  /// Check if the trip is scheduled for tomorrow.
   bool get isTomorrow => daysUntil == 1;
 
-  /// Check if the trip travel date is in the past.
   bool get isPast {
     final today = DateTime.now();
     final tripDateMidnight = DateTime(travelDate.year, travelDate.month, travelDate.day);
@@ -70,10 +58,8 @@ class PlannedTrip {
     return tripDateMidnight.isBefore(todayMidnight);
   }
 
-  /// Check if the trip is upcoming (today or future).
   bool get isUpcoming => !isPast;
 
-  /// Number of days until the trip (0 for today, negative for past).
   int get daysUntil {
     final today = DateTime.now();
     final tripDateMidnight = DateTime(travelDate.year, travelDate.month, travelDate.day);
@@ -81,19 +67,14 @@ class PlannedTrip {
     return tripDateMidnight.difference(todayMidnight).inDays;
   }
 
-  /// Formatted date string (e.g., "24 Aug 2026").
   String get formattedDate => DateFormat('d MMM yyyy').format(travelDate);
 
-  /// Day of the month (e.g., "24").
   String get formattedDay => DateFormat('d').format(travelDate);
 
-  /// Month abbreviation in uppercase (e.g., "AUG").
   String get formattedMonth => DateFormat('MMM').format(travelDate).toUpperCase();
 
-  /// Day of the week (e.g., "Monday").
   String get formattedWeekday => DateFormat('EEEE').format(travelDate);
 
-  /// Relative countdown label (e.g. "Today", "Tomorrow", "In 5 days", "Completed").
   String get relativeDateLabel {
     if (isToday) return 'Today';
     if (isPast) return 'Completed';
@@ -102,13 +83,11 @@ class PlannedTrip {
     return 'In $days days';
   }
 
-  /// Checks if the trip date is within official MET forecast range (today through +6 days).
   bool get isWithinForecastRange {
     final days = daysUntil;
     return days >= 0 && days <= 6;
   }
 
-  // Sentinel to explicitly clear a nullable field via copyWith.
   static const _clear = Object();
 
   PlannedTrip copyWith({
@@ -125,7 +104,7 @@ class PlannedTrip {
     double? originLatitude,
     double? originLongitude,
     String? preferredPeriod,
-    Object? notes = _clear, // use _clear sentinel; pass null to clear the field
+    Object? notes = _clear,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -149,10 +128,6 @@ class PlannedTrip {
     );
   }
 
-  /// Parses a yyyy-MM-dd date string as a LOCAL calendar date (year/month/day only).
-  /// Parses a yyyy-MM-dd date string or DateTime as a LOCAL calendar date (year/month/day only).
-  /// Avoids the DateTime.parse UTC midnight bug where '2026-08-27' becomes
-  /// 2026-08-26 in MYT (UTC+8) local time.
   static DateTime _parseDateLocal(dynamic raw) {
     if (raw == null) {
       final now = DateTime.now();
@@ -163,7 +138,7 @@ class PlannedTrip {
     }
     final str = raw.toString().trim();
     try {
-      // If it's a bare date (yyyy-MM-dd), construct as local midnight directly.
+
       if (str.length >= 10 && str[4] == '-' && str[7] == '-') {
         final parts = str.substring(0, 10).split('-');
         return DateTime(
@@ -172,7 +147,7 @@ class PlannedTrip {
           int.parse(parts[2]),
         );
       }
-      // Full ISO8601 timestamp: parse then convert to local-date-only
+
       final dt = DateTime.parse(str);
       final local = dt.toLocal();
       return DateTime(local.year, local.month, local.day);
@@ -260,7 +235,6 @@ class PlannedTrip {
     );
   }
 
-  /// Converts model to Supabase payload map for insertion or update.
   Map<String, dynamic> toSupabase({required String userId}) {
     final map = <String, dynamic>{
       'user_id': userId,

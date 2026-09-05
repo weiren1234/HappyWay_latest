@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
@@ -7,7 +7,6 @@ import '../services/auth_service.dart';
 import '../services/profile_service.dart';
 import 'trip_provider.dart';
 
-/// AuthProvider manages user authentication, profile details, and user preferences via Supabase.
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
   final ProfileService _profileService = ProfileService();
@@ -42,8 +41,7 @@ class AuthProvider extends ChangeNotifier {
               event == AuthChangeEvent.tokenRefreshed ||
               event == AuthChangeEvent.initialSession ||
               event == AuthChangeEvent.userUpdated)) {
-        // Always reload on userUpdated — the user ID is the same but fields like
-        // email may have changed (e.g. after a single-confirmation email change).
+
         final bool isNewUser = _user == null || _user!.id != session.user.id;
         final bool isUserUpdated = event == AuthChangeEvent.userUpdated;
         if (isNewUser || isUserUpdated) {
@@ -75,8 +73,6 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Sets the in-memory state to a local unauthenticated Guest Traveler.
-  /// Does NOT create any Supabase session or database rows.
   void continueAsGuest() {
     _user = UserModel.guest();
     _preferences = const UserPreferences(userId: 'guest_user');
@@ -85,7 +81,6 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Restores active session on app startup if a valid Supabase token exists.
   Future<void> restoreSession() async {
     final currentUser = _authService.currentUser;
     if (currentUser != null) {
@@ -99,9 +94,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Explicitly refreshes the authenticated user and profile state from Supabase Auth.
-  /// Used after deep-link confirmation flows (such as email-change-confirmed) to ensure
-  /// in-memory user and profile state immediately reflects updated Supabase Auth claims.
   Future<void> refreshAuthenticatedUser() async {
     try {
       final userResponse = await Supabase.instance.client.auth.getUser();
@@ -124,7 +116,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Signs in an existing user via Supabase Auth and loads profile & preferences.
   Future<bool> login(String email, String password) async {
     _isLoading = true;
     _errorMessage = null;
@@ -162,8 +153,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Registers a new user with email, password, and display_name metadata.
-  /// NOTE: Because Email Confirmation is enabled, this does NOT immediately log the user in.
   Future<bool> register(String name, String email, String password) async {
     _isLoading = true;
     _errorMessage = null;
@@ -192,7 +181,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Sends a password reset email using deep link redirect URL `io.happyway.app://reset-password`.
   Future<bool> sendPasswordReset(String email) async {
     _isLoading = true;
     _errorMessage = null;
@@ -216,7 +204,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Updates current user password during recovery.
   Future<bool> updatePassword(String newPassword) async {
     _isLoading = true;
     _errorMessage = null;
@@ -240,7 +227,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Signs out of Supabase and clears in-memory state.
   Future<void> logout({TripProvider? tripProvider}) async {
     try {
       await _authService.signOut();
@@ -251,7 +237,6 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Updates display name in `profiles` table.
   Future<bool> updateDisplayName(String newName) async {
     if (_user == null || _user!.isGuest) return false;
     try {
@@ -264,22 +249,12 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Updates user email via Supabase Auth (single-confirmation flow).
-  ///
-  /// With Secure Email Change disabled, Supabase sends one confirmation link to
-  /// the NEW email only. After the user clicks it, Supabase fires a
-  /// [AuthChangeEvent.userUpdated] event, which [_initAuthListener] handles to
-  /// automatically refresh the displayed email — no logout/login required.
-  ///
-  /// The displayed email is NOT updated until Supabase confirms the change.
   Future<({bool success, String message, bool confirmationSent})> updateEmail(String newEmail) async {
     if (_user == null || _user!.isGuest) {
       return (success: false, message: 'You must be signed in to update your email.', confirmationSent: false);
     }
     final normalizedNew = newEmail.trim().toLowerCase();
 
-    // Always read the live email from Supabase Auth — never rely on cached _user.email
-    // which may be stale if the user previously requested a change.
     final liveEmail = Supabase.instance.client.auth.currentUser?.email ?? '';
     debugPrint('[AuthProvider] Email before request = $liveEmail');
     debugPrint('[AuthProvider] Requested new email  = $normalizedNew');
@@ -300,9 +275,6 @@ class AuthProvider extends ChangeNotifier {
       debugPrint('[AuthProvider] currentUser.email after request = '
           '${Supabase.instance.client.auth.currentUser?.email}');
 
-      // Do NOT update the displayed email yet.
-      // Supabase will fire AuthChangeEvent.userUpdated after the user confirms
-      // the change via the email link, and _initAuthListener will reload the profile.
       return (
         success: true,
         message: 'Confirmation email sent. Please check your new email address to confirm the change.',
@@ -321,7 +293,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Maps Supabase Auth error messages to user-friendly strings for email change.
   String _friendlyEmailError(String raw) {
     final lower = raw.toLowerCase();
     if (lower.contains('already registered') || lower.contains('already been registered')) {
@@ -342,7 +313,6 @@ class AuthProvider extends ChangeNotifier {
     return raw;
   }
 
-  /// Toggles in-app trip reminders in `user_preferences` table.
   Future<String?> toggleTripReminders(bool value, {TripProvider? tripProvider}) async {
     if (_user == null || _user!.isGuest) return null;
 
@@ -362,7 +332,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Updates theme mode in `user_preferences` table.
   Future<void> updateThemeMode(String mode) async {
     if (_user == null || _user!.isGuest) return;
     try {

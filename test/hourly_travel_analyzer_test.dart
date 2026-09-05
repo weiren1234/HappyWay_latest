@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+﻿import 'package:flutter_test/flutter_test.dart';
 import 'package:happyway/models/weather_info.dart';
 import 'package:happyway/models/travel_route.dart';
 import 'package:happyway/utils/hourly_travel_analyzer.dart';
@@ -6,14 +6,13 @@ import 'package:happyway/utils/hourly_travel_analyzer.dart';
 void main() {
   group('HourlyTravelAnalyzer - Feasibility & Time-Awareness', () {
     test('Today: past hours are filtered out, past period is not recommended', () {
-      final now = DateTime(2026, 9, 5, 16, 0); // 4:00 PM today
-      final targetDate = DateTime(2026, 9, 5); // Today
+      final now = DateTime(2026, 9, 5, 16, 0);
+      final targetDate = DateTime(2026, 9, 5);
 
-      // Generate 24 hourly items: Morning is great (95), Afternoon is moderate (72), Night is good (84)
       final items = List.generate(24, (hour) {
         final time = DateTime(2026, 9, 5, hour);
         if (hour >= 6 && hour <= 11) {
-          // Morning: Clear, pleasant
+
           return HourlyWeatherItem(
             time: time,
             timeLabel: '$hour:00',
@@ -24,7 +23,7 @@ void main() {
             precipitationProbability: 0,
           );
         } else if (hour >= 12 && hour <= 17) {
-          // Afternoon: Cloudy, moderate
+
           return HourlyWeatherItem(
             time: time,
             timeLabel: '$hour:00',
@@ -35,7 +34,7 @@ void main() {
             precipitationProbability: 25,
           );
         } else {
-          // Night: Fair
+
           return HourlyWeatherItem(
             time: time,
             timeLabel: '$hour:00',
@@ -55,19 +54,18 @@ void main() {
         preferredPeriod: 'Auto',
       );
 
-      // Morning has passed (hours 6-11 < 16), so its actionable score is 0 and is not feasible
       expect(result.periodEvaluations?[TravelPeriod.morning]?.score, 0);
       expect(result.periodEvaluations?[TravelPeriod.morning]?.isFeasible, isFalse);
-      // Auto must NOT recommend Morning because it has already passed!
+
       expect(result.recommendedPeriod, isNot('Morning'));
       expect(result.recommendedPeriod, anyOf('Afternoon', 'Night'));
-      // Morning fullScore should be preserved internally
+
       expect(result.periodEvaluations?[TravelPeriod.morning]?.fullScore, greaterThan(80));
     });
 
     test('Future date: all periods are evaluated normally regardless of current hour', () {
-      final now = DateTime(2026, 9, 5, 16, 0); // 4:00 PM today
-      final futureDate = DateTime(2026, 9, 7); // 2 days in future
+      final now = DateTime(2026, 9, 5, 16, 0);
+      final futureDate = DateTime(2026, 9, 7);
 
       final items = List.generate(24, (hour) {
         final time = DateTime(2026, 9, 7, hour);
@@ -89,7 +87,6 @@ void main() {
         preferredPeriod: 'Auto',
       );
 
-      // Morning is fully evaluated and feasible for future trip
       expect(result.periodEvaluations?[TravelPeriod.morning]?.isFeasible, isTrue);
       expect(result.morningSuitability, greaterThan(80));
       expect(result.recommendedPeriod, 'Morning');
@@ -101,13 +98,8 @@ void main() {
       final targetDate = DateTime(2026, 9, 10);
       final now = DateTime(2026, 9, 5, 8, 0);
 
-      // We craft Morning and Afternoon to have the SAME average score,
-      // but Morning has a severe dip (e.g. 100, 100, 100, 100, 100, 40)
-      // while Afternoon has stable consistent hours (e.g. 90, 90, 90, 90, 90, 90)
       final items = <HourlyWeatherItem>[];
 
-      // Morning: hours 6-11
-      // 5 sunny hours (code 0) and 1 hour with heavy rain (code 65)
       for (int h = 6; h <= 11; h++) {
         items.add(HourlyWeatherItem(
           time: DateTime(2026, 9, 10, h),
@@ -120,8 +112,6 @@ void main() {
         ));
       }
 
-      // Afternoon: hours 12-17
-      // 6 mildly overcast hours (code 1), no extreme rain
       for (int h = 12; h <= 17; h++) {
         items.add(HourlyWeatherItem(
           time: DateTime(2026, 9, 10, h),
@@ -134,7 +124,6 @@ void main() {
         ));
       }
 
-      // Night: hours 18-23 (lower score)
       for (int h = 18; h <= 23; h++) {
         items.add(HourlyWeatherItem(
           time: DateTime(2026, 9, 10, h),
@@ -154,7 +143,6 @@ void main() {
         preferredPeriod: 'Auto',
       );
 
-      // Afternoon should win over Morning due to higher floor / no heavy rain!
       expect(result.recommendedPeriod, 'Afternoon');
     });
 
@@ -164,7 +152,6 @@ void main() {
 
       final items = <HourlyWeatherItem>[];
 
-      // Morning: hours 6-11 (Code 1, precip 40%)
       for (int h = 6; h <= 11; h++) {
         items.add(HourlyWeatherItem(
           time: DateTime(2026, 9, 10, h),
@@ -177,7 +164,6 @@ void main() {
         ));
       }
 
-      // Afternoon: hours 12-17 (Code 1, precip 5%)
       for (int h = 12; h <= 17; h++) {
         items.add(HourlyWeatherItem(
           time: DateTime(2026, 9, 10, h),
@@ -197,7 +183,6 @@ void main() {
         preferredPeriod: 'Auto',
       );
 
-      // Afternoon has much lower precip probability (5% vs 40%), so Afternoon wins
       expect(result.recommendedPeriod, 'Afternoon');
     });
   });
@@ -207,7 +192,6 @@ void main() {
       final targetDate = DateTime(2026, 9, 10);
       final now = DateTime(2026, 9, 5, 8, 0);
 
-      // Make 7:00 to 10:00 AM the clearest consecutive 3 hours
       final items = List.generate(24, (h) {
         final isBestWindow = h >= 7 && h <= 9;
         return HourlyWeatherItem(
@@ -248,7 +232,6 @@ void main() {
         );
       });
 
-      // Route taking 2 hours (7200 seconds)
       final route = TravelRoute(
         originName: 'Kuala Lumpur',
         originLatitude: 3.139,
@@ -270,7 +253,6 @@ void main() {
         preferredPeriod: 'Morning',
       );
 
-      // In forward-projected departure, departures between 6:00 AM and 8:00 AM arrive in the 8-10 AM optimal window
       expect(result.suggestedDeparture, isNotNull);
       expect(result.suggestedDeparture, anyOf(contains('6:00 AM'), contains('6:30 AM'), contains('7:00 AM'), contains('7:30 AM'), contains('8:00 AM')));
       expect(result.bestWeatherWindow, isNotNull);
@@ -304,8 +286,8 @@ void main() {
     });
 
     test('Does not recommend past departure for today', () {
-      final now = DateTime(2026, 9, 5, 18, 0); // 6:00 PM today
-      final targetDate = DateTime(2026, 9, 5); // Today
+      final now = DateTime(2026, 9, 5, 18, 0);
+      final targetDate = DateTime(2026, 9, 5);
 
       final items = List.generate(24, (h) {
         return HourlyWeatherItem(
@@ -336,7 +318,7 @@ void main() {
         targetDate: targetDate,
         route: route,
         currentTimeOverride: now,
-        preferredPeriod: 'Afternoon', // Afternoon (12:00-17:59) has passed by 18:00
+        preferredPeriod: 'Afternoon',
       );
 
       expect(result.suggestedDeparture, isNull);
@@ -347,7 +329,6 @@ void main() {
       final targetDate = DateTime(2026, 9, 6);
       final now = DateTime(2026, 9, 5, 10, 0);
 
-      // 48 hourly items across 6 Sep and 7 Sep
       final items = <HourlyWeatherItem>[];
       for (int h = 0; h < 24; h++) {
         items.add(HourlyWeatherItem(
@@ -360,7 +341,7 @@ void main() {
         ));
       }
       for (int h = 0; h < 24; h++) {
-        final isOptimalOvernightArrival = h == 2; // 2:00 AM on 7 Sep is clear
+        final isOptimalOvernightArrival = h == 2;
         items.add(HourlyWeatherItem(
           time: DateTime(2026, 9, 7, h),
           timeLabel: '$h:00',
@@ -371,7 +352,6 @@ void main() {
         ));
       }
 
-      // 3 hours drive (10800 seconds)
       final route = TravelRoute(
         originName: 'Kuala Lumpur',
         originLatitude: 3.139,
@@ -390,7 +370,7 @@ void main() {
         targetDate: targetDate,
         route: route,
         currentTimeOverride: now,
-        preferredPeriod: 'Night', // Night departure: 11:00 PM + 3 hr drive = 2:00 AM on 7 Sep
+        preferredPeriod: 'Night',
       );
 
       expect(result.suggestedDeparture, isNotNull);
@@ -458,7 +438,6 @@ void main() {
       final targetDate = DateTime(2026, 9, 10);
       final now = DateTime(2026, 9, 5, 8, 0);
 
-      // Morning has moderate weather (code 3), Night has excellent weather (code 0)
       final items = List.generate(24, (h) {
         final isNight = h >= 18 && h <= 23;
         return HourlyWeatherItem(
@@ -484,7 +463,6 @@ void main() {
         fetchedAt: DateTime.now(),
       );
 
-      // 1. In Auto, Night should be recommended
       final autoResult = HourlyTravelAnalyzer.analyze(
         hourlyForecast: items,
         targetDate: targetDate,
@@ -495,7 +473,6 @@ void main() {
       expect(autoResult.recommendedPeriod, 'Night');
       expect(autoResult.suggestedDeparture, contains('PM'));
 
-      // 2. In Manual Morning, recommendedPeriod may still be Night, BUT suggestedDeparture MUST be in Morning (AM)
       final morningResult = HourlyTravelAnalyzer.analyze(
         hourlyForecast: items,
         targetDate: targetDate,
@@ -515,7 +492,6 @@ void main() {
       final targetDate = DateTime(2026, 9, 10);
       final now = DateTime(2026, 9, 5, 8, 0);
 
-      // Test with bad weather
       final badWeatherItems = List.generate(24, (h) {
         return HourlyWeatherItem(
           time: DateTime(2026, 9, 10, h),

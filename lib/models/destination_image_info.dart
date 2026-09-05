@@ -1,5 +1,5 @@
-/// DestinationImageInfo stores metadata for a destination's resolved imagery.
-/// Can represent a verified bundled local asset or an automatic Pexels API image.
+﻿
+
 class DestinationImageInfo {
   final String imageUrl;
   final String? photographer;
@@ -21,7 +21,6 @@ class DestinationImageInfo {
     this.isVerified = false,
   });
 
-  /// Check if this cached image is still valid (e.g. 7 days TTL).
   bool isValid({Duration ttl = const Duration(days: 7)}) {
     if (isLocalAsset) return true;
     return DateTime.now().difference(cachedAt) < ttl;

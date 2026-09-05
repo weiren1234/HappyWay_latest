@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/destination_provider.dart';
@@ -9,8 +9,6 @@ import '../widgets/glass_card.dart';
 import '../routes/app_routes.dart';
 import '../utils/validators.dart';
 
-/// LoginScreen provides Email + Password authentication via Supabase Auth
-/// with links to Registration and Forgot Password recovery flows.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -45,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (success) {
-      // Sync cloud data for authenticated user
+
       final destProvider = Provider.of<DestinationProvider>(context, listen: false);
       final tripProvider = Provider.of<TripProvider>(context, listen: false);
       await Future.wait([
@@ -123,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: AppColors.backgroundDark,
       body: Stack(
         children: [
-          // Background ambient glows
+
           Positioned(
             top: -60,
             left: -60,
@@ -161,7 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // App Logo & Brand Header
+
                       Center(
                         child: Container(
                           width: 72,
@@ -208,7 +206,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 32),
 
-                      // Glass Card Form
                       GlassCard(
                         padding: const EdgeInsets.all(22),
                         child: Column(
@@ -312,7 +309,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             const SizedBox(height: 10),
 
-                            // Forgot Password Link
                             Align(
                               alignment: Alignment.centerRight,
                               child: TextButton(
@@ -335,7 +331,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             const SizedBox(height: 24),
 
-                            // Sign In Button
                             SizedBox(
                               width: double.infinity,
                               height: 50,
@@ -379,7 +374,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Sign Up Navigation Link
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -407,7 +401,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 18),
 
-                      // Continue as Guest Option
                       TextButton(
                         onPressed: () {
                           final auth = Provider.of<AuthProvider>(context, listen: false);
@@ -434,7 +427,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
 
-          // Top Back button — always go to MainScreen as Guest, never back to Splash
           Positioned(
             top: MediaQuery.of(context).padding.top + 8,
             left: 16,

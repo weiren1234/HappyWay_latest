@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -23,8 +23,6 @@ import '../widgets/destination_image_view.dart';
 import '../widgets/hourly_weather_card.dart';
 import 'travel_insights_screen.dart';
 
-/// DestinationDetailScreen shows the full travel breakdown for a destination.
-/// Displays official weather forecast data, Travel Suitability Score, and best travel period.
 class DestinationDetailScreen extends StatefulWidget {
   final TravelDestination destination;
   final TravelRoute? route;
@@ -162,7 +160,7 @@ class _DestinationDetailScreenState extends State<DestinationDetailScreen>
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // ── Hero Header ──────────────────────────────────────────────────────
+
           SliverAppBar(
             expandedHeight: 300,
             pinned: true,
@@ -282,18 +280,16 @@ class _DestinationDetailScreenState extends State<DestinationDetailScreen>
             ),
           ),
 
-          // ── Body ─────────────────────────────────────────────────────────────
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── Animated Travel Suitability Score Card ────────────────
+
                   _buildScoreCard(context, travelScore, scoreColor),
                   const SizedBox(height: 20),
 
-                  // ── Description ───────────────────────────────────────────
                   Text('About This Destination', style: AppTextStyles.titleMedium.copyWith(color: AppColors.primaryText(context))),
                   const SizedBox(height: 10),
                   GlassCard(
@@ -337,7 +333,6 @@ class _DestinationDetailScreenState extends State<DestinationDetailScreen>
                   ),
                   const SizedBox(height: 20),
 
-                  // ── Weather Forecast ─────────────────────────────────────
                   _SectionHeader(
                     title: 'Weather Forecast',
                     trailing: Text(
@@ -349,7 +344,6 @@ class _DestinationDetailScreenState extends State<DestinationDetailScreen>
                   _MetForecastCard(weather: weather),
                   const SizedBox(height: 20),
 
-                  // ── Full Travel Insights CTA ──────────────────────────────
                   GlassCard(
                     onTap: () {
                       final locProvider = Provider.of<LocationProvider>(context, listen: false);
@@ -495,7 +489,7 @@ class _DestinationDetailScreenState extends State<DestinationDetailScreen>
         children: [
           Row(
             children: [
-              // Animated score ring
+
               AnimatedBuilder(
                 animation: _scoreAnimation,
                 builder: (context, _) {
@@ -671,8 +665,6 @@ class _DestinationDetailScreenState extends State<DestinationDetailScreen>
   }
 }
 
-// ─── MET Forecast Card ───────────────────────────────────────────────────────
-
 class _MetForecastCard extends StatelessWidget {
   final WeatherInfo? weather;
   const _MetForecastCard({required this.weather});
@@ -702,10 +694,6 @@ class _MetForecastCard extends StatelessWidget {
     );
   }
 }
-
-
-
-// ─── Score Ring Painter ───────────────────────────────────────────────────────
 
 class _ScoreRingPainter extends CustomPainter {
   final double progress;

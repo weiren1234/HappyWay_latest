@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
-/// NavigationProvider manages the active tab index for HappyWay's bottom navigation bar.
 class NavigationProvider extends ChangeNotifier {
   int _currentIndex = 0;
 

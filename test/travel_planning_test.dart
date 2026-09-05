@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+﻿import 'package:flutter_test/flutter_test.dart';
 import 'package:happyway/models/weather_info.dart';
 import 'package:happyway/models/travel_route.dart';
 import 'package:happyway/models/user_location.dart';
@@ -12,8 +12,8 @@ void main() {
         'code': 'Ok',
         'routes': [
           {
-            'distance': 206300.0, // 206.3 km
-            'duration': 11880.0, // 3 hours 18 mins (198 mins)
+            'distance': 206300.0,
+            'duration': 11880.0,
           }
         ]
       };
@@ -42,7 +42,7 @@ void main() {
         'routes': [
           {
             'distance': 15200.0,
-            'duration': 1500.0, // 25 min
+            'duration': 1500.0,
           }
         ]
       };
@@ -94,7 +94,7 @@ void main() {
 
   group('TravelScoreCalculator Data Integrity & Missing Weather Tests', () {
     test('Missing / null conditions do NOT automatically behave like dry weather or score 100', () {
-      // Empty weather info with all periods null
+
       const incompleteWeather = WeatherInfo(
         condition: 'Unknown',
         morningCondition: null,
@@ -106,7 +106,6 @@ void main() {
 
       final score = TravelScoreCalculator.calculateScore(weather: incompleteWeather, route: null);
 
-      // Score must NOT be 100! Neutral baseline for completely missing period data is 50
       expect(score.weatherSubscore, isNot(100));
       expect(score.score, isNot(100));
       expect(score.bestTravelPeriod, 'Not available');
@@ -161,7 +160,6 @@ void main() {
 
       final score = TravelScoreCalculator.calculateScore(weather: unusualWeather, route: null);
 
-      // Must handle gracefully with small neutral uncertainty deduction
       expect(score.weatherSubscore, inInclusiveRange(70, 97));
       expect(score.weatherSubscore, isNot(100));
     });
@@ -189,7 +187,7 @@ void main() {
         destinationLongitude: 99.7291,
         distanceMeters: 18500.0,
         distanceKm: 18.5,
-        durationSeconds: 1500.0, // 25 min -> journey score 95
+        durationSeconds: 1500.0,
         fetchedAt: DateTime.now(),
       );
 
@@ -213,7 +211,6 @@ void main() {
         iconCode: 'sunny',
       );
 
-      // Route is null (e.g. cross-sea / no driving route)
       final score = TravelScoreCalculator.calculateScore(weather: weather, route: null);
 
       expect(score.journeySubscore, isNull);
@@ -232,14 +229,12 @@ void main() {
         iconCode: 'thunderstorm',
       );
 
-      // Curated destination with tags
       final curatedScore = TravelScoreCalculator.calculateScore(
         weather: weather,
         activityTags: ['Highlands', 'Nature'],
       );
       expect(curatedScore.recommendedActivities, isNotEmpty);
 
-      // Arbitrary geocoded address without tags (no fabricated tags)
       final geocodedScore = TravelScoreCalculator.calculateScore(
         weather: weather,
         activityTags: null,
@@ -257,7 +252,6 @@ void main() {
         iconCode: 'thunderstorm',
       );
 
-      // User prefers Afternoon, but Morning is recommended
       final scoreMismatch = TravelScoreCalculator.calculateScore(
         weather: weather,
         preferredPeriod: 'Afternoon',
@@ -265,7 +259,6 @@ void main() {
       expect(scoreMismatch.reasons, contains(TravelRecommendationReason.preferredPeriodMismatch));
       expect(scoreMismatch.preferredPeriodComparison, contains('more favourable'));
 
-      // User prefers Morning, which matches
       final scoreMatch = TravelScoreCalculator.calculateScore(
         weather: weather,
         preferredPeriod: 'Morning',
@@ -284,7 +277,6 @@ void main() {
         iconCode: 'partly_cloudy',
       );
 
-      // Real OSRM route parameters for Setapak / KL -> Genting Highlands (approx 38.0 km, 46 mins)
       final gentingRoute = TravelRoute(
         originName: 'Current Location',
         originLatitude: 3.1970,
@@ -294,7 +286,7 @@ void main() {
         destinationLongitude: 101.77915,
         distanceMeters: 37977.5,
         distanceKm: 37.9775,
-        durationSeconds: 2750.0, // ~45.8 mins
+        durationSeconds: 2750.0,
         fetchedAt: DateTime.now(),
       );
 
@@ -308,9 +300,9 @@ void main() {
       );
 
       expect(score.isRouteAvailable, isTrue);
-      expect(score.journeySubscore, 95); // <= 90 mins -> 95 pts
-      expect(score.weatherSubscore, 98); // Cerah (100) + Berawan (-2) = 98
-      // Overall = 98 * 0.60 + 95 * 0.40 = 58.8 + 38.0 = 96.8 -> 97
+      expect(score.journeySubscore, 95);
+      expect(score.weatherSubscore, 98);
+
       expect(score.score, 97);
       expect(score.analysisLimitation, isNull);
     });
@@ -325,7 +317,6 @@ void main() {
         iconCode: 'sunny',
       );
 
-      // Real OSRM route parameters for KL -> Cameron Highlands (approx 206 km, 3 hr 18 min = 198 min)
       final cameronRoute = TravelRoute(
         originName: 'Current Location',
         originLatitude: 3.1390,
@@ -335,7 +326,7 @@ void main() {
         destinationLongitude: 101.3800,
         distanceMeters: 206300.0,
         distanceKm: 206.3,
-        durationSeconds: 11880.0, // 198 mins
+        durationSeconds: 11880.0,
         fetchedAt: DateTime.now(),
       );
 
@@ -349,9 +340,9 @@ void main() {
       );
 
       expect(score.isRouteAvailable, isTrue);
-      expect(score.journeySubscore, 78); // 180 < minutes <= 270 -> 78 pts
+      expect(score.journeySubscore, 78);
       expect(score.weatherSubscore, 100);
-      // Overall = 100 * 0.60 + 78 * 0.40 = 60 + 31.2 = 91.2 -> 91
+
       expect(score.score, 91);
       expect(score.analysisLimitation, isNull);
     });
@@ -366,7 +357,6 @@ void main() {
         iconCode: 'sunny',
       );
 
-      // No direct driving route available across South China Sea
       final score = TravelScoreCalculator.calculateScore(
         weather: weather,
         route: null,
@@ -376,7 +366,7 @@ void main() {
       expect(score.isRouteAvailable, isFalse);
       expect(score.journeySubscore, isNull);
       expect(score.weatherSubscore, 100);
-      expect(score.score, 100); // 100% weather
+      expect(score.score, 100);
       expect(score.analysisLimitation, contains('driving route unavailable'));
     });
 
@@ -399,7 +389,7 @@ void main() {
         destinationLongitude: 101.6840,
         distanceMeters: 8500.0,
         distanceKm: 8.5,
-        durationSeconds: 900.0, // 15 mins
+        durationSeconds: 900.0,
         fetchedAt: DateTime.now(),
       );
 

@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 import '../models/travel_destination.dart';
 import '../models/destination_recommendation.dart';
 import '../models/travel_route.dart';
@@ -30,12 +30,11 @@ class RecommendationService {
     final originState = userOrigin?.state ?? 'Kuala Lumpur';
     final originLat = (userOrigin?.latitude != null && userOrigin!.latitude != 0.0)
         ? userOrigin.latitude
-        : 3.1950; // Central KL fallback if GPS is pending
+        : 3.1950;
     final originLng = (userOrigin?.longitude != null && userOrigin!.longitude != 0.0)
         ? userOrigin.longitude
         : 101.7100;
 
-    // 1. Candidate Pool: filter by activity match and classify reachability
     final roadCandidates = <_CandidateItem>[];
     final getawayCandidates = <_CandidateItem>[];
 
@@ -53,7 +52,6 @@ class RecommendationService {
           destinationCategory: dest.category,
         );
 
-        // Compute straight-line km to destination (Haversine)
         double distanceKm = double.infinity;
         if (dest.latitude != null && dest.longitude != null) {
           distanceKm = _haversineKm(
@@ -77,26 +75,23 @@ class RecommendationService {
       }
     }
 
-    // 2. Sort road candidates based on targetDistanceKm
     if (targetDistanceKm <= 50.0) {
       roadCandidates.sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
     } else {
-      // Estimated straight-line distance corresponding to target road driving distance (~ road / 1.3)
+
       final targetStraightKm = targetDistanceKm / 1.3;
       roadCandidates.sort((a, b) =>
           (a.distanceKm - targetStraightKm).abs().compareTo((b.distanceKm - targetStraightKm).abs()));
     }
     getawayCandidates.sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
 
-    // 3. Take distance-matching candidates for full scoring (evaluates all places in the target distance band)
     final roadBatch = roadCandidates.take(35).toList();
     final getawayBatch = getawayCandidates.take(6).toList();
 
-    // 4. Process Road-Accessible Candidates
     final processedRoadRecs = <DestinationRecommendation>[];
 
     if (roadBatch.isNotEmpty) {
-      // Fetch weather and pre-score
+
       final scoredRoadCandidates = <_ScoredPreCandidate>[];
       for (final item in roadBatch) {
         final dest = item.destination;
@@ -112,11 +107,10 @@ class RecommendationService {
           item: item,
           weather: weather,
           weatherScore: weatherScore,
-          preRankScore: 0, // not used for filtering when proximity-first
+          preRankScore: 0,
         ));
       }
 
-      // Call OSRM for all road candidates
       for (final scored in scoredRoadCandidates) {
         final dest = scored.item.destination;
         final weather = scored.weather;
@@ -176,14 +170,11 @@ class RecommendationService {
         processedRoadRecs.add(rec);
       }
 
-      // Sort road recs by score descending before returning
       processedRoadRecs.sort((a, b) => b.recommendationScore.compareTo(a.recommendationScore));
     }
 
-    // Return all road recs — distance-window filtering + take(5) happens in the provider
     final finalRoadRecs = processedRoadRecs;
 
-    // 5. Process Getaway Candidates (Non-direct road / Island / Flight / Ferry)
     final processedGetawayRecs = <DestinationRecommendation>[];
 
     if (getawayBatch.isNotEmpty) {
@@ -231,15 +222,13 @@ class RecommendationService {
       processedGetawayRecs.sort((a, b) => b.recommendationScore.compareTo(a.recommendationScore));
     }
 
-    // Return all getaway recs sorted by score (provider displays top N)
     final finalGetawayRecs = processedGetawayRecs;
 
     return [...finalRoadRecs, ...finalGetawayRecs];
   }
 
-  /// Haversine formula: straight-line distance in km between two lat/lng points.
   static double _haversineKm(double lat1, double lng1, double lat2, double lng2) {
-    const r = 6371.0; // Earth radius in km
+    const r = 6371.0;
     final dLat = (lat2 - lat1) * math.pi / 180.0;
     final dLng = (lng2 - lng1) * math.pi / 180.0;
     final sinDLat = math.sin(dLat / 2);
@@ -251,7 +240,6 @@ class RecommendationService {
     final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
     return r * c;
   }
-
 
   static int _calculateActivityMatch(TravelDestination dest, String preferenceLower) {
     for (final tag in dest.activityTags) {
@@ -318,7 +306,6 @@ class RecommendationService {
     return false;
   }
 
-  /// Generates explainable, rule-based reasoning derived strictly from official MET fields + activity + reachability.
   static String _generateRecommendationReason({
     required String destName,
     required String preference,
@@ -337,7 +324,6 @@ class RecommendationService {
     final isAfternoonDry = _isDry(afternoon);
     final pref = preference.toLowerCase();
 
-    // Include route distance / duration context if road accessible and route computed
     final String routeSuffix;
     if (isRoadAccessible && route != null) {
       routeSuffix = ' Approx. ${route.durationFormatted} drive (${route.distanceFormatted}).';
@@ -347,7 +333,6 @@ class RecommendationService {
       routeSuffix = '';
     }
 
-    // Beach & Island Reasoning
     if (pref == 'beach' || pref == 'island') {
       if (isMorningDry && isAfternoonDry) {
         return 'Dry and clear conditions forecast across morning and afternoon make $destName ideal for coastal trips.$routeSuffix';
@@ -360,7 +345,6 @@ class RecommendationService {
       }
     }
 
-    // Nature & Hiking Reasoning
     if (pref == 'nature' || pref == 'hiking') {
       if (isMorningDry && isAfternoonDry) {
         return 'Clear dry conditions forecast throughout the day, optimal for nature walks and outdoor exploration.$routeSuffix';
@@ -371,7 +355,6 @@ class RecommendationService {
       }
     }
 
-    // Highlands Reasoning
     if (pref == 'highlands') {
       final tempStr = weather.minTemperature != null && weather.maxTemperature != null
           ? ' (${weather.minTemperature!.round()}°C – ${weather.maxTemperature!.round()}°C)'
@@ -383,7 +366,6 @@ class RecommendationService {
       }
     }
 
-    // Sightseeing, Relaxing, Family Trip Reasoning
     if (isMorningDry && isAfternoonDry) {
       return 'Stable and clear weather forecast throughout the day makes $destName a great choice for $preference.$routeSuffix';
     } else if (isMorningDry) {

@@ -1,13 +1,10 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/navigation_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
-/// CustomBottomNavBar builds a floating glassmorphic bottom navigation bar with 4 tabs:
-/// Home, Trips, Saved, Profile.
-/// Adapts cleanly to both Dark and Light themes.
 class CustomBottomNavBar extends StatelessWidget {
   const CustomBottomNavBar({super.key});
 

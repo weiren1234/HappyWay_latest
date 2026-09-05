@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import '../models/user_location.dart';
@@ -25,14 +25,11 @@ class LocationResult {
   bool get isSuccess => state == LocationPermissionState.granted && location != null;
 }
 
-/// LocationService manages device GPS location retrieval and reverse geocoding.
 class LocationService {
-  /// Requests device GPS permission and retrieves high-accuracy GPS coordinates.
-  /// The visible origin name is strictly "Current Location" and passes the exact GPS
-  /// latitude/longitude directly for OSRM route calculations.
+
   static Future<LocationResult> getCurrentLocation() async {
     try {
-      // 1. Check if location services are enabled on device
+
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         return const LocationResult(
@@ -41,7 +38,6 @@ class LocationService {
         );
       }
 
-      // 2. Check and request runtime permissions (supports Precise Location on Android)
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -60,7 +56,6 @@ class LocationService {
         );
       }
 
-      // 3. Get high-accuracy GPS position
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.best,
@@ -70,7 +65,6 @@ class LocationService {
 
       debugPrint('Current GPS position: (${position.latitude}, ${position.longitude}), accuracy: ${position.accuracy} m');
 
-      // 4. Optional internal reverse geocode for secondary detail (does NOT replace "Current Location" label)
       String? internalAddress;
       try {
         final placemarks = await placemarkFromCoordinates(
@@ -117,9 +111,7 @@ class LocationService {
     }
   }
 
-  /// Opens device app settings (useful when permission is permanently denied).
   static Future<bool> openAppSettings() => Geolocator.openAppSettings();
 
-  /// Opens device location settings (useful when GPS is turned off).
   static Future<bool> openLocationSettings() => Geolocator.openLocationSettings();
 }
