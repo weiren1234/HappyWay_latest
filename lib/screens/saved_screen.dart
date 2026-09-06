@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../main.dart' show scaffoldMessengerKey;
 import '../models/saved_location.dart';
 import '../models/travel_destination.dart';
 import '../providers/auth_provider.dart';
@@ -117,9 +116,9 @@ class _SavedScreenState extends State<SavedScreen> {
     if (!ctx.mounted) return;
 
     if (error != null) {
-
-      scaffoldMessengerKey.currentState
-        ?..hideCurrentSnackBar()
+      final messenger = ScaffoldMessenger.of(ctx);
+      messenger
+        ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
             content: Text(error, style: const TextStyle(color: Colors.white)),
@@ -132,8 +131,9 @@ class _SavedScreenState extends State<SavedScreen> {
       return;
     }
 
-    scaffoldMessengerKey.currentState
-      ?..hideCurrentSnackBar()
+    final messenger = ScaffoldMessenger.of(ctx);
+    messenger
+      ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
           content: Text(
@@ -146,7 +146,12 @@ class _SavedScreenState extends State<SavedScreen> {
             borderRadius: BorderRadius.circular(12),
             side: BorderSide(color: AppColors.borderGlass(ctx)),
           ),
-          duration: const Duration(seconds: 5),
+          duration: const Duration(seconds: 3),
+          onVisible: () {
+            Future.delayed(const Duration(seconds: 3), () {
+              messenger.removeCurrentSnackBar();
+            });
+          },
           action: SnackBarAction(
             label: 'UNDO',
             textColor: AppColors.cyanAccent(ctx),
@@ -165,7 +170,7 @@ class _SavedScreenState extends State<SavedScreen> {
     if (!ctx.mounted) return;
 
     if (error != null) {
-      scaffoldMessengerKey.currentState?.showSnackBar(
+      ScaffoldMessenger.of(ctx).showSnackBar(
         SnackBar(
           content: Text(error, style: const TextStyle(color: Colors.white)),
           backgroundColor: AppColors.dangerRed.withValues(alpha: 0.9),

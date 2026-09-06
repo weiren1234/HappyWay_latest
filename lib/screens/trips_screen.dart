@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../main.dart' show scaffoldMessengerKey;
 import '../models/planned_trip.dart';
 import '../models/travel_score.dart';
 import '../models/weather_info.dart';
@@ -90,7 +89,7 @@ class _TripsScreenState extends State<TripsScreen> {
     if (!context.mounted) return;
 
     if (!success) {
-      scaffoldMessengerKey.currentState?.showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Failed to delete trip. Please try again.', style: TextStyle(color: Colors.white)),
           backgroundColor: AppColors.dangerRed.withValues(alpha: 0.9),
@@ -102,30 +101,35 @@ class _TripsScreenState extends State<TripsScreen> {
       return;
     }
 
-    scaffoldMessengerKey.currentState
-      ?..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            'Trip removed',
-            style: TextStyle(color: AppColors.primaryText(context), fontWeight: FontWeight.w500),
-          ),
-          backgroundColor: AppColors.cardBg(context),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: AppColors.borderGlass(context)),
-          ),
-          duration: const Duration(seconds: 5),
-          action: SnackBarAction(
-            label: 'UNDO',
-            textColor: AppColors.cyanAccent(context),
-            onPressed: () async {
-              await tripProvider.addTrip(trip);
-            },
-          ),
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          'Trip removed',
+          style: TextStyle(color: AppColors.primaryText(context), fontWeight: FontWeight.w500),
         ),
-      );
+        backgroundColor: AppColors.cardBg(context),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: AppColors.borderGlass(context)),
+        ),
+        duration: const Duration(seconds: 3),
+        onVisible: () {
+          Future.delayed(const Duration(seconds: 3), () {
+            messenger.removeCurrentSnackBar();
+          });
+        },
+        action: SnackBarAction(
+          label: 'UNDO',
+          textColor: AppColors.cyanAccent(context),
+          onPressed: () async {
+            await tripProvider.addTrip(trip);
+          },
+        ),
+      ),
+    );
   }
 
   @override

@@ -26,37 +26,37 @@ class MainScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: isDark
-                ? const [
-                    AppColors.backgroundGradientStart,
-                    AppColors.backgroundGradientEnd,
-                  ]
-                : const [
-                    AppColors.backgroundGradientStartLight,
-                    AppColors.backgroundGradientEndLight,
-                  ],
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: isDark
+                  ? const [
+                      AppColors.backgroundGradientStart,
+                      AppColors.backgroundGradientEnd,
+                    ]
+                  : const [
+                      AppColors.backgroundGradientStartLight,
+                      AppColors.backgroundGradientEndLight,
+                    ],
+            ),
+          ),
+          child: Stack(
+            children: [
+
+              IndexedStack(
+                index: navProvider.currentIndex,
+                children: screens,
+              ),
+
+              const Align(
+                alignment: Alignment.bottomCenter,
+                child: CustomBottomNavBar(),
+              ),
+            ],
           ),
         ),
-        child: Stack(
-          children: [
-
-            IndexedStack(
-              index: navProvider.currentIndex,
-              children: screens,
-            ),
-
-            const Align(
-              alignment: Alignment.bottomCenter,
-              child: CustomBottomNavBar(),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
