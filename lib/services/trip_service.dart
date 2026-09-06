@@ -1,4 +1,4 @@
-﻿import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/planned_trip.dart';
 
@@ -28,6 +28,7 @@ class TripService {
         final rowDest = item['destination_name'];
         final rowDate = item['travel_date'];
         debugPrint('[TripService] Raw row -> id: $rowId, destination_name: $rowDest, travel_date: $rowDate');
+        debugPrint('[TripService] Existing row columns: ${item.keys.toList()}');
         try {
           final trip = PlannedTrip.fromJson(item);
           trips.add(trip);
@@ -43,13 +44,36 @@ class TripService {
 
   Future<PlannedTrip> saveTrip(String userId, PlannedTrip trip) async {
     final payload = trip.toSupabase(userId: userId);
-    final response = await _client
-        .from('planned_trips')
-        .insert(payload)
-        .select()
-        .single();
+    debugPrint('[TripService] ════════════════════════════════════════');
+    debugPrint('[TripService] saveTrip payload keys: ${payload.keys.toList()}');
+    debugPrint('[TripService] saveTrip payload entries:');
+    payload.forEach((key, value) {
+      debugPrint('   $key: $value (${value?.runtimeType})');
+    });
+    debugPrint('[TripService] ════════════════════════════════════════');
 
-    return PlannedTrip.fromJson(response);
+    try {
+      final response = await _client
+          .from('planned_trips')
+          .insert(payload)
+          .select()
+          .single();
+
+      debugPrint('[TripService] saveTrip SUCCESS -> generated ID: ${response['id']}');
+      return PlannedTrip.fromJson(response);
+    } catch (e, stack) {
+      debugPrint('[TripService] ❌ saveTrip FAILED: ${e.runtimeType}');
+      if (e is PostgrestException) {
+        debugPrint('[TripService] PostgrestException CODE: ${e.code}');
+        debugPrint('[TripService] PostgrestException MESSAGE: ${e.message}');
+        debugPrint('[TripService] PostgrestException DETAILS: ${e.details}');
+        debugPrint('[TripService] PostgrestException HINT: ${e.hint}');
+      } else {
+        debugPrint('[TripService] General Exception: $e');
+      }
+      debugPrint('[TripService] Stack trace: $stack');
+      rethrow;
+    }
   }
 
   Future<void> updateTrip(String userId, PlannedTrip trip) async {

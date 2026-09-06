@@ -1,4 +1,4 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -18,7 +18,7 @@ import '../utils/canonical_destination_id.dart';
 import '../utils/travel_score_calculator.dart';
 import '../widgets/auth_prompt_dialog.dart';
 import '../widgets/glass_card.dart';
-import '../widgets/plan_trip_sheet.dart';
+import '../widgets/create_trip_sheet.dart';
 import '../widgets/destination_image_view.dart';
 import '../widgets/hourly_weather_card.dart';
 import 'travel_insights_screen.dart';
@@ -443,7 +443,7 @@ class _DestinationDetailScreenState extends State<DestinationDetailScreen>
                       AuthPromptDialog.show(context);
                       return;
                     }
-                    PlanTripSheet.show(
+                    CreateTripSheet.show(
                       context,
                       initialDestination: TravelLocation.fromFeaturedDestination(currentDest),
                     );

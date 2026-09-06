@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../main.dart' show scaffoldMessengerKey;
 import '../models/planned_trip.dart';
@@ -13,7 +13,8 @@ import '../theme/app_text_styles.dart';
 import '../widgets/destination_image_view.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/header_section.dart';
-import '../widgets/plan_trip_sheet.dart';
+import '../widgets/create_trip_sheet.dart';
+import '../models/trip_stop.dart';
 
 class TripsScreen extends StatefulWidget {
   const TripsScreen({super.key});
@@ -229,7 +230,7 @@ class _TripsScreenState extends State<TripsScreen> {
   Widget _buildPlanTripButton(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
-      onTap: () => PlanTripSheet.show(context),
+      onTap: () => CreateTripSheet.show(context),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
@@ -431,7 +432,7 @@ class _TripsScreenState extends State<TripsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                trip.destinationName,
+                                trip.displayTitle,
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 18,
@@ -471,7 +472,7 @@ class _TripsScreenState extends State<TripsScreen> {
                         const Icon(Icons.calendar_today_rounded, size: 13, color: AppColors.accentCyan),
                         const SizedBox(width: 6),
                         Text(
-                          '${trip.formattedWeekday}, ${trip.formattedDate}',
+                          trip.dateRangeText,
                           style: TextStyle(
                             color: AppColors.primaryText(context),
                             fontWeight: FontWeight.w600,
@@ -479,6 +480,53 @@ class _TripsScreenState extends State<TripsScreen> {
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 4),
+                    Builder(
+                      builder: (ctx) {
+                        final cachedStops = tripId != null ? tripProvider.getStopsForTrip(tripId) : <TripStop>[];
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(Icons.alt_route_rounded, size: 13, color: AppColors.accentCyan),
+                                const SizedBox(width: 6),
+                                Text(
+                                  cachedStops.isNotEmpty
+                                      ? '${cachedStops.length} ${cachedStops.length == 1 ? 'stop' : 'stops'} • ${trip.totalDays} ${trip.totalDays == 1 ? 'day' : 'days'}'
+                                      : '${trip.totalDays} ${trip.totalDays == 1 ? 'day' : 'days'} itinerary',
+                                  style: TextStyle(
+                                    color: AppColors.cyanAccent(context),
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (cachedStops.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Icon(Icons.place_rounded, size: 13, color: AppColors.weatherBlue),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      'Next: ${cachedStops.first.locationName} · ${cachedStops.first.displayTimeString}',
+                                      style: TextStyle(
+                                        color: AppColors.secondaryText(context),
+                                        fontSize: 12,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        );
+                      },
                     ),
                     const SizedBox(height: 4),
                     Row(
@@ -819,7 +867,7 @@ class _TripsScreenState extends State<TripsScreen> {
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: () => PlanTripSheet.show(context),
+              onPressed: () => CreateTripSheet.show(context),
               icon: const Icon(Icons.add_rounded, size: 18),
               label: const Text('Plan Your First Trip'),
               style: ElevatedButton.styleFrom(

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../main.dart' show scaffoldMessengerKey;
 import '../models/saved_location.dart';
@@ -10,7 +10,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/header_section.dart';
-import '../widgets/plan_trip_sheet.dart';
+import '../widgets/create_trip_sheet.dart';
 import '../widgets/destination_image_view.dart';
 import '../routes/app_routes.dart';
 import 'destination_detail_screen.dart';
@@ -65,7 +65,7 @@ class _SavedScreenState extends State<SavedScreen> {
   }
 
   void _openPlanTrip(BuildContext ctx, SavedLocation item) {
-    PlanTripSheet.show(
+    CreateTripSheet.show(
       ctx,
       initialDestination: item.toTravelLocation(),
     );

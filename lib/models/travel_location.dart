@@ -1,11 +1,11 @@
-﻿import 'met_location.dart';
+import 'met_location.dart';
 import 'travel_destination.dart';
+import '../services/place_search_service.dart';
 
 enum TravelLocationSource {
-
   metLocation,
-
   geocodedPlace,
+  osmPlace,
 }
 
 class TravelLocation {
@@ -50,6 +50,19 @@ class TravelLocation {
   });
 
   bool get isMetLocation => source == TravelLocationSource.metLocation;
+
+  bool get isOsmPlace => source == TravelLocationSource.osmPlace;
+
+  String get dbSourceType {
+    switch (source) {
+      case TravelLocationSource.metLocation:
+        return 'metLocation';
+      case TravelLocationSource.geocodedPlace:
+        return 'geocodedPlace';
+      case TravelLocationSource.osmPlace:
+        return 'osm_place';
+    }
+  }
 
   bool get hasWeatherLocation => metLocationId != null && metLocationId!.isNotEmpty;
 
@@ -104,6 +117,25 @@ class TravelLocation {
       state: state,
       category: category,
       source: TravelLocationSource.geocodedPlace,
+      metLocationId: metLocationId,
+      metLocationName: metLocationName,
+    );
+  }
+
+  factory TravelLocation.fromPlaceSearchResult(
+    PlaceSearchResult result, {
+    String? metLocationId,
+    String? metLocationName,
+  }) {
+    return TravelLocation(
+      id: result.id,
+      name: result.name,
+      formattedAddress: result.formattedAddress,
+      latitude: result.latitude,
+      longitude: result.longitude,
+      state: result.state,
+      category: result.category,
+      source: TravelLocationSource.osmPlace,
       metLocationId: metLocationId,
       metLocationName: metLocationName,
     );
@@ -176,9 +208,11 @@ class TravelLocation {
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
       state: json['state'] as String? ?? '',
       category: json['category'] as String? ?? 'Destination',
-      source: json['source'] == 'geocodedPlace'
-          ? TravelLocationSource.geocodedPlace
-          : TravelLocationSource.metLocation,
+      source: json['source'] == 'osmPlace' || json['source'] == 'osm_place'
+          ? TravelLocationSource.osmPlace
+          : (json['source'] == 'geocodedPlace'
+              ? TravelLocationSource.geocodedPlace
+              : TravelLocationSource.metLocation),
       metLocationId: json['metLocationId'] as String?,
       metLocationName: json['metLocationName'] as String?,
       imageUrl: json['imageUrl'] as String?,

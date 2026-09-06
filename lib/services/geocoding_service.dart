@@ -1,7 +1,16 @@
-﻿import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
 import 'package:geocoding/geocoding.dart';
 import '../models/travel_location.dart';
 import 'met_location_service.dart';
+
+String _toTitleCase(String input) {
+  if (input.isEmpty) return input;
+  return input.split(' ').map((word) {
+    if (word.isEmpty) return word;
+    if (word == word.toUpperCase() && word.length > 1) return word;
+    return word[0].toUpperCase() + word.substring(1).toLowerCase();
+  }).join(' ');
+}
 
 class GeocodingResult {
   final List<TravelLocation> locations;
@@ -64,7 +73,7 @@ class GeocodingService {
         if (seenCoords.contains(key)) continue;
         seenCoords.add(key);
 
-        String displayName = cleanQuery;
+        final locationName = _toTitleCase(cleanQuery);
         String? formattedAddress;
         String state = 'Malaysia';
 
@@ -81,23 +90,8 @@ class GeocodingService {
             final subAdmin = p.subAdministrativeArea?.isNotEmpty == true ? p.subAdministrativeArea!.trim() : null;
             final admin = p.administrativeArea?.isNotEmpty == true ? p.administrativeArea!.trim() : null;
             final street = p.street?.isNotEmpty == true && p.street != p.postalCode ? p.street!.trim() : null;
-            final thoroughfare = p.thoroughfare?.isNotEmpty == true ? p.thoroughfare!.trim() : null;
 
             state = admin ?? locality ?? 'Malaysia';
-
-            if (street != null && street.toLowerCase() != subLocality?.toLowerCase() && subLocality != null) {
-              displayName = '$street, $subLocality';
-            } else if (subLocality != null && locality != null && subLocality != locality) {
-              displayName = '$subLocality, $locality';
-            } else if (subLocality != null) {
-              displayName = subLocality;
-            } else if (locality != null) {
-              displayName = (admin != null && admin != locality) ? '$locality, $admin' : locality;
-            } else if (thoroughfare != null) {
-              displayName = thoroughfare;
-            } else {
-              displayName = cleanQuery;
-            }
 
             final addressParts = [
               street,
@@ -121,7 +115,7 @@ class GeocodingService {
         );
 
         results.add(TravelLocation.fromGeocodedPlace(
-          name: displayName,
+          name: locationName,
           formattedAddress: formattedAddress,
           latitude: loc.latitude,
           longitude: loc.longitude,

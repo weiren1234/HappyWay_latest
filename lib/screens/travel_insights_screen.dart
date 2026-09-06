@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/travel_destination.dart';
@@ -15,7 +15,7 @@ import '../services/route_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/glass_card.dart';
-import '../widgets/plan_trip_sheet.dart';
+import '../widgets/create_trip_sheet.dart';
 import '../widgets/destination_image_view.dart';
 import '../widgets/auth_prompt_dialog.dart';
 import '../widgets/hourly_weather_card.dart';
@@ -397,10 +397,9 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
                         : (widget.metLocation != null
                             ? TravelLocation.fromMetLocation(widget.metLocation!)
                             : null));
-                PlanTripSheet.show(
+                CreateTripSheet.show(
                   context,
                   initialDestination: travelLoc,
-                  initialTravelDate: DateTime.now(),
                 );
               },
               icon: const Icon(Icons.luggage_rounded, size: 18),
