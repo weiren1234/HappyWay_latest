@@ -745,7 +745,7 @@ class _TravelInsightsScreenState extends State<TravelInsightsScreen>
 
     return HourlyWeatherCard(
       weather: _weather!,
-      title: "Today's Hourly Forecast",
+      title: "Hourly Forecast",
     );
   }
 

@@ -38,6 +38,7 @@ class WeatherService {
     'cherating': 'LOCATION:315',
     'kuala lumpur': 'LOCATION:237',
     'kl': 'LOCATION:237',
+    'penang hill': 'LOCATION:758',
   };
 
   static const Map<String, (double, double)> _locationCoords = {
@@ -48,6 +49,7 @@ class WeatherService {
     'LOCATION:829': (5.980, 116.580),
     'LOCATION:316': (1.560, 104.267),
     'LOCATION:310': (5.474, 100.250),
+    'LOCATION:758': (5.4085, 100.2772),
     'LOCATION:326': (5.770, 103.007),
     'LOCATION:324': (4.222, 100.558),
     'LOCATION:329': (2.815, 104.162),

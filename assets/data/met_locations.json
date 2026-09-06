@@ -167,8 +167,8 @@
         "locationcategoryid":  "TOURISTDEST",
         "locationrootid":  "LOCATION:9",
         "state":  "PULAU PINANG",
-        "latitude":  null,
-        "longitude":  null
+        "latitude":  5.4085,
+        "longitude":  100.2772
     },
     {
         "id":  "LOCATION:319",

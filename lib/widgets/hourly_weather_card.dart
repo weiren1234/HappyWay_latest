@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/weather_info.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -20,15 +21,27 @@ class HourlyWeatherCard extends StatelessWidget {
     final now = DateTime.now();
     List<HourlyWeatherItem>? hourly = rawHourly;
     if (rawHourly != null && rawHourly.isNotEmpty) {
-      final firstTime = rawHourly.first.time;
-      final isToday = firstTime.year == now.year && firstTime.month == now.month && firstTime.day == now.day;
-      if (isToday) {
-        final displayItems = rawHourly.where((item) {
-          if (item.time.hour < now.hour && !item.isSunset && !item.isSunrise) return false;
-          return true;
+      final hasToday = rawHourly.any((item) =>
+          item.time.year == now.year &&
+          item.time.month == now.month &&
+          item.time.day == now.day);
+      if (hasToday) {
+        final currentHourStart = DateTime(now.year, now.month, now.day, now.hour);
+        final next24HoursEnd = currentHourStart.add(const Duration(hours: 24));
+        final upcoming = rawHourly.where((item) {
+          return !item.time.isBefore(currentHourStart) && item.time.isBefore(next24HoursEnd);
         }).toList();
-        if (displayItems.isNotEmpty) {
-          hourly = displayItems;
+        if (upcoming.isNotEmpty) {
+          hourly = upcoming;
+        }
+      } else {
+        final targetDate = rawHourly.first.time;
+        final targetDayItems = rawHourly.where((item) =>
+            item.time.year == targetDate.year &&
+            item.time.month == targetDate.month &&
+            item.time.day == targetDate.day).toList();
+        if (targetDayItems.isNotEmpty) {
+          hourly = targetDayItems;
         }
       }
     }
@@ -115,7 +128,7 @@ class HourlyWeatherCard extends StatelessWidget {
                 separatorBuilder: (_, _) => const SizedBox(width: 10),
                 itemBuilder: (ctx, index) {
                   final item = safeHourly[index];
-                  return _buildHourlyItem(context, item);
+                  return _buildHourlyItem(context, item, now);
                 },
               ),
             ),
@@ -144,9 +157,19 @@ class HourlyWeatherCard extends StatelessWidget {
     );
   }
 
-  Widget _buildHourlyItem(BuildContext context, HourlyWeatherItem item) {
-    final isCurrent = item.timeLabel == 'Now';
+  Widget _buildHourlyItem(BuildContext context, HourlyWeatherItem item, DateTime now) {
+    final isCurrent = !item.isSunset && !item.isSunrise &&
+        item.time.year == now.year &&
+        item.time.month == now.month &&
+        item.time.day == now.day &&
+        item.time.hour == now.hour;
     final isSpecial = item.isSunset || item.isSunrise;
+
+    final displayLabel = isCurrent
+        ? 'Now'
+        : (isSpecial
+            ? item.timeLabel
+            : DateFormat('h a').format(item.time).replaceAll(' ', ''));
 
     return Container(
       width: 62,
@@ -165,7 +188,7 @@ class HourlyWeatherCard extends StatelessWidget {
         children: [
 
           Text(
-            item.timeLabel,
+            displayLabel,
             style: AppTextStyles.bodySmall.copyWith(
               fontSize: isSpecial ? 10 : 11,
               fontWeight: isCurrent || isSpecial ? FontWeight.w700 : FontWeight.w500,
