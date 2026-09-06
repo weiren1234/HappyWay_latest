@@ -354,27 +354,24 @@ class ItineraryAnalyzer {
     }
 
     DateTime? estimatedArrival;
-    if (previousDeparture != null && segment.isRouteAvailable) {
+    if (suggestedDeparture != null && segment.isRouteAvailable) {
+      estimatedArrival = suggestedDeparture.add(Duration(minutes: driveMinutes));
+    } else if (previousDeparture != null && segment.isRouteAvailable) {
       estimatedArrival = previousDeparture.add(Duration(minutes: driveMinutes));
-    } else if (isFirstStopOfDay && segment.isRouteAvailable) {
-      if (isToday && suggestedDeparture != null && now.isAfter(suggestedDeparture)) {
-        estimatedArrival = now.add(Duration(minutes: driveMinutes));
-      } else if (plannedArrival != null) {
-        estimatedArrival = plannedArrival;
-      }
     }
 
     bool hasConflict = false;
     String? conflictText;
-    if (previousDeparture != null && plannedArrival != null && estimatedArrival != null) {
-      final diffMinutes = estimatedArrival.difference(plannedArrival).inMinutes;
+    if (previousDeparture != null && plannedArrival != null && segment.isRouteAvailable) {
+      final conflictArrival = previousDeparture.add(Duration(minutes: driveMinutes));
+      final diffMinutes = conflictArrival.difference(plannedArrival).inMinutes;
       if (diffMinutes > conflictMajorMinutes) {
         hasConflict = true;
-        final formattedEstimated = DateFormat('h:mm a').format(estimatedArrival);
+        final formattedEstimated = DateFormat('h:mm a').format(conflictArrival);
         conflictText = 'You may arrive around $formattedEstimated. Consider leaving earlier or adjusting this stop.';
       } else if (diffMinutes > conflictMinorMinutes) {
         hasConflict = true;
-        final formattedEstimated = DateFormat('h:mm a').format(estimatedArrival);
+        final formattedEstimated = DateFormat('h:mm a').format(conflictArrival);
         conflictText = 'Estimated arrival is around $formattedEstimated.';
       }
     }
@@ -497,14 +494,10 @@ class ItineraryAnalyzer {
     }
 
     DateTime? estimatedArrival;
-    if (previousDeparture != null && segment.isRouteAvailable) {
+    if (suggestedDeparture != null && segment.isRouteAvailable) {
+      estimatedArrival = suggestedDeparture.add(Duration(minutes: driveMinutes));
+    } else if (previousDeparture != null && segment.isRouteAvailable) {
       estimatedArrival = previousDeparture.add(Duration(minutes: driveMinutes));
-    } else if (isFirstStopOfDay && segment.isRouteAvailable) {
-      if (isToday && suggestedDeparture != null && now.isAfter(suggestedDeparture)) {
-        estimatedArrival = now.add(Duration(minutes: driveMinutes));
-      } else {
-        estimatedArrival = recommendedArrival;
-      }
     }
 
     HourlyWeatherItem? weatherAtArrival;

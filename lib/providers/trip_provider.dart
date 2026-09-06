@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/planned_trip.dart';
 import '../models/trip_stop.dart';
@@ -15,6 +17,7 @@ import '../services/itinerary_analyzer.dart';
 import '../services/trip_day_setting_service.dart';
 import '../models/itinerary_analysis.dart';
 import '../utils/travel_score_calculator.dart';
+import '../utils/itinerary_top_score_deriver.dart';
 
 enum TripForecastStatus {
   pending,
@@ -126,6 +129,38 @@ class TripProvider extends ChangeNotifier {
 
   ({String name, double lat, double lng, String? address})? getDayStartingPoint(int tripId, DateTime dayDate) {
     return _dayStartingPoints[_dayKey(tripId, dayDate)];
+  }
+
+  void setTripScore(int tripId, TravelScore score) {
+    _tripScores[tripId] = score;
+    unawaited(_persistTripScore(tripId, score));
+    notifyListeners();
+  }
+
+  Future<void> _persistTripScore(int tripId, TravelScore score) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('canonical_trip_score_$tripId', jsonEncode(score.toJson()));
+    } catch (_) {}
+  }
+
+  Future<TravelScore?> _loadPersistedTripScore(int tripId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString('canonical_trip_score_$tripId');
+      if (raw != null) {
+        final json = jsonDecode(raw) as Map<String, dynamic>;
+        return TravelScore.fromJson(json);
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  Future<void> _removePersistedTripScore(int tripId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('canonical_trip_score_$tripId');
+    } catch (_) {}
   }
 
   ({String name, double lat, double lng, String? address}) getEffectiveDayStart(
@@ -306,6 +341,15 @@ class TripProvider extends ChangeNotifier {
     try {
       _trips = await _tripService.getTrips(userId);
       debugPrint('[TripProvider] TOTAL PROVIDER TRIPS: ${_trips.length}');
+      for (final trip in _trips) {
+        if (trip.id != null && !trip.isPast && trip.isWithinForecastRange) {
+          final persisted = await _loadPersistedTripScore(trip.id!);
+          if (persisted != null && !persisted.isInitial) {
+            _tripScores[trip.id!] = persisted;
+            _tripForecastStatuses[trip.id!] = TripForecastStatus.available;
+          }
+        }
+      }
       _loadForecastsForEligibleTrips();
     } catch (e, stack) {
       debugPrint('[TripProvider] Error loading trips: $e\n$stack');
@@ -606,6 +650,7 @@ class TripProvider extends ChangeNotifier {
     _tripForecastStatuses.remove(tripId);
     _tripScoreLoading.remove(tripId);
     _inFlightTripCalculations.remove(tripId);
+    unawaited(_removePersistedTripScore(tripId));
   }
 
   Future<TravelScore?> calculateScoreForPlannedTrip(
@@ -724,10 +769,11 @@ class TripProvider extends ChangeNotifier {
         score = TravelScoreCalculator.calculateScore(
           weather: weather,
           route: route,
-          preferredPeriod: trip.preferredPeriod,
+          preferredPeriod: null,
           travelDate: trip.travelDate,
         );
         _tripScores[tripId] = score;
+        unawaited(_persistTripScore(tripId, score));
       } else {
         _tripScores.remove(tripId);
       }
@@ -986,6 +1032,22 @@ class TripProvider extends ChangeNotifier {
         dayStartOverrides: tripOverrides.isNotEmpty ? tripOverrides : null,
       );
       _itineraryAnalyses[tripId] = analysis;
+
+      if (analysis.days.isNotEmpty) {
+        final allStopAnalyses = analysis.days.expand((d) => d.stops).toList();
+        if (allStopAnalyses.isNotEmpty) {
+          final derivedScore = ItineraryTopScoreDeriver.derive(
+            trip: trip,
+            firstStopAnalysis: allStopAnalyses.first,
+            totalStops: allStopAnalyses.length,
+            fallbackScore: _tripScores[tripId],
+          );
+          _tripScores[tripId] = derivedScore;
+          _tripForecastStatuses[tripId] = TripForecastStatus.available;
+          unawaited(_persistTripScore(tripId, derivedScore));
+        }
+      }
+
       return analysis;
     } catch (e) {
       debugPrint('[TripProvider] Error analyzing itinerary for trip $tripId: $e');

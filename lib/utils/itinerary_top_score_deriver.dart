@@ -2,6 +2,7 @@ import '../models/itinerary_analysis.dart';
 import '../models/planned_trip.dart';
 import '../models/travel_score.dart';
 import '../theme/app_colors.dart';
+import 'travel_score_calculator.dart';
 
 class ItineraryTopScoreDeriver {
   static TravelScore derive({
@@ -13,65 +14,63 @@ class ItineraryTopScoreDeriver {
     final stop = firstStopAnalysis.stop;
     final segment = firstStopAnalysis.routeFromPrevious;
 
-    final rawScore = firstStopAnalysis.weatherSuitability ?? fallbackScore?.score ?? 80;
-    final score = rawScore.clamp(10, 100);
+    final TravelScore baseScore;
+    if (fallbackScore != null) {
+      baseScore = fallbackScore;
+    } else if (firstStopAnalysis.weather != null) {
+      baseScore = TravelScoreCalculator.calculateScore(
+        weather: firstStopAnalysis.weather,
+        route: segment?.route,
+        preferredPeriod: null,
+        travelDate: trip.travelDate,
+      );
+    } else if (firstStopAnalysis.weatherSuitability != null) {
+      final weatherScore = firstStopAnalysis.weatherSuitability!;
+      final journeyScore = segment?.route != null
+          ? TravelScoreCalculator.calculateJourneyPracticality(segment!.route!)
+          : null;
+      final overall = journeyScore != null
+          ? ((weatherScore * 0.60) + (journeyScore * 0.40)).round().clamp(0, 100)
+          : weatherScore;
+      final suitability = overall >= 80
+          ? TravelSuitability.ideal
+          : (overall >= 60 ? TravelSuitability.moderate : TravelSuitability.challenging);
+      final levelName = overall >= 90
+          ? 'Excellent'
+          : (overall >= 80
+              ? 'Very Good'
+              : (overall >= 70
+                  ? 'Good'
+                  : (overall >= 60 ? 'Moderate' : 'Less Ideal')));
+      final color = overall >= 80
+          ? AppColors.safeGreen
+          : (overall >= 60
+              ? (overall >= 70 ? AppColors.accentCyan : AppColors.cautionAmber)
+              : AppColors.dangerRed);
 
-    final suitability = score >= 80
-        ? TravelSuitability.ideal
-        : (score >= 60 ? TravelSuitability.moderate : TravelSuitability.challenging);
+      const recPeriod = 'Morning';
 
-    final levelName = score >= 90
-        ? 'Excellent'
-        : (score >= 80
-            ? 'Very Good'
-            : (score >= 70
-                ? 'Good'
-                : (score >= 60 ? 'Moderate' : 'Less Ideal')));
-
-    final color = score >= 80
-        ? AppColors.safeGreen
-        : (score >= 60
-            ? (score >= 70 ? AppColors.accentCyan : AppColors.cautionAmber)
-            : AppColors.dangerRed);
-
-    final arr = stop.isExactTime
-        ? (firstStopAnalysis.plannedArrivalDateTime ?? firstStopAnalysis.recommendedArrivalDateTime)
-        : (firstStopAnalysis.recommendedArrivalDateTime ?? firstStopAnalysis.plannedArrivalDateTime);
-
-    String recPeriod;
-    if (arr != null) {
-      if (arr.hour < 12) {
-        recPeriod = 'Morning';
-      } else if (arr.hour < 18) {
-        recPeriod = 'Afternoon';
-      } else {
-        recPeriod = 'Night';
-      }
+      baseScore = TravelScore(
+        score: overall,
+        weatherSubscore: weatherScore,
+        journeySubscore: journeyScore,
+        suitability: suitability,
+        levelName: levelName,
+        bestTravelPeriod: recPeriod,
+        recommendedPeriod: recPeriod,
+        bestWeatherWindow: 'Around 8:00 AM',
+        recommendedDeparture: segment?.durationMinutes != null ? 'Around 6:00 AM' : null,
+        recommendation: '',
+        highlights: const [],
+        color: color,
+        breakdown: TravelScoreBreakdown(
+          weatherScore: weatherScore,
+          journeyScore: journeyScore,
+        ),
+      );
     } else {
-      final pref = stop.preferredPeriod?.trim();
-      if (pref != null && pref.isNotEmpty && pref.toLowerCase() != 'auto') {
-        recPeriod = pref[0].toUpperCase() + pref.substring(1).toLowerCase();
-      } else {
-        recPeriod = fallbackScore?.recommendedPeriod ?? 'Morning';
-      }
+      baseScore = TravelScore.initial();
     }
-
-    String? bestWindow;
-    if (firstStopAnalysis.betterWeatherWindow != null &&
-        firstStopAnalysis.betterWeatherWindow!.trim().isNotEmpty) {
-      bestWindow = firstStopAnalysis.betterWeatherWindow!.trim();
-    } else {
-      final arrStr = stop.isExactTime
-          ? firstStopAnalysis.plannedArrivalFormatted
-          : firstStopAnalysis.recommendedArrivalFormatted;
-      if (arrStr != null) {
-        bestWindow = arrStr.startsWith('Around') ? arrStr : 'Around $arrStr';
-      } else {
-        bestWindow = fallbackScore?.bestWeatherWindow;
-      }
-    }
-
-    final depFormatted = firstStopAnalysis.suggestedDepartureFormatted ?? fallbackScore?.recommendedDeparture;
 
     final bullets = <String>[];
     if (totalStops == 1) {
@@ -81,15 +80,6 @@ class ItineraryTopScoreDeriver {
       if (firstStopAnalysis.weatherDescriptionFormatted != null) {
         final rain = firstStopAnalysis.rainProbabilityFormatted;
         bullets.add('Expected weather at arrival: ${firstStopAnalysis.weatherDescriptionFormatted}${rain != null ? ' · $rain' : ''}.');
-      }
-      if (stop.isExactTime) {
-        if (firstStopAnalysis.plannedArrivalFormatted != null) {
-          bullets.add('Planned arrival scheduled for ${firstStopAnalysis.plannedArrivalFormatted}.');
-        }
-      } else {
-        if (firstStopAnalysis.recommendedArrivalFormatted != null) {
-          bullets.add('Optimal weather arrival recommended around ${firstStopAnalysis.recommendedArrivalFormatted}.');
-        }
       }
     } else {
       if (segment != null && segment.isRouteAvailable) {
@@ -106,20 +96,22 @@ class ItineraryTopScoreDeriver {
         : 'Trip start conditions and recommendations for Leg 1 to ${stop.locationName}.';
 
     return TravelScore(
-      score: score,
-      suitability: suitability,
-      levelName: levelName,
-      bestTravelPeriod: recPeriod,
-      recommendedPeriod: recPeriod,
-      bestWeatherWindow: bestWindow,
-      recommendedDeparture: depFormatted,
-      departureReason: firstStopAnalysis.suggestedDepartureDateTime != null
-          ? 'Suggested departure for ${stop.locationName}'
-          : fallbackScore?.departureReason,
+      score: baseScore.score,
+      weatherSubscore: baseScore.weatherSubscore,
+      journeySubscore: baseScore.journeySubscore,
+      suitability: baseScore.suitability,
+      levelName: baseScore.levelName,
+      bestTravelPeriod: baseScore.bestTravelPeriod,
+      recommendedPeriod: baseScore.recommendedPeriod ?? baseScore.bestTravelPeriod,
+      bestWeatherWindow: baseScore.bestWeatherWindow ?? fallbackScore?.bestWeatherWindow,
+      recommendedDeparture: baseScore.recommendedDeparture ?? fallbackScore?.recommendedDeparture,
+      departureReason: baseScore.departureReason ?? fallbackScore?.departureReason,
       recommendation: summary,
-      highlights: bullets,
-      explanationBullets: bullets,
-      color: color,
+      highlights: bullets.isNotEmpty ? bullets : baseScore.highlights,
+      explanationBullets: bullets.isNotEmpty ? bullets : baseScore.explanationBullets,
+      breakdown: baseScore.breakdown,
+      color: baseScore.color,
+      isInitial: baseScore.isInitial,
     );
   }
 }

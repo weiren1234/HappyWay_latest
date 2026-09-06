@@ -17,6 +17,7 @@ import '../widgets/add_stop_sheet.dart';
 import '../widgets/create_trip_sheet.dart';
 import '../widgets/destination_picker_sheet.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/hourly_weather_sheet.dart';
 
 class TripDetailScreen extends StatefulWidget {
   final PlannedTrip trip;
@@ -44,7 +45,8 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       final tripProvider = Provider.of<TripProvider>(context, listen: false);
       await tripProvider.loadStopsForTrip(_trip.id!, force: forceRefresh);
       await tripProvider.loadDaySettingsForTrip(_trip.id!, force: forceRefresh);
-      if (_trip.destinationLocationId.isNotEmpty) {
+      if (_trip.destinationLocationId.isNotEmpty ||
+          (_trip.destinationLatitude != null && _trip.destinationLongitude != null)) {
         await tripProvider.calculateScoreForPlannedTrip(
           _trip,
           forceRefresh: forceRefresh,
@@ -193,7 +195,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
           maxLines: 3,
           style: TextStyle(color: AppColors.primaryText(context), fontSize: 14),
           decoration: InputDecoration(
-            hintText: 'e.g. Try wonton mee, booking under Wei Ren...',
+            hintText: 'Add a personal note (e.g. Try specialty dish, note booking details)...',
             hintStyle: TextStyle(color: AppColors.mutedText(context), fontSize: 13),
             filled: true,
             fillColor: AppColors.surfaceGlass(context),
@@ -377,9 +379,9 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
 
     TravelScore? effectiveScore;
     TravelRoute? effectiveRoute;
+    ItineraryStopAnalysis? firstStopAnalysis;
 
     if (stops.isNotEmpty && itineraryAnalysis != null && itineraryAnalysis.days.isNotEmpty) {
-      ItineraryStopAnalysis? firstStopAnalysis;
       for (final day in itineraryAnalysis.days) {
         if (day.stops.isNotEmpty) {
           firstStopAnalysis = day.stops.first;
@@ -997,27 +999,6 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          if (hasOverride)
-            TextButton.icon(
-              onPressed: () {
-                tripProvider.clearDayStartingPoint(tripId, dayDate);
-              },
-              icon: Icon(Icons.undo_rounded, size: 14, color: onSurfaceVariant),
-              label: Text(
-                'Reset',
-                style: TextStyle(
-                  color: onSurfaceVariant,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-            ),
-          const SizedBox(width: 4),
           InkWell(
             borderRadius: BorderRadius.circular(10),
             onTap: () => _pickDayStartingPoint(dayDate),
@@ -1693,26 +1674,6 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       ));
     }
 
-    final weatherDesc = analysis.weatherDescriptionFormatted;
-    final rainProb = analysis.rainProbabilityFormatted;
-    if (weatherDesc != null || rainProb != null) {
-      final suitability = analysis.weatherSuitability;
-      Color weatherColor = AppColors.safeGreen;
-      if (suitability != null) {
-        if (suitability < 40) {
-          weatherColor = AppColors.dangerRed;
-        } else if (suitability < 65) {
-          weatherColor = AppColors.cautionAmber;
-        }
-      }
-      final label = [weatherDesc, rainProb].whereType<String>().join(' · ');
-      chips.add(_IntelChip(
-        icon: Icons.wb_cloudy_outlined,
-        label: label,
-        color: weatherColor,
-      ));
-    }
-
     if (analysis.suggestedDepartureFormatted != null) {
       chips.add(_IntelChip(
         icon: Icons.departure_board_rounded,
@@ -1721,15 +1682,46 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       ));
     }
 
+    if (analysis.estimatedArrivalFormatted != null) {
+      chips.add(_IntelChip(
+        icon: Icons.login_rounded,
+        label: 'Est. Arrival ${analysis.estimatedArrivalFormatted?.replaceFirst('Around ', '') ?? ''}',
+        color: AppColors.cyanAccent(context),
+      ));
+    }
+
+    final weatherDesc = analysis.weatherDescriptionFormatted;
+    final rainProb = analysis.rainProbabilityFormatted;
+    final weatherLabel = (weatherDesc != null || rainProb != null)
+        ? [weatherDesc, rainProb].whereType<String>().join(' · ')
+        : (analysis.isWeatherAvailable ? null : 'Forecast not available yet');
+
+    if (weatherLabel != null) {
+      final suitability = analysis.weatherSuitability;
+      Color weatherColor = AppColors.safeGreen;
+      if (suitability != null) {
+        if (suitability < 40) {
+          weatherColor = AppColors.dangerRed;
+        } else if (suitability < 65) {
+          weatherColor = AppColors.cautionAmber;
+        }
+      } else if (!analysis.isWeatherAvailable) {
+        weatherColor = AppColors.mutedText(context);
+      }
+      chips.add(_IntelChip(
+        icon: Icons.wb_cloudy_outlined,
+        label: weatherLabel,
+        color: weatherColor,
+        trailingIcon: Icons.chevron_right_rounded,
+        onTap: () => HourlyWeatherSheet.show(context, stop: stop, analysis: analysis),
+      ));
+    }
+
     final conflictText = analysis.timingConflictText;
     final betterWindow = analysis.betterWeatherWindow;
 
     final hasConflict = analysis.hasTimingConflict && conflictText != null;
     final hasBetterWindow = betterWindow != null && betterWindow.isNotEmpty;
-
-    final showUseSuggestedButton = !stop.isExactTime &&
-        analysis.recommendedArrivalDateTime != null &&
-        stop.arrivalTimeOfDay == null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1811,69 +1803,8 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
             ),
           ),
         ],
-
-        if (showUseSuggestedButton) ...[
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: GestureDetector(
-              onTap: () => _applyRecommendedTime(stop, analysis),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: AppColors.safeGreen.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.safeGreen.withValues(alpha: 0.4)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.check_circle_outline_rounded, size: 13, color: AppColors.safeGreen),
-                    const SizedBox(width: 5),
-                    Text(
-                      'Use Suggested Time',
-                      style: TextStyle(
-                        color: AppColors.safeGreen,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
       ],
     );
-  }
-
-  Future<void> _applyRecommendedTime(TripStop stop, ItineraryStopAnalysis analysis) async {
-    final recommended = analysis.recommendedArrivalDateTime;
-    if (recommended == null || stop.id == null) return;
-
-    final tripProvider = Provider.of<TripProvider>(context, listen: false);
-    final timeStr = '${recommended.hour.toString().padLeft(2, '0')}:${recommended.minute.toString().padLeft(2, '0')}';
-    final updated = stop.copyWith(
-      plannedArrivalTime: timeStr,
-      timeMode: 'flexible',
-    );
-    await tripProvider.updateStop(updated);
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Suggested time applied: ${DateFormat('h:mm a').format(recommended)}',
-            style: const TextStyle(color: Colors.white),
-          ),
-          backgroundColor: AppColors.safeGreen.withValues(alpha: 0.9),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
   }
 
   Widget _buildTravelScoreCard(TravelScore score, TravelRoute? route) {
@@ -1911,25 +1842,71 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: score.color.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: score.color.withValues(alpha: 0.4)),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: score.color,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    score.levelName,
+                    style: TextStyle(
+                      color: score.color,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          Row(
+            children: [
+              Text(
+                '${score.score}',
+                style: TextStyle(
+                  fontSize: 48,
+                  fontWeight: FontWeight.w800,
+                  color: score.color,
+                  height: 1.0,
                 ),
-                child: Text(
-                  '${score.score}/100 • ${score.levelName}',
-                  style: TextStyle(color: score.color, fontSize: 11, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      score.consumerSummary,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.primaryText(context),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Out of 100 · Centralized Travel Score',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.mutedText(context),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          Text(score.consumerSummary, style: AppTextStyles.bodySmall.copyWith(color: AppColors.secondaryText(context), height: 1.4)),
 
           if (score.recommendedPeriod != null || score.bestWeatherWindow != null) ...[
-            const SizedBox(height: 12),
             IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1957,10 +1934,10 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: 12),
           ],
 
           if (score.recommendedDeparture != null) ...[
-            const SizedBox(height: 10),
             Builder(
               builder: (context) {
                 final now = DateTime.now();
@@ -1975,8 +1952,8 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                 final onMatch = RegExp(r'on (\d+ \w+) at (\d+:\d+ [AP]M)', caseSensitive: false).firstMatch(reason);
                 if (onMatch != null) {
                   estimatedArrival = '${onMatch.group(1)} · Around ${onMatch.group(2)}';
-                } else if (route != null) {
-                  final timeMatch = RegExp(r'(\d+):(\d+)\s*([AP]M)', caseSensitive: false).firstMatch(score.recommendedDeparture ?? '');
+                } else if (route != null && score.recommendedDeparture != null) {
+                  final timeMatch = RegExp(r'(\d+):(\d+)\s*([AP]M)', caseSensitive: false).firstMatch(score.recommendedDeparture!);
                   if (timeMatch != null) {
                     int hour = int.parse(timeMatch.group(1)!);
                     final min = int.parse(timeMatch.group(2)!);
@@ -1985,11 +1962,12 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                     if (!isPm && hour == 12) hour = 0;
                     final depDateTime = DateTime(_trip.travelDate.year, _trip.travelDate.month, _trip.travelDate.day, hour, min);
                     final arrDateTime = depDateTime.add(Duration(minutes: route.durationMinutes));
-                    if (arrDateTime.day != _trip.travelDate.day) {
-                      final arrDatePrefix = DateFormat('d MMM').format(arrDateTime);
-                      final arrTime = DateFormat('h:mm a').format(arrDateTime);
-                      estimatedArrival = '$arrDatePrefix · Around $arrTime';
-                    }
+                    final isArrToday = arrDateTime.year == now.year &&
+                        arrDateTime.month == now.month &&
+                        arrDateTime.day == now.day;
+                    final arrDatePrefix = isArrToday ? 'Today' : DateFormat('d MMM').format(arrDateTime);
+                    final arrTime = DateFormat('h:mm a').format(arrDateTime);
+                    estimatedArrival = '$arrDatePrefix · Around $arrTime';
                   }
                 }
 
@@ -2155,16 +2133,20 @@ class _IntelChip extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
+  final IconData? trailingIcon;
+  final VoidCallback? onTap;
 
   const _IntelChip({
     required this.icon,
     required this.label,
     required this.color,
+    this.trailingIcon,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final chip = Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
@@ -2188,8 +2170,25 @@ class _IntelChip extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
+          if (trailingIcon != null) ...[
+            const SizedBox(width: 3),
+            Icon(trailingIcon!, size: 12, color: color),
+          ],
         ],
       ),
     );
+
+    if (onTap != null) {
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: onTap,
+          child: chip,
+        ),
+      );
+    }
+
+    return chip;
   }
 }

@@ -854,7 +854,7 @@ class _AddStopSheetState extends State<AddStopSheet> {
               maxLines: 2,
               style: TextStyle(color: AppColors.primaryText(context), fontSize: 14),
               decoration: InputDecoration(
-                hintText: 'e.g. Try wonton mee, booking under Wei Ren, buy tickets first...',
+                hintText: 'Add a personal note (e.g. Try specialty dish, buy tickets in advance)...',
                 hintStyle: TextStyle(color: AppColors.mutedText(context), fontSize: 13),
                 prefixIcon: Icon(Icons.note_alt_outlined, color: AppColors.cyanAccent(context), size: 20),
                 filled: true,

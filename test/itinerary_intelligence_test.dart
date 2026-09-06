@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:happyway/models/planned_trip.dart';
 import 'package:happyway/models/trip_stop.dart';
@@ -9,6 +10,8 @@ import 'package:happyway/services/weather_service.dart';
 import 'package:happyway/services/itinerary_analyzer.dart';
 import 'package:happyway/providers/trip_provider.dart';
 import 'package:happyway/utils/itinerary_top_score_deriver.dart';
+import 'package:happyway/models/travel_score.dart';
+import 'package:happyway/widgets/hourly_weather_sheet.dart';
 
 class FakeRouteService implements RouteService {
   final Map<String, TravelRoute> routes = {};
@@ -910,7 +913,7 @@ void main() {
       expect(day3StillOverridden.name, 'Kedai Kopi Kong Lean');
     });
 
-    test('single-stop trip top score mirrors Stop 1 departure and timing context', () {
+    test('single-stop trip top score independently calculated from trip context', () {
       final trip = PlannedTrip(
         id: 400,
         userId: 'u1',
@@ -978,14 +981,13 @@ void main() {
       );
 
       expect(topScore.score, 88);
-      expect(topScore.recommendedDeparture, stopAnalysis.suggestedDepartureFormatted);
-      expect(topScore.recommendedDeparture, contains('3:55 AM'));
-      expect(topScore.bestWeatherWindow, contains('6:00 AM'));
+      expect(topScore.recommendedDeparture, 'Around 6:00 AM');
+      expect(topScore.bestWeatherWindow, 'Around 8:00 AM');
       expect(topScore.recommendedPeriod, 'Morning');
       expect(topScore.explanationBullets.any((b) => b.contains('205 km') || b.contains('drive')), isTrue);
     });
 
-    test('multi-stop trip top score behaves as trip-start summary aligned with Stop 1', () {
+    test('multi-stop trip top score calculated independently from Stop 1 timing', () {
       final trip = PlannedTrip(
         id: 500,
         userId: 'u1',
@@ -1010,7 +1012,7 @@ void main() {
         latitude: 4.59,
         longitude: 101.07,
         visitDate: DateTime(2026, 9, 7),
-        preferredPeriod: 'morning',
+        preferredPeriod: 'afternoon',
         timeMode: 'flexible',
         createdAt: DateTime(2026, 9, 1),
       );
@@ -1032,10 +1034,10 @@ void main() {
         isWeatherAvailable: true,
         weatherSuitability: 82,
         routeFromPrevious: segment,
-        recommendedArrivalDateTime: DateTime(2026, 9, 7, 8, 30),
-        suggestedDepartureDateTime: DateTime(2026, 9, 7, 6, 20),
-        estimatedArrivalDateTime: DateTime(2026, 9, 7, 8, 30),
-        betterWeatherWindow: '8:00 AM - 10:00 AM',
+        recommendedArrivalDateTime: DateTime(2026, 9, 7, 14, 0),
+        suggestedDepartureDateTime: DateTime(2026, 9, 7, 11, 55),
+        estimatedArrivalDateTime: DateTime(2026, 9, 7, 14, 0),
+        betterWeatherWindow: '2:00 PM - 4:00 PM',
       );
 
       final topScore = ItineraryTopScoreDeriver.derive(
@@ -1045,12 +1047,385 @@ void main() {
       );
 
       expect(topScore.score, 82);
-      expect(topScore.recommendedDeparture, stopAnalysis.suggestedDepartureFormatted);
-      expect(topScore.recommendedDeparture, contains('6:20 AM'));
-      expect(topScore.bestWeatherWindow, '8:00 AM - 10:00 AM');
+      expect(topScore.recommendedDeparture, 'Around 6:00 AM');
+      expect(topScore.bestWeatherWindow, 'Around 8:00 AM');
       expect(topScore.recommendedPeriod, 'Morning');
       expect(topScore.explanationBullets.any((b) => b.contains('3 stops')), isTrue);
       expect(topScore.explanationBullets.any((b) => b.contains('Leg 1')), isTrue);
+    });
+
+    test('editing Stop 1 preferredPeriod recalculates itinerary while top Travel Suitability remains independent', () async {
+      final fakeRouteService = FakeRouteService();
+      final fakeWeatherService = FakeWeatherService();
+      final analyzer = ItineraryAnalyzer(
+        routeService: fakeRouteService,
+        weatherService: fakeWeatherService,
+      );
+
+      final tripDate = DateTime(2026, 9, 8);
+      final weather = createMockWeather(tripDate);
+      fakeWeatherService.weatherMap['4.51,101.41'] = weather;
+
+      final trip = PlannedTrip(
+        id: 700,
+        userId: 'u1',
+        tripName: 'Cameron Independent Test',
+        originName: 'Kuala Lumpur',
+        originLatitude: 3.14,
+        originLongitude: 101.69,
+        destinationName: 'Cameron Highlands',
+        destinationLocationId: 'loc_cameron',
+        destinationState: 'Pahang',
+        destinationCategory: 'Highlands',
+        travelDate: tripDate,
+        startDate: tripDate,
+        endDate: tripDate,
+        createdAt: DateTime(2026, 9, 1),
+      );
+
+      final stop1Morning = TripStop(
+        id: 701,
+        tripId: 700,
+        userId: 'u1',
+        stopOrder: 1,
+        locationName: 'Boh Tea Centre',
+        latitude: 4.51,
+        longitude: 101.41,
+        visitDate: tripDate,
+        preferredPeriod: 'morning',
+        timeMode: 'flexible',
+        createdAt: DateTime(2026, 9, 1),
+      );
+
+      final initialAnalysis = await analyzer.analyzeTrip(
+        trip: trip,
+        stops: [stop1Morning],
+        currentTimeOverride: DateTime(2026, 9, 1, 8, 0),
+      );
+
+      final initialStop1 = initialAnalysis.days.first.stops.first;
+      final initialTopScore = ItineraryTopScoreDeriver.derive(
+        trip: trip,
+        firstStopAnalysis: initialStop1,
+        totalStops: 1,
+      );
+
+      final stop1Afternoon = stop1Morning.copyWith(preferredPeriod: 'afternoon');
+
+      final updatedAnalysis = await analyzer.analyzeTrip(
+        trip: trip,
+        stops: [stop1Afternoon],
+        currentTimeOverride: DateTime(2026, 9, 1, 8, 0),
+      );
+
+      final updatedStop1 = updatedAnalysis.days.first.stops.first;
+      final updatedTopScore = ItineraryTopScoreDeriver.derive(
+        trip: trip,
+        firstStopAnalysis: updatedStop1,
+        totalStops: 1,
+      );
+
+      expect(updatedTopScore.recommendedPeriod, initialTopScore.recommendedPeriod);
+      expect(updatedTopScore.bestWeatherWindow, initialTopScore.bestWeatherWindow);
+      expect(updatedTopScore.recommendedDeparture, initialTopScore.recommendedDeparture);
+      expect(updatedTopScore.score, initialTopScore.score);
+
+      expect(updatedStop1.stop.preferredPeriod, 'afternoon');
+      expect(updatedStop1.recommendedArrivalDateTime, isNot(initialStop1.recommendedArrivalDateTime));
+      expect(updatedStop1.suggestedDepartureDateTime, isNot(initialStop1.suggestedDepartureDateTime));
+      expect(updatedStop1.suggestedDepartureFormatted, isNot(initialStop1.suggestedDepartureFormatted));
+    });
+
+    testWidgets('Hourly weather sheet displays correct stop name, date, and items', (tester) async {
+      final visit = DateTime(2026, 9, 8);
+      final stop = TripStop(
+        id: 1,
+        tripId: 10,
+        userId: 'u1',
+        stopOrder: 1,
+        locationName: 'Kek Lok Si Temple',
+        latitude: 5.3995,
+        longitude: 100.2737,
+        visitDate: visit,
+        timeMode: 'exact',
+        plannedArrivalTime: '10:00:00',
+        createdAt: DateTime(2026, 9, 1),
+      );
+
+      final weather = createMockWeather(visit);
+      final analysis = ItineraryStopAnalysis(
+        stop: stop,
+        weather: weather,
+        isWeatherAvailable: true,
+        plannedArrivalDateTime: DateTime(2026, 9, 8, 10, 0),
+        recommendedArrivalDateTime: DateTime(2026, 9, 8, 10, 0),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: HourlyWeatherSheet(stop: stop, analysis: analysis),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Hourly Weather'), findsOneWidget);
+      expect(find.text('Kek Lok Si Temple'), findsOneWidget);
+      expect(find.textContaining('8 Sep 2026'), findsOneWidget);
+      expect(find.text('Planned'), findsOneWidget);
+    });
+
+    testWidgets('Hourly weather sheet displays empty state when forecast unavailable', (tester) async {
+      final visit = DateTime(2026, 9, 8);
+      final stop = TripStop(
+        id: 2,
+        tripId: 10,
+        userId: 'u1',
+        stopOrder: 1,
+        locationName: 'Remote Viewpoint',
+        latitude: 5.4,
+        longitude: 100.3,
+        visitDate: visit,
+        timeMode: 'flexible',
+        createdAt: DateTime(2026, 9, 1),
+      );
+
+      final analysis = ItineraryStopAnalysis(
+        stop: stop,
+        weather: null,
+        isWeatherAvailable: false,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: HourlyWeatherSheet(stop: stop, analysis: analysis),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Hourly forecast is not available yet.'), findsOneWidget);
+    });
+
+    test('Estimated arrival calculated consistently for multi-stop itinerary without previous departure', () async {
+      final analyzer = ItineraryAnalyzer(
+        routeService: fakeRouteService,
+        weatherService: fakeWeatherService,
+      );
+
+      final trip = PlannedTrip(
+        id: 99,
+        destinationLocationId: 'met:1',
+        destinationName: 'Penang',
+        destinationState: 'Penang',
+        destinationCategory: 'Town',
+        travelDate: DateTime(2026, 9, 8),
+        originName: 'Hotel',
+        originLatitude: 5.41,
+        originLongitude: 100.33,
+        createdAt: DateTime(2026, 9, 1),
+      );
+
+      final stop1 = TripStop(
+        id: 1,
+        tripId: 99,
+        userId: 'u1',
+        stopOrder: 1,
+        locationName: 'Stop 1',
+        latitude: 5.41,
+        longitude: 100.33,
+        visitDate: DateTime(2026, 9, 8),
+        timeMode: 'exact',
+        plannedArrivalTime: '10:00:00',
+        createdAt: DateTime(2026, 9, 1),
+      );
+
+      final stop2 = TripStop(
+        id: 2,
+        tripId: 99,
+        userId: 'u1',
+        stopOrder: 2,
+        locationName: 'Stop 2',
+        latitude: 5.42,
+        longitude: 100.34,
+        visitDate: DateTime(2026, 9, 8),
+        timeMode: 'exact',
+        plannedArrivalTime: '13:00:00',
+        createdAt: DateTime(2026, 9, 1),
+      );
+
+      final analysis = await analyzer.analyzeTrip(
+        trip: trip,
+        stops: [stop1, stop2],
+        currentTimeOverride: DateTime(2026, 9, 1, 8, 0),
+      );
+
+      final stop2Analysis = analysis.days.first.stops[1];
+      expect(stop2Analysis.suggestedDepartureDateTime, isNotNull);
+      expect(stop2Analysis.estimatedArrivalDateTime, isNotNull);
+      expect(
+        stop2Analysis.estimatedArrivalDateTime,
+        stop2Analysis.suggestedDepartureDateTime!.add(
+          Duration(minutes: stop2Analysis.routeFromPrevious!.durationMinutes!),
+        ),
+      );
+    });
+
+    test('ItineraryTopScoreDeriver uses centralized TravelScoreCalculator and is not defaulting to 100', () {
+      final trip = PlannedTrip(
+        id: 77,
+        userId: 'u1',
+        tripName: 'Trip Test',
+        originName: 'KL',
+        destinationName: 'Penang',
+        destinationLocationId: 'met:1',
+        destinationState: 'Penang',
+        destinationCategory: 'Town',
+        travelDate: DateTime(2026, 9, 8),
+        startDate: DateTime(2026, 9, 8),
+        endDate: DateTime(2026, 9, 8),
+        createdAt: DateTime(2026, 9, 1),
+      );
+
+      final stop = TripStop(
+        id: 1,
+        tripId: 77,
+        userId: 'u1',
+        stopOrder: 1,
+        locationName: 'Stop 1',
+        latitude: 5.41,
+        longitude: 100.33,
+        visitDate: DateTime(2026, 9, 8),
+        preferredPeriod: 'afternoon',
+        timeMode: 'flexible',
+        createdAt: DateTime(2026, 9, 1),
+      );
+
+      final weather = createMockWeather(DateTime(2026, 9, 8), baseSuitabilityWeatherCode: 61);
+      final route = TravelRoute(
+        originName: 'KL',
+        originLatitude: 3.14,
+        originLongitude: 101.69,
+        destinationName: 'Penang',
+        destinationLatitude: 5.41,
+        destinationLongitude: 100.33,
+        distanceMeters: 350000,
+        distanceKm: 350.0,
+        durationSeconds: 14400,
+        fetchedAt: DateTime.now(),
+      );
+
+      final segment = ItinerarySegmentAnalysis(
+        fromName: 'KL',
+        fromLatitude: 3.14,
+        fromLongitude: 101.69,
+        toName: 'Stop 1',
+        toLatitude: 5.41,
+        toLongitude: 100.33,
+        distanceKm: 350.0,
+        durationMinutes: 240,
+        route: route,
+        isRouteAvailable: true,
+      );
+
+      final stopAnalysis = ItineraryStopAnalysis(
+        stop: stop,
+        weather: weather,
+        isWeatherAvailable: true,
+        weatherSuitability: 100,
+        routeFromPrevious: segment,
+        recommendedArrivalDateTime: DateTime(2026, 9, 8, 14, 0),
+        suggestedDepartureDateTime: DateTime(2026, 9, 8, 9, 55),
+      );
+
+      final topScore = ItineraryTopScoreDeriver.derive(
+        trip: trip,
+        firstStopAnalysis: stopAnalysis,
+        totalStops: 1,
+      );
+
+      expect(topScore.score, isNot(100));
+      expect(topScore.score, lessThan(90));
+      expect(topScore.weatherSubscore, isNotNull);
+      expect(topScore.journeySubscore, isNotNull);
+    });
+
+    test('ItineraryTopScoreDeriver strictly preserves canonical trip score when fallbackScore is provided', () {
+      final trip = PlannedTrip(
+        id: 77,
+        userId: 'u1',
+        tripName: 'Trip Test',
+        originName: 'KL',
+        destinationName: 'Cameron Highlands',
+        destinationLocationId: 'met:1',
+        destinationState: 'Pahang',
+        destinationCategory: 'Highlands',
+        travelDate: DateTime(2026, 9, 8),
+        startDate: DateTime(2026, 9, 8),
+        endDate: DateTime(2026, 9, 8),
+        createdAt: DateTime(2026, 9, 1),
+      );
+
+      final stop = TripStop(
+        id: 1,
+        tripId: 77,
+        userId: 'u1',
+        stopOrder: 1,
+        locationName: 'Boh Tea Centre',
+        latitude: 4.51,
+        longitude: 101.41,
+        visitDate: DateTime(2026, 9, 8),
+        preferredPeriod: 'morning',
+        timeMode: 'flexible',
+        createdAt: DateTime(2026, 9, 1),
+      );
+
+      final weather = createMockWeather(DateTime(2026, 9, 8), baseSuitabilityWeatherCode: 0);
+      final segment = ItinerarySegmentAnalysis(
+        fromName: 'KL',
+        fromLatitude: 3.14,
+        fromLongitude: 101.69,
+        toName: 'Boh Tea Centre',
+        toLatitude: 4.51,
+        toLongitude: 101.41,
+        distanceKm: 210.0,
+        durationMinutes: 180,
+        isRouteAvailable: true,
+      );
+
+      final stopAnalysis = ItineraryStopAnalysis(
+        stop: stop,
+        weather: weather,
+        isWeatherAvailable: true,
+        weatherSuitability: 95,
+        routeFromPrevious: segment,
+      );
+
+      final canonicalTripScore = TravelScore(
+        score: 79,
+        weatherSubscore: 82,
+        journeySubscore: 74,
+        suitability: TravelSuitability.moderate,
+        levelName: 'Good',
+        bestTravelPeriod: 'Morning',
+        recommendation: 'Good conditions planned for your trip.',
+        highlights: const ['Destination forecast stable.'],
+      );
+
+      final topScore = ItineraryTopScoreDeriver.derive(
+        trip: trip,
+        firstStopAnalysis: stopAnalysis,
+        totalStops: 1,
+        fallbackScore: canonicalTripScore,
+      );
+
+      expect(topScore.score, 79);
+      expect(topScore.weatherSubscore, 82);
+      expect(topScore.journeySubscore, 74);
+      expect(topScore.levelName, 'Good');
+      expect(topScore.bestTravelPeriod, 'Morning');
     });
   });
 }
