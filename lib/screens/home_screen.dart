@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/travel_destination.dart';
 import '../models/travel_location.dart';
@@ -14,11 +14,8 @@ import '../services/route_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/glass_card.dart';
-import '../widgets/auth_prompt_dialog.dart';
 import '../widgets/custom_search_bar.dart';
-import '../widgets/destination_card.dart';
 import '../widgets/loading_skeleton.dart';
-import '../widgets/header_section.dart';
 import '../widgets/destination_picker_sheet.dart';
 import '../widgets/origin_picker_sheet.dart';
 import '../widgets/travel_overview_card.dart';
@@ -401,6 +398,28 @@ class _HomeScreenState extends State<HomeScreen> {
     final dest = _selectedDestination;
     final hasValidDest = dest != null;
 
+    final searchQuery = destProvider.searchQuery.trim().toLowerCase();
+    final selectedCategory = destProvider.selectedCategory;
+
+    bool matchesSearchAndCategory(TravelDestination destItem) {
+      final matchesSearch = searchQuery.isEmpty ||
+          destItem.name.toLowerCase().contains(searchQuery) ||
+          destItem.state.toLowerCase().contains(searchQuery) ||
+          destItem.activityTags.any((t) => t.toLowerCase().contains(searchQuery));
+      final matchesCat = selectedCategory == 'All' ||
+          destItem.category == selectedCategory ||
+          destItem.activityTags.contains(selectedCategory);
+      return matchesSearch && matchesCat;
+    }
+
+    final roadRecommendations = destProvider.roadAccessibleRecommendations
+        .where((r) => matchesSearchAndCategory(r.destination))
+        .toList();
+
+    final getawayRecommendations = destProvider.getawayRecommendations
+        .where((r) => matchesSearchAndCategory(r.destination))
+        .toList();
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SafeArea(
@@ -777,6 +796,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                  child: CustomSearchBar(
+                    searchQuery: destProvider.searchQuery,
+                    onSearchChanged: destProvider.setSearchQuery,
+                    categories: destProvider.categories,
+                    selectedCategory: destProvider.selectedCategory,
+                    onCategorySelected: destProvider.selectCategory,
+                  ),
+                ),
+              ),
+
               if (destProvider.isLoadingRecommendations)
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
@@ -829,9 +861,37 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 )
+              else if (roadRecommendations.isEmpty && getawayRecommendations.isEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+                    child: GlassCard(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          const Icon(Icons.search_off_rounded, size: 28, color: AppColors.textMuted),
+                          const SizedBox(height: 8),
+                          Text(
+                            searchQuery.isNotEmpty
+                                ? 'No destinations found matching "$searchQuery"'
+                                : 'No $selectedCategory destinations found',
+                            style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Try clearing the search query or category filter.',
+                            style: AppTextStyles.bodySmall.copyWith(color: AppColors.secondaryText(context)),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
               else ...[
 
-                if (destProvider.roadAccessibleRecommendations.isNotEmpty) ...[
+                if (roadRecommendations.isNotEmpty) ...[
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 14, 20, 8),
@@ -856,7 +916,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
-                          final rec = destProvider.roadAccessibleRecommendations[index];
+                          final rec = roadRecommendations[index];
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 12),
                             child: RecommendationCard(
@@ -885,13 +945,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           );
                         },
-                        childCount: destProvider.roadAccessibleRecommendations.length,
+                        childCount: roadRecommendations.length,
                       ),
                     ),
                   ),
                 ],
 
-                if (destProvider.getawayRecommendations.isNotEmpty) ...[
+                if (getawayRecommendations.isNotEmpty) ...[
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 10, 20, 8),
@@ -916,7 +976,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
-                          final rec = destProvider.getawayRecommendations[index];
+                          final rec = getawayRecommendations[index];
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 12),
                             child: RecommendationCard(
@@ -945,105 +1005,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           );
                         },
-                        childCount: destProvider.getawayRecommendations.length,
+                        childCount: getawayRecommendations.length,
                       ),
                     ),
                   ),
                 ],
               ],
-
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-                  child: CustomSearchBar(
-                    searchQuery: destProvider.searchQuery,
-                    onSearchChanged: destProvider.setSearchQuery,
-                    categories: destProvider.categories,
-                    selectedCategory: destProvider.selectedCategory,
-                    onCategorySelected: destProvider.selectCategory,
-                  ),
-                ),
-              ),
-
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-                  child: HeaderSection(
-                    title: destProvider.selectedCategory == 'All'
-                        ? 'All Featured Destinations'
-                        : destProvider.selectedCategory,
-                    subtitle: '${destProvider.filteredDestinations.length} curated destinations across Malaysia',
-                  ),
-                ),
-              ),
-
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                sliver: destProvider.isLoading
-                    ? SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (_, i) => LoadingSkeleton.destinationCardSkeleton(),
-                          childCount: 3,
-                        ),
-                      )
-                    : destProvider.filteredDestinations.isEmpty
-                        ? SliverToBoxAdapter(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 40),
-                              child: Center(
-                                child: Column(
-                                  children: [
-                                    const Icon(Icons.search_off_rounded, size: 48, color: AppColors.textMuted),
-                                    const SizedBox(height: 12),
-                                    Text('No featured destinations found', style: AppTextStyles.titleMedium),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Try searching another location or reset category filter',
-                                      style: AppTextStyles.bodySmall,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          )
-                        : SliverList(
-                            delegate: SliverChildBuilderDelegate(
-                              (_, index) {
-                                final d = destProvider.filteredDestinations[index];
-                                return DestinationCard(
-                                  destination: d,
-                                  onTap: () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => DestinationDetailScreen(
-                                        destination: d,
-                                        userOrigin: Provider.of<LocationProvider>(context, listen: false).currentLocation,
-                                      ),
-                                    ),
-                                  ),
-                                  onToggleSave: () async {
-                                    final auth = Provider.of<AuthProvider>(context, listen: false);
-                                    if (!auth.isAuthenticated || auth.isGuest) {
-                                      AuthPromptDialog.show(context);
-                                      return;
-                                    }
-                                    final success = await destProvider.toggleSaveAnyDestination(d);
-                                    if (!success && context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Unable to update saved destinations. Please check your network connection.'),
-                                          behavior: SnackBarBehavior.floating,
-                                          duration: Duration(seconds: 3),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                );
-                              },
-                              childCount: destProvider.filteredDestinations.length,
-                            ),
-                          ),
-              ),
 
               const SliverToBoxAdapter(child: SizedBox(height: 100)),
             ],
